@@ -1,6 +1,5 @@
-void _exit(
-    int exit_code)
+void _init(
+    void)
 {
-    for (;;) {
-    }
+
 }

@@ -43,12 +43,16 @@ PLATFORM_stm32f7xx_CFLAGS = \
 	-mfloat-abi=hard \
 	-mfpu=fpv5-sp-d16 \
 	-fsingle-precision-constant \
-	-Wdouble-promotion \
 	-MMD
+	# -fno-builtin --short-enums \
+	# -Wdouble-promotion \
 
 PLATFORM_stm32f7xx_LDFLAGS = \
 	$(PLATFORM_stm32f7xx_CFLAGS) \
-	-Wl,-Lsrc/platform/stm32f7xx
+	-Wl,-Lsrc/platform/stm32f7xx \
+	-Wl,--gc-sections,--sort-section=alignment \
+	--specs=nosys.specs -u _printf_float \
+	-nostartfiles
 
 PLATFORM_stm32f7xx_CC      = arm-none-eabi-gcc
 PLATFORM_stm32f7xx_ASM     = arm-none-eabi-gcc
@@ -63,4 +67,5 @@ COMMON_SOURCES = \
 	core/system.c
 
 COMMON_CFLAGS = \
-	-g
+	-g \
+	-ffunction-sections -fdata-sections -fno-strict-aliasing
