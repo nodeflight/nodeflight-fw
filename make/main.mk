@@ -45,11 +45,14 @@ build/$(APP)-$(TARGET).elf: $(OBJECTS)
 build/$(TARGET)/%.o: src/%.c
 	@mkdir -p $(@D)
 	$(TRACE) CC $<
-	$(Q)$(CC) $(CFLAGS) -c -o $@ $^
+	$(Q)$(CC) $(CFLAGS) -c -o $@ $<
 
 build/$(TARGET)/%.o: src/%.s
 	@mkdir -p $(@D)
 	$(TRACE) ASM $<
-	$(Q)$(CC) $(CFLAGS) -c -o $@ $^
+	$(Q)$(CC) $(CFLAGS) -c -o $@ $<
+
+# Incude dependency tracking
+-include $(OBJECTS:.o=.d)
 
 .PHONY: all

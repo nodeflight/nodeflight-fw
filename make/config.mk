@@ -43,7 +43,8 @@ PLATFORM_stm32f7xx_CFLAGS = \
 	-mfloat-abi=hard \
 	-mfpu=fpv5-sp-d16 \
 	-fsingle-precision-constant \
-	-Wdouble-promotion
+	-Wdouble-promotion \
+	-MMD
 
 PLATFORM_stm32f7xx_LDFLAGS = \
 	$(PLATFORM_stm32f7xx_CFLAGS) \
