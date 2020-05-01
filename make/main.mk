@@ -53,6 +53,6 @@ build/$(TARGET)/%.o: src/%.s
 	$(Q)$(CC) $(CFLAGS) -c -o $@ $<
 
 # Incude dependency tracking
--include $(OBJECTS:.o=.d)
+-include $(patsubst %.o,%.d,$(filter %.o,$(OBJECTS)))
 
 .PHONY: all
