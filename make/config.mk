@@ -35,7 +35,8 @@ PLATFORM_stm32f7xx_SOURCES = \
 	platform/stm32f7xx/stm32f7xx_hal_driver/Src/stm32f7xx_hal_gpio.c \
 	platform/stm32f7xx/stm32f7xx_hal_driver/Src/stm32f7xx_hal_rcc.c \
 	platform/stm32f7xx/stm32f7xx_hal_driver/Src/stm32f7xx_hal_uart.c \
-	platform/stm32f7xx/stm32f7xx_hal_driver/Src/stm32f7xx_hal.c
+	platform/stm32f7xx/stm32f7xx_hal_driver/Src/stm32f7xx_hal.c \
+	platform/stm32f7xx/platform.c
 
 PLATFORM_stm32f7xx_CFLAGS = \
 	-mthumb \
@@ -63,9 +64,11 @@ PLATFORM_stm32f7xx_OBJCOPY = arm-none-eabi-objcopy
 # Common configuration
 
 COMMON_SOURCES = \
-	core/main.c \
-	core/system.c
+	core/main.c
+
+COMMON_INCLUDES = .
 
 COMMON_CFLAGS = \
 	-g \
+	-O3 \
 	-ffunction-sections -fdata-sections -fno-strict-aliasing
