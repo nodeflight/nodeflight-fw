@@ -8,6 +8,6 @@ int main(
     int i;
     platform_init();
     for (i = 0;; i++) {
-        printf("Test %d %f\n", i, 4.34);
+        printf("Test %d %f\n", i, (double)4.34f);
     }
 }

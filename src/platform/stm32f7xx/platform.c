@@ -20,7 +20,9 @@ int _write(
     /* stdout */
     if (fd == 1) {
         HAL_UART_Transmit(&s_uart, buf, size, HAL_MAX_DELAY);
+        return size;
     }
+    return -1;
 }
 
 void _init(

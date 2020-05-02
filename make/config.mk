@@ -39,14 +39,16 @@ PLATFORM_stm32f7xx_SOURCES = \
 	platform/stm32f7xx/platform.c
 
 PLATFORM_stm32f7xx_CFLAGS = \
-	-mthumb \
+	--short-enums \
+	-fno-builtin \
+	-fdata-sections \
+	-ffunction-sections \
+	-fsingle-precision-constant \
+	-fno-strict-aliasing \
 	-mcpu=cortex-m7 \
 	-mfloat-abi=hard \
 	-mfpu=fpv5-sp-d16 \
-	-fsingle-precision-constant \
-	-MMD
-	# -fno-builtin --short-enums \
-	# -Wdouble-promotion \
+	-mthumb
 
 PLATFORM_stm32f7xx_LDFLAGS = \
 	$(PLATFORM_stm32f7xx_CFLAGS) \
@@ -72,4 +74,8 @@ COMMON_INCLUDES = .
 COMMON_CFLAGS = \
 	-g \
 	-O3 \
-	-ffunction-sections -fdata-sections -fno-strict-aliasing
+	-Wdouble-promotion \
+	-Wall \
+	-Werror \
+	-Wpedantic \
+	-MMD
