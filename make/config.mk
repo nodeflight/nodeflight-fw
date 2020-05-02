@@ -36,7 +36,9 @@ PLATFORM_stm32f7xx_SOURCES = \
 	vendor/stm32/stm32f7xx_hal_driver/Src/stm32f7xx_hal_rcc.c \
 	vendor/stm32/stm32f7xx_hal_driver/Src/stm32f7xx_hal_uart.c \
 	vendor/stm32/stm32f7xx_hal_driver/Src/stm32f7xx_hal.c \
-	platform/stm32f7xx/platform.c
+	platform/stm32f7xx/platform.c \
+	platform/stm32f7xx/resource/uart.c \
+	platform/stm32f7xx/resource/usb_vcp.c
 
 PLATFORM_stm32f7xx_CFLAGS = \
 	--short-enums \
@@ -66,7 +68,9 @@ PLATFORM_stm32f7xx_OBJCOPY = arm-none-eabi-objcopy
 # Common configuration
 
 COMMON_SOURCES = \
-	core/main.c
+	core/main.c \
+	core/stdout.c \
+	resource/resource.c
 
 COMMON_INCLUDES = .
 

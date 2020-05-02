@@ -38,6 +38,13 @@ SECTIONS
     . = ALIGN(4);
     *(.rodata)         /* .rodata sections (constants, strings, etc.) */
     *(.rodata*)        /* .rodata* sections (constants, strings, etc.) */
+
+    . = ALIGN(4);
+    PROVIDE_HIDDEN (__nf_resource_start = .);
+    KEEP (*(SORT(.nf_resource.*)))
+    KEEP (*(.nf_resource*))
+    PROVIDE_HIDDEN (__nf_resource_end = .);
+
     . = ALIGN(4);
   } >FLASH
 
