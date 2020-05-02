@@ -55,8 +55,7 @@ PLATFORM_stm32f7xx_LDFLAGS = \
 	-Wl,-Lsrc/platform/stm32f7xx \
 	-Wl,--gc-sections,--sort-section=alignment \
 	--specs=nosys.specs \
-	--specs=nano.specs \
-	-nostartfiles
+	--specs=nano.specs
 
 PLATFORM_stm32f7xx_CC      = arm-none-eabi-gcc
 PLATFORM_stm32f7xx_ASM     = arm-none-eabi-gcc

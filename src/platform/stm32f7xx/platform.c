@@ -25,11 +25,6 @@ int _write(
     return -1;
 }
 
-void _init(
-    void)
-{
-}
-
 void platform_init(
     void)
 {
