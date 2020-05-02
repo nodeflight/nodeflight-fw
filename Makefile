@@ -1,7 +1,8 @@
 include make/verbosity.mk
 
 TARGETS=\
-	stm32f722
+	stm32f722 \
+	stm32f745
 
 # For verbosity
 TARGET=""

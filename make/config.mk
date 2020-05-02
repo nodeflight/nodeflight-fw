@@ -13,7 +13,7 @@ TARGET_stm32f722_SOURCES = \
 	vendor/stm32/cmsis_device_f7/Source/Templates/gcc/startup_stm32f722xx.s
 
 TARGET_stm32f745_PLATFORM = stm32f7xx
-TARGET_stm32f745_CFLAGS = -DSTM32f745xx
+TARGET_stm32f745_CFLAGS = -DSTM32F745xx
 TARGET_stm32f745_LDFLAGS += -Tstm32f745.ld
 TARGET_stm32f745_SOURCES = \
 	vendor/stm32/cmsis_device_f7/Source/Templates/gcc/startup_stm32f745xx.s
