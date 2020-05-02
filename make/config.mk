@@ -52,7 +52,8 @@ PLATFORM_stm32f7xx_LDFLAGS = \
 	$(PLATFORM_stm32f7xx_CFLAGS) \
 	-Wl,-Lsrc/platform/stm32f7xx \
 	-Wl,--gc-sections,--sort-section=alignment \
-	--specs=nosys.specs -u _printf_float \
+	--specs=nosys.specs \
+	--specs=nano.specs \
 	-nostartfiles
 
 PLATFORM_stm32f7xx_CC      = arm-none-eabi-gcc
