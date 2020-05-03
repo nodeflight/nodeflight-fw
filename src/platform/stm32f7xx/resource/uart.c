@@ -1,5 +1,7 @@
 #include "stm32f7xx.h"
-#include "stm32f7xx_hal.h"
+
+#include "stm32f7xx_ll_gpio.h"
+#include "stm32f7xx_ll_usart.h"
 
 #include "resource/resource.h"
 #include <stddef.h>
@@ -37,43 +39,47 @@ RESOURCE_INSTANCE_DECL(uart, uart4_c10_c11, "UART4 @ C10 C11", NULL);
 RESOURCE_INSTANCE_DECL(uart, uart6_c06_c07, "UART6 @ C06 C07", NULL);
 RESOURCE_INSTANCE_DECL(uart, uart6_g14_g09, "UART6 @ G14 G09", NULL);
 
-static UART_HandleTypeDef s_uart;
-
 void uart_init(
     resource_serial_t *instance,
     const resource_instance_decl_t *variant)
 {
-    __USART3_CLK_ENABLE();
-    __GPIOD_CLK_ENABLE();
+    LL_GPIO_Init(GPIOD, &(LL_GPIO_InitTypeDef) {
+        .Pin = LL_GPIO_PIN_8,
+        .Mode = LL_GPIO_MODE_ALTERNATE,
+        .Speed = LL_GPIO_SPEED_FREQ_VERY_HIGH,
+        .OutputType = LL_GPIO_OUTPUT_PUSHPULL,
+        .Pull = LL_GPIO_PULL_NO,
+        .Alternate = LL_GPIO_AF_7
+    });
 
-    GPIO_InitTypeDef GPIO_InitStructure;
+    LL_GPIO_Init(GPIOD, &(LL_GPIO_InitTypeDef) {
+        .Pin = LL_GPIO_PIN_9,
+        .Mode = LL_GPIO_MODE_ALTERNATE,
+        .Speed = LL_GPIO_SPEED_FREQ_VERY_HIGH,
+        .OutputType = LL_GPIO_OUTPUT_OPENDRAIN,
+        .Pull = LL_GPIO_PULL_NO,
+        .Alternate = LL_GPIO_AF_7
+    });
 
-    GPIO_InitStructure.Pin = GPIO_PIN_8;
-    GPIO_InitStructure.Mode = GPIO_MODE_AF_PP;
-    GPIO_InitStructure.Alternate = GPIO_AF7_USART3;
-    GPIO_InitStructure.Speed = GPIO_SPEED_HIGH;
-    GPIO_InitStructure.Pull = GPIO_NOPULL;
-    HAL_GPIO_Init(GPIOD, &GPIO_InitStructure);
+    LL_GPIO_Init(GPIOD, &(LL_GPIO_InitTypeDef) {
+        .Pin = LL_GPIO_PIN_9,
+        .Mode = LL_GPIO_MODE_ALTERNATE,
+        .Speed = LL_GPIO_SPEED_FREQ_VERY_HIGH,
+        .OutputType = LL_GPIO_OUTPUT_OPENDRAIN,
+        .Pull = LL_GPIO_PULL_NO,
+        .Alternate = LL_GPIO_AF_7
+    });
 
-    GPIO_InitStructure.Pin = GPIO_PIN_9;
-    GPIO_InitStructure.Mode = GPIO_MODE_AF_OD;
-    HAL_GPIO_Init(GPIOD, &GPIO_InitStructure);
-
-    s_uart.Instance = USART3;
-    s_uart.Init = (UART_InitTypeDef) {
+    LL_USART_Init(USART3, &(LL_USART_InitTypeDef) {
         .BaudRate = 115200,
-        .WordLength = UART_WORDLENGTH_8B,
-        .StopBits = UART_STOPBITS_1,
-        .Parity = UART_PARITY_NONE,
-        .Mode = USART_MODE_TX_RX,
-        .HwFlowCtl = UART_HWCONTROL_NONE,
-        .OverSampling = UART_OVERSAMPLING_8,
-        .OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLED
-    };
-
-    if (HAL_UART_Init(&s_uart) != HAL_OK) {
-        asm ("bkpt 255");
-    }
+        .DataWidth = LL_USART_DATAWIDTH_8B,
+        .StopBits = LL_USART_STOPBITS_1,
+        .Parity = LL_USART_PARITY_NONE,
+        .TransferDirection = LL_USART_DIRECTION_TX_RX,
+        .HardwareFlowControl = LL_USART_HWCONTROL_NONE,
+        .OverSampling = LL_USART_OVERSAMPLING_16
+    });
+    LL_USART_Enable(USART3);
 }
 
 void uart_write(
@@ -81,5 +87,12 @@ void uart_write(
     void *buf,
     int bytes)
 {
-    HAL_UART_Transmit(&s_uart, buf, bytes, HAL_MAX_DELAY);
+    uint8_t *cur = buf;
+    while (bytes--) {
+        while (!LL_USART_IsActiveFlag_TXE(USART3)) {
+        }
+        LL_USART_TransmitData8(USART3, *(cur++));
+    }
+    while (!LL_USART_IsActiveFlag_TC(USART3)) {
+    }
 }

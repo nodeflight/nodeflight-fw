@@ -30,17 +30,15 @@ PLATFORM_stm32f7xx_INCLUDES = \
 
 PLATFORM_stm32f7xx_SOURCES = \
 	vendor/stm32/cmsis_device_f7/Source/Templates/system_stm32f7xx.c \
-	vendor/stm32/stm32f7xx_hal_driver/Src/stm32f7xx_hal_cortex.c \
-	vendor/stm32/stm32f7xx_hal_driver/Src/stm32f7xx_hal_dma.c \
-	vendor/stm32/stm32f7xx_hal_driver/Src/stm32f7xx_hal_gpio.c \
-	vendor/stm32/stm32f7xx_hal_driver/Src/stm32f7xx_hal_rcc.c \
-	vendor/stm32/stm32f7xx_hal_driver/Src/stm32f7xx_hal_uart.c \
-	vendor/stm32/stm32f7xx_hal_driver/Src/stm32f7xx_hal.c \
+	vendor/stm32/stm32f7xx_hal_driver/Src/stm32f7xx_ll_gpio.c \
+	vendor/stm32/stm32f7xx_hal_driver/Src/stm32f7xx_ll_rcc.c \
+	vendor/stm32/stm32f7xx_hal_driver/Src/stm32f7xx_ll_usart.c \
 	platform/stm32f7xx/platform.c \
 	platform/stm32f7xx/resource/uart.c \
 	platform/stm32f7xx/resource/usb_vcp.c
 
 PLATFORM_stm32f7xx_CFLAGS = \
+	-DUSE_FULL_LL_DRIVER \
 	--short-enums \
 	-fno-builtin \
 	-fdata-sections \

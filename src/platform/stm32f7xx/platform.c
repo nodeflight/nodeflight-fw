@@ -1,19 +1,18 @@
 #include "stm32f7xx.h"
-#include "stm32f7xx_hal.h"
 
 #include "platform/platform.h"
-
-void SysTick_Handler(
-    void)
-{
-    HAL_IncTick();
-    HAL_SYSTICK_IRQHandler();
-}
 
 void platform_init(
     void)
 {
+    /* Don't use priority grouping... */
+    NVIC_SetPriorityGrouping(0);
 
-    HAL_Init();
-
+    /* Enable all peripheral clocks. Current consumption can be optimized later */
+    RCC->AHB1ENR = 0xffffffff;
+    RCC->AHB2ENR = 0xffffffff;
+    RCC->AHB3ENR = 0xffffffff;
+    RCC->APB1ENR = 0xffffffff;
+    RCC->APB2ENR = 0xffffffff;
+    __DSB();
 }
