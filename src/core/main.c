@@ -12,7 +12,7 @@ int main(
 
     platform_init();
 
-    if (stdout_init("uart3_d8_r9") < 0) {
+    if (stdout_init("uart3_d08_d09") < 0) {
         asm ("bkpt 255");
         return 1;
     }
