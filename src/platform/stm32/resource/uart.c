@@ -1,7 +1,4 @@
-#include "stm32f7xx.h"
-
-#include "stm32f7xx_ll_gpio.h"
-#include "stm32f7xx_ll_usart.h"
+#include "stm32.h"
 
 #include "resource/resource.h"
 #include <stddef.h>

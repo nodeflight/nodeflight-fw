@@ -6,6 +6,13 @@ APP = nodeflight
 #######################################################################
 # Target configuration
 
+TARGET_stm32f405_PLATFORM = arm stm32 stm32f4xx
+TARGET_stm32f405_CFLAGS = -DSTM32F405xx
+TARGET_stm32f405_LDFLAGS += -Tstm32f405.ld
+TARGET_stm32f405_SOURCES = \
+	vendor/stm32/cmsis_device_f4/Source/Templates/gcc/startup_stm32f405xx.s \
+	platform/stm32f4xx/resource_instances_stm32f405.c
+
 TARGET_stm32f722_PLATFORM = arm stm32 stm32f7xx
 TARGET_stm32f722_CFLAGS = -DSTM32F722xx
 TARGET_stm32f722_LDFLAGS += -Tstm32f722.ld
@@ -25,7 +32,6 @@ TARGET_stm32f745_SOURCES = \
 # Platform configuration
 
 # Generic Cortex-M
-
 
 PLATFORM_arm_CC      = arm-none-eabi-gcc
 PLATFORM_arm_ASM     = arm-none-eabi-gcc
@@ -52,7 +58,6 @@ PLATFORM_stm32_INCLUDES = \
 	vendor/stm32/cmsis_core/Core/Include
 
 PLATFORM_stm32_SOURCES = \
-	platform/stm32/platform.c \
 	platform/stm32/resource/uart.c \
 	platform/stm32/resource/usb_vcp.c
 
@@ -61,7 +66,53 @@ PLATFORM_stm32_CFLAGS = \
 	-mthumb
 
 PLATFORM_stm32_LDFLAGS = \
-	$(PLATFORM_stm32_CFLAGS)
+	$(PLATFORM_stm32_CFLAGS) \
+	-Wl,-Lsrc/platform/stm32
+
+# Generic stm32f1xx
+
+PLATFORM_stm32f1xx_INCLUDES = \
+	vendor/stm32/cmsis_device_f1/Include \
+	vendor/stm32/stm32f1xx_hal_driver/Inc \
+	platform/stm32f1xx
+
+PLATFORM_stm32f1xx_SOURCES = \
+	platform/stm32f1xx/platform.c \
+	vendor/stm32/cmsis_device_f1/Source/Templates/system_stm32f1xx.c \
+	vendor/stm32/stm32f1xx_hal_driver/Src/stm32f1xx_ll_gpio.c \
+	vendor/stm32/stm32f1xx_hal_driver/Src/stm32f1xx_ll_rcc.c \
+	vendor/stm32/stm32f1xx_hal_driver/Src/stm32f1xx_ll_usart.c
+
+PLATFORM_stm32f1xx_CFLAGS = \
+	-mcpu=cortex-m3 \
+	-mfloat-abi=soft
+
+PLATFORM_stm32f1xx_LDFLAGS = \
+	$(PLATFORM_stm32f1xx_CFLAGS) \
+	-Wl,-Lsrc/platform/stm32f1xx
+
+# Generic stm32f4xx
+
+PLATFORM_stm32f4xx_INCLUDES = \
+	vendor/stm32/cmsis_device_f4/Include \
+	vendor/stm32/stm32f4xx_hal_driver/Inc \
+	platform/stm32f4xx
+
+PLATFORM_stm32f4xx_SOURCES = \
+	platform/stm32f4xx/platform.c \
+	vendor/stm32/cmsis_device_f4/Source/Templates/system_stm32f4xx.c \
+	vendor/stm32/stm32f4xx_hal_driver/Src/stm32f4xx_ll_gpio.c \
+	vendor/stm32/stm32f4xx_hal_driver/Src/stm32f4xx_ll_rcc.c \
+	vendor/stm32/stm32f4xx_hal_driver/Src/stm32f4xx_ll_usart.c
+
+PLATFORM_stm32f4xx_CFLAGS = \
+	-mcpu=cortex-m4 \
+	-mfloat-abi=hard \
+	-mfpu=fpv4-sp-d16
+
+PLATFORM_stm32f4xx_LDFLAGS = \
+	$(PLATFORM_stm32f4xx_CFLAGS) \
+	-Wl,-Lsrc/platform/stm32f4xx
 
 # Generic stm32f7xx
 
@@ -71,6 +122,7 @@ PLATFORM_stm32f7xx_INCLUDES = \
 	platform/stm32f7xx
 
 PLATFORM_stm32f7xx_SOURCES = \
+	platform/stm32f7xx/platform.c \
 	vendor/stm32/cmsis_device_f7/Source/Templates/system_stm32f7xx.c \
 	vendor/stm32/stm32f7xx_hal_driver/Src/stm32f7xx_ll_gpio.c \
 	vendor/stm32/stm32f7xx_hal_driver/Src/stm32f7xx_ll_rcc.c \

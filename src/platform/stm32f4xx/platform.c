@@ -1,4 +1,4 @@
-#include "stm32f7xx.h"
+#include "stm32.h"
 
 #include "platform/platform.h"
 
@@ -14,5 +14,6 @@ void platform_init(
     RCC->AHB3ENR = 0xffffffff;
     RCC->APB1ENR = 0xffffffff;
     RCC->APB2ENR = 0xffffffff;
+
     __DSB();
 }

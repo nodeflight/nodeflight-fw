@@ -3,11 +3,6 @@ ENTRY(Reset_Handler)
 /* End of stack */
 _estack = ORIGIN(RAM) + LENGTH(RAM);
 
-
-/* Generate a link error if heap and stack don't fit into RAM */
-_Min_Heap_Size = 8K;     /* required amount of heap  */
-_Min_Stack_Size = 0x400; /* required amount of stack */
-
 SECTIONS
 {
   .isr_vector :
