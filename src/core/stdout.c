@@ -1,5 +1,5 @@
 #include "core/stdout.h"
-#include "peripheral/peripheral.h"
+#include "hwacc/peripheral.h"
 
 #include <stdint.h>
 #include <stddef.h>

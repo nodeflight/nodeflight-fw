@@ -1,6 +1,6 @@
-#include "peripheral/peripheral.h"
+#include "hwacc/peripheral.h"
 
-#include "platform/stm32/peripheral/uart.h"
+#include "platform/stm32/hwacc/uart.h"
 
 #include <stddef.h>
 

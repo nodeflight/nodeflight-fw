@@ -1,6 +1,6 @@
 #include "stm32.h"
 
-#include "peripheral/peripheral.h"
+#include "hwacc/peripheral.h"
 #include <stddef.h>
 #include <stdlib.h>
 #include <stdio.h>

@@ -2,7 +2,7 @@
 
 #include "core/stdout.h"
 #include "platform/platform.h"
-#include "peripheral/peripheral.h"
+#include "hwacc/peripheral.h"
 
 int main(
     void)
