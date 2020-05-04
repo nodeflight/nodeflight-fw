@@ -1,5 +1,8 @@
 #include "resource/resource.h"
-#include "stddef.h"
+
+#include "platform/stm32/resource/uart.h"
+
+#include <stddef.h>
 
 RESOURCE_INSTANCE_DECL(uart, uart1_a09_a10, "UART1 @ A09 A10", NULL);
 RESOURCE_INSTANCE_DECL(uart, uart1_b06_b07, "UART1 @ B06 B07", NULL);
