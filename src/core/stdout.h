@@ -1,4 +1,4 @@
 #pragma once
 
 int stdout_init(
-    const char *resource_tag);
+    const char *peripheral_tag);

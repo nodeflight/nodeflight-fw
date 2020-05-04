@@ -11,21 +11,21 @@ TARGET_stm32f405_CFLAGS = -DSTM32F405xx
 TARGET_stm32f405_LDFLAGS += -Tstm32f405.ld
 TARGET_stm32f405_SOURCES = \
 	vendor/stm32/cmsis_device_f4/Source/Templates/gcc/startup_stm32f405xx.s \
-	platform/stm32f4xx/resource_instances_stm32f405.c
+	platform/stm32f4xx/peripheral_instances_stm32f405.c
 
 TARGET_stm32f722_PLATFORM = arm stm32 stm32f7xx
 TARGET_stm32f722_CFLAGS = -DSTM32F722xx
 TARGET_stm32f722_LDFLAGS += -Tstm32f722.ld
 TARGET_stm32f722_SOURCES = \
 	vendor/stm32/cmsis_device_f7/Source/Templates/gcc/startup_stm32f722xx.s \
-	platform/stm32f7xx/resource_instances_stm32f722.c
+	platform/stm32f7xx/peripheral_instances_stm32f722.c
 
 TARGET_stm32f745_PLATFORM = arm stm32 stm32f7xx
 TARGET_stm32f745_CFLAGS = -DSTM32F745xx
 TARGET_stm32f745_LDFLAGS += -Tstm32f745.ld
 TARGET_stm32f745_SOURCES = \
 	vendor/stm32/cmsis_device_f7/Source/Templates/gcc/startup_stm32f745xx.s \
-	platform/stm32f7xx/resource_instances_stm32f745.c
+	platform/stm32f7xx/peripheral_instances_stm32f745.c
 
 
 #######################################################################
@@ -58,8 +58,8 @@ PLATFORM_stm32_INCLUDES = \
 	vendor/stm32/cmsis_core/Core/Include
 
 PLATFORM_stm32_SOURCES = \
-	platform/stm32/resource/uart.c \
-	platform/stm32/resource/usb_vcp.c
+	platform/stm32/peripheral/uart.c \
+	platform/stm32/peripheral/usb_vcp.c
 
 PLATFORM_stm32_CFLAGS = \
 	-DUSE_FULL_LL_DRIVER \
@@ -143,7 +143,7 @@ PLATFORM_stm32f7xx_LDFLAGS = \
 COMMON_SOURCES = \
 	core/main.c \
 	core/stdout.c \
-	resource/resource.c
+	peripheral/peripheral.c
 
 COMMON_INCLUDES = .
 

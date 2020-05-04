@@ -1,33 +1,33 @@
 #include "stm32.h"
 
-#include "resource/resource.h"
+#include "peripheral/peripheral.h"
 #include <stddef.h>
 #include <stdlib.h>
 #include <stdio.h>
 
 typedef struct uart_storage_s {
-    resource_serial_t header;
+    peripheral_serial_t header;
 } uart_storage_t;
 
 static void uart_init(
-    resource_serial_t *instance,
-    const resource_instance_decl_t *variant);
+    peripheral_serial_t *instance,
+    const peripheral_instance_decl_t *variant);
 
 static void uart_write(
-    resource_serial_t *instance,
+    peripheral_serial_t *instance,
     void *buf,
     int bytes);
 
-static const resource_serial_t uart_callbacks = {
+static const peripheral_serial_t uart_callbacks = {
     .init = uart_init,
     .write = uart_write
 };
 
-RESOURCE_TYPE_DECL(uart, RESOURCE_SERIAL, uart_storage_t, uart_callbacks);
+PERIPHERAL_TYPE_DECL(uart, PERIPHERAL_SERIAL, uart_storage_t, uart_callbacks);
 
 void uart_init(
-    resource_serial_t *instance,
-    const resource_instance_decl_t *variant)
+    peripheral_serial_t *instance,
+    const peripheral_instance_decl_t *variant)
 {
     LL_GPIO_Init(GPIOD, &(LL_GPIO_InitTypeDef) {
         .Pin = LL_GPIO_PIN_8,
@@ -69,7 +69,7 @@ void uart_init(
 }
 
 void uart_write(
-    resource_serial_t *instance,
+    peripheral_serial_t *instance,
     void *buf,
     int bytes)
 {

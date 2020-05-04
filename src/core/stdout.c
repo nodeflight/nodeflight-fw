@@ -1,10 +1,10 @@
 #include "core/stdout.h"
-#include "resource/resource.h"
+#include "peripheral/peripheral.h"
 
 #include <stdint.h>
 #include <stddef.h>
 
-resource_serial_t *stdout_instance;
+peripheral_serial_t *stdout_instance;
 
 int _write(
     int fd,
@@ -14,7 +14,7 @@ int _write(
     /* stdout */
     if (fd == 1) {
         if(stdout_instance != NULL) {
-            resource_serial_write(stdout_instance, buf, size);
+            peripheral_serial_write(stdout_instance, buf, size);
         }
         return size;
     }
@@ -24,7 +24,7 @@ int _write(
 int stdout_init(
     const char *tag)
 {
-    stdout_instance = resource_serial_init_by_tag(tag);
+    stdout_instance = peripheral_serial_init_by_tag(tag);
     if (stdout_instance == NULL) {
         return -1;
     }

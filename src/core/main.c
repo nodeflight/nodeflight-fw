@@ -2,7 +2,7 @@
 
 #include "core/stdout.h"
 #include "platform/platform.h"
-#include "resource/resource.h"
+#include "peripheral/peripheral.h"
 
 int main(
     void)
@@ -19,12 +19,12 @@ int main(
 
     printf("\n\nStarting NodeFlight\n\n");
 
-    count = resource_get_count();
+    count = peripheral_get_count();
     for (i = 0; i < count; i++) {
-        const resource_instance_decl_t *inst = resource_get_by_index(i);
-        printf("resource: %-10s  type: %-10s  tag: %-16s  desc: %s\n",
+        const peripheral_instance_decl_t *inst = peripheral_get_by_index(i);
+        printf("peripheral: %-10s  type: %-10s  tag: %-16s  desc: %s\n",
             inst->decl->name,
-            resource_get_type_name(inst->decl->type),
+            peripheral_get_type_name(inst->decl->type),
             inst->tag,
             inst->descr);
     }
