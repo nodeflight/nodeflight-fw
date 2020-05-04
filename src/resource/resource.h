@@ -30,7 +30,7 @@ struct resource_instance_decl_s {
 };
 
 #define RESOURCE_TYPE_DECL(_name, _type, _storage_type, _callbacks) \
-    const static resource_decl_t resource_ ## _name ## _decl = { \
+    const resource_decl_t resource_ ## _name ## _decl = { \
         .type = _type, \
         .name = #_name, \
         .callbacks = (void *) &_callbacks, \
@@ -41,6 +41,7 @@ struct resource_instance_decl_s {
 #define _RESOURCE_SECTION(_name, _tag) __attribute__ ((section(".nf_resource." #_name "_" #_tag), used))
 
 #define RESOURCE_INSTANCE_DECL(_name, _tag, _descr, _storage) \
+    extern const resource_decl_t resource_ ## _name ## _decl; \
     const static resource_instance_decl_t resource_instance_ ##  _tag ## _decl _RESOURCE_SECTION(_name, _tag) = { \
         .decl = (const resource_decl_t *)&resource_ ## _name ## _decl, \
         .tag = #_tag, \

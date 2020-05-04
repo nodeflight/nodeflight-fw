@@ -20,7 +20,7 @@ AGGREGATED_VARS=\
 define fillvar
 $(var) = \
 	$$(TARGET_$(TARGET)_$(var)) \
-	$$(PLATFORM_$(PLATFORM)_$(var)) \
+	$(foreach pfm,$(PLATFORM),$$(PLATFORM_$(pfm)_$(var))) \
 	$$(COMMON_$(var))
 endef
 $(foreach var,$(AGGREGATED_VARS),$(eval $(fillvar)))
