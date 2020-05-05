@@ -58,8 +58,10 @@ PLATFORM_stm32_INCLUDES = \
 	vendor/stm32/cmsis_core/Core/Include
 
 PLATFORM_stm32_SOURCES = \
+	platform/stm32/hwacc/gpio.c \
 	platform/stm32/hwacc/uart.c \
-	platform/stm32/hwacc/usb_vcp.c
+	platform/stm32/hwacc/usb_vcp.c \
+	platform/stm32/hwmap/resource_gpio.c
 
 PLATFORM_stm32_CFLAGS = \
 	-DUSE_FULL_LL_DRIVER \
@@ -143,7 +145,8 @@ PLATFORM_stm32f7xx_LDFLAGS = \
 COMMON_SOURCES = \
 	core/main.c \
 	core/stdout.c \
-	hwacc/peripheral.c
+	hwacc/peripheral.c \
+	hwacc/resource.c
 
 COMMON_INCLUDES = .
 

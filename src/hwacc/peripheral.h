@@ -25,7 +25,7 @@ struct peripheral_decl_s {
 struct peripheral_instance_decl_s {
     const peripheral_decl_t *decl;
     const char *tag;
-    const char *descr;
+    const char *resources;
     const void *storage;
 };
 
@@ -43,11 +43,11 @@ struct peripheral_instance_decl_s {
 /* Add name to section so they can be sorted during linking */
 #define _PERIPHERAL_SECTION(_name, _tag) __attribute__ ((section(".nf_peripheral." #_name "_" #_tag), used))
 
-#define PERIPHERAL_INSTANCE_DECL(_name, _tag, _descr, _storage) \
+#define PERIPHERAL_INSTANCE_DECL(_name, _tag, _resources, _storage) \
     const static peripheral_instance_decl_t peripheral_instance_ ##  _tag ## _decl _PERIPHERAL_SECTION(_name, _tag) = { \
         .decl = (const peripheral_decl_t *)&peripheral_ ## _name ## _decl, \
         .tag = #_tag, \
-        .descr = _descr, \
+        .resources = _resources, \
         .storage = (_storage) \
     }
 

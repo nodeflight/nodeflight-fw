@@ -41,6 +41,12 @@ SECTIONS
     PROVIDE_HIDDEN (__nf_peripheral_end = .);
 
     . = ALIGN(4);
+    PROVIDE_HIDDEN (__nf_resource_start = .);
+    KEEP (*(SORT(.nf_resource.*)))
+    KEEP (*(.nf_resource*))
+    PROVIDE_HIDDEN (__nf_resource_end = .);
+
+    . = ALIGN(4);
   } >FLASH
 
   .ARM.extab   : { *(.ARM.extab* .gnu.linkonce.armextab.*) } >FLASH
