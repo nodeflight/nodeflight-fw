@@ -145,6 +145,8 @@ PLATFORM_stm32f7xx_LDFLAGS = \
 COMMON_SOURCES = \
 	core/main.c \
 	core/stdout.c \
+	core/strops.c \
+	hwacc/interface.c \
 	hwacc/peripheral.c \
 	hwacc/resource.c
 

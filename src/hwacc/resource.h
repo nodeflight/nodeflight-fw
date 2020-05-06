@@ -31,5 +31,5 @@ const resource_decl_t *resource_get_by_id(
 const int resource_get_count(
     void);
 
-const resource_decl_t *resource_get_by_name_r(
-    const char **tag);
+const resource_decl_t *resource_get_by_tag(
+    const char *tag);
