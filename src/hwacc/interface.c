@@ -6,7 +6,7 @@ interface_resource_t *interface_resource_allocate(
     const peripheral_instance_decl_t *peripheral,
     const char **argp)
 {
-    int rsc_count = peripheral->decl->num_resources;
+    int rsc_count = peripheral->decl->num_rscs;
     int i;
     interface_resource_t *rscs = malloc(sizeof(interface_resource_t) * rsc_count);
     if (rscs == NULL) {
@@ -24,4 +24,21 @@ interface_resource_t *interface_resource_allocate(
     }
 
     return rscs;
+}
+
+interface_header_t *interface_create(
+    const char *config)
+{
+    const char *cur_conf = config;
+    const peripheral_instance_decl_t *decl = peripheral_get_by_tag(strops_next_word(&cur_conf));
+    if (decl == NULL) {
+        return NULL;
+    }
+
+    interface_resource_t *rscs = interface_resource_allocate(decl, &cur_conf);
+    if (rscs == NULL) {
+        return NULL;
+    }
+
+    return decl->decl->init(decl, rscs, cur_conf);
 }

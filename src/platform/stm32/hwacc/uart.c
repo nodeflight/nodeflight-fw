@@ -3,6 +3,7 @@
 #include "hwacc/peripheral.h"
 #include "hwacc/resource.h"
 #include "hwacc/interface.h"
+#include "hwacc/interface_types.h"
 #include "platform/stm32/hwacc/uart.h"
 #include "platform/stm32/hwacc/gpio.h"
 
@@ -10,68 +11,54 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-typedef struct uart_storage_s {
-    peripheral_serial_t header;
-
+typedef struct uart_interface_s {
+    interface_serial_t header;
     USART_TypeDef *reg;
+} uart_interface_t;
 
-    interface_resource_t *rscs;
-} uart_storage_t;
+static interface_header_t *uart_init(
+    const peripheral_instance_decl_t *decl,
+    interface_resource_t *rscs,
+    const char *config);
 
-static void uart_init(
-    peripheral_serial_t *instance,
-    const peripheral_instance_decl_t *variant,
-    const char *tag);
-
-static void uart_write(
-    peripheral_serial_t *instance,
+static int uart_write(
+    interface_serial_t *iface,
     void *buf,
     int bytes);
 
-static const peripheral_serial_t uart_callbacks = {
-    .init = uart_init,
-    .write = uart_write
-};
+PERIPHERAL_TYPE_DECL(uart, 2, uart_init);
 
-PERIPHERAL_TYPE_DECL(uart, PERIPHERAL_SERIAL, 2, uart_storage_t, uart_callbacks);
-
-void uart_init(
-    peripheral_serial_t *instance,
-    const peripheral_instance_decl_t *variant,
-    const char *tag)
+interface_header_t *uart_init(
+    const peripheral_instance_decl_t *decl,
+    interface_resource_t *rscs,
+    const char *config)
 {
-    uart_storage_t *storage = (uart_storage_t *) instance;
+    uart_interface_t *if_uart = malloc(sizeof(uart_interface_t));
 
-    const char *cur_tag = tag;
+    if_uart->header.header.type = INTERFACE_SERIAL;
+    if_uart->header.header.num_rscs = decl->decl->num_rscs;
+    if_uart->header.header.rscs = rscs;
+    if_uart->header.write = uart_write;
 
-    /* Skip peripheral name */
-    strops_next_word(&cur_tag);
+    if_uart->reg = decl->storage;
 
-    storage->rscs = interface_resource_allocate(variant, &cur_tag);
-
-    if (storage->rscs == NULL) {
-        return;
-    }
-
-    storage->reg = variant->storage;
-
-    gpio_config_by_id(storage->rscs[0].decl->ref, &(LL_GPIO_InitTypeDef) {
+    gpio_config_by_id(rscs[0].decl->ref, &(LL_GPIO_InitTypeDef) {
         .Mode = LL_GPIO_MODE_ALTERNATE,
         .Speed = LL_GPIO_SPEED_FREQ_VERY_HIGH,
         .OutputType = LL_GPIO_OUTPUT_PUSHPULL,
         .Pull = LL_GPIO_PULL_NO,
-        .Alternate = storage->rscs[0].inst->attr
+        .Alternate = rscs[0].inst->attr
     });
 
-    gpio_config_by_id(storage->rscs[1].decl->ref, &(LL_GPIO_InitTypeDef) {
+    gpio_config_by_id(rscs[1].decl->ref, &(LL_GPIO_InitTypeDef) {
         .Mode = LL_GPIO_MODE_ALTERNATE,
         .Speed = LL_GPIO_SPEED_FREQ_VERY_HIGH,
         .OutputType = LL_GPIO_OUTPUT_OPENDRAIN,
         .Pull = LL_GPIO_PULL_NO,
-        .Alternate = storage->rscs[1].inst->attr
+        .Alternate = rscs[1].inst->attr
     });
 
-    LL_USART_Init(storage->reg, &(LL_USART_InitTypeDef) {
+    LL_USART_Init(if_uart->reg, &(LL_USART_InitTypeDef) {
         .BaudRate = 115200,
         .DataWidth = LL_USART_DATAWIDTH_8B,
         .StopBits = LL_USART_STOPBITS_1,
@@ -80,21 +67,24 @@ void uart_init(
         .HardwareFlowControl = LL_USART_HWCONTROL_NONE,
         .OverSampling = LL_USART_OVERSAMPLING_16
     });
-    LL_USART_Enable(storage->reg);
+    LL_USART_Enable(if_uart->reg);
+
+    return (interface_header_t *) if_uart;
 }
 
-void uart_write(
-    peripheral_serial_t *instance,
+static int uart_write(
+    interface_serial_t *iface,
     void *buf,
     int bytes)
 {
-    uart_storage_t *storage = (uart_storage_t *) instance;
+    uart_interface_t *if_uart = (uart_interface_t *) iface;
     uint8_t *cur = buf;
     while (bytes--) {
-        while (!LL_USART_IsActiveFlag_TXE(storage->reg)) {
+        while (!LL_USART_IsActiveFlag_TXE(if_uart->reg)) {
         }
-        LL_USART_TransmitData8(storage->reg, *(cur++));
+        LL_USART_TransmitData8(if_uart->reg, *(cur++));
     }
-    while (!LL_USART_IsActiveFlag_TC(storage->reg)) {
+    while (!LL_USART_IsActiveFlag_TC(if_uart->reg)) {
     }
+    return bytes;
 }

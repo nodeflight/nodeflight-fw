@@ -26,9 +26,8 @@ int main(
     count = peripheral_get_count();
     for (i = 0; i < count; i++) {
         const peripheral_instance_decl_t *inst = peripheral_get_by_index(i);
-        printf("peripheral: %-10s  type: %-10s  tag: %-16s\n",
+        printf("peripheral: %-10s  tag: %-16s\n",
             inst->decl->name,
-            peripheral_get_type_name(inst->decl->type),
             inst->tag);
 
         const peripheral_instance_resource_t *rsc;
