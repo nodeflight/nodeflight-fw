@@ -13,12 +13,22 @@ interface_resource_t *interface_resource_allocate(
         return NULL;
     }
 
+    /* Fetch resources */
     for (i = 0; i < rsc_count; i++) {
         const char *arg = strops_next_word(argp);
         interface_resource_t *rsc = &rscs[i];
         rsc->decl = resource_get_by_tag(arg);
         rsc->inst = peripheral_get_resource_by_tag(peripheral, i, arg);
         if (rsc->decl == NULL || rsc->inst == NULL) {
+            return NULL;
+        }
+    }
+
+    /* Allocate resources */
+    for (i = 0; i < rsc_count; i++) {
+        interface_resource_t *rsc = &rscs[i];
+        if (!resource_allocate(rsc->decl)) {
+            /* TODO: Properly handle if resources could not be allocated... */
             return NULL;
         }
     }

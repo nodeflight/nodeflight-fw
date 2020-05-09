@@ -1,8 +1,10 @@
 #pragma once
 
 #include <stdint.h>
+#include <stdbool.h>
 
 typedef struct resource_decl_s resource_decl_t;
+typedef struct resource_state_s resource_state_t;
 
 struct resource_decl_s {
     char name[8];
@@ -11,6 +13,11 @@ struct resource_decl_s {
     uint32_t ref;
     void *(*alloc)(
         int resource_id);
+};
+
+/* Running state of the resource */
+struct resource_state_s {
+    uint8_t count_allocated;
 };
 
 /* Add name to section so they can be sorted during linking */
@@ -25,6 +32,9 @@ struct resource_decl_s {
         .alloc = _alloc \
     }
 
+resource_state_t *resource_get_state(
+    const resource_decl_t *rsc);
+
 const resource_decl_t *resource_get_by_id(
     int index);
 
@@ -33,3 +43,6 @@ const int resource_get_count(
 
 const resource_decl_t *resource_get_by_tag(
     const char *tag);
+
+bool resource_allocate(
+    const resource_decl_t *rsc);

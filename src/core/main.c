@@ -44,10 +44,12 @@ int main(
     count = resource_get_count();
     for (i = 0; i < count; i++) {
         const resource_decl_t *rsc = resource_get_by_id(i);
-        printf("resource %3d: %-10s  type: %3u  avail: %3u  ref: %08lx\n",
+        resource_state_t *state = resource_get_state(rsc);
+        printf("resource %3d: %-10s  type: %3u  avail: %3u/%-3u  ref: %08lx\n",
             i,
             rsc->name,
             rsc->type,
+            state->count_allocated,
             rsc->count_avail,
             rsc->ref);
     }
