@@ -4,11 +4,13 @@
 #define xPortPendSVHandler PendSV_Handler
 #define xPortSysTickHandler SysTick_Handler
 
+#include "stm32.h"
+
 #define configUSE_PREEMPTION                    1
 #define configUSE_PORT_OPTIMISED_TASK_SELECTION 0
 #define configUSE_TICKLESS_IDLE                 0
-#define configCPU_CLOCK_HZ                      200000000
-#define configTICK_RATE_HZ                      250
+#define configCPU_CLOCK_HZ                      SystemCoreClock
+#define configTICK_RATE_HZ                      1000
 #define configMAX_PRIORITIES                    5
 #define configMINIMAL_STACK_SIZE                128
 #define configMAX_TASK_NAME_LEN                 16
@@ -62,7 +64,10 @@
 #define configMAX_API_CALL_INTERRUPT_PRIORITY   3
 
 /* Define to trap errors during development. */
-#define configASSERT(x) if ( (x) == 0) asm ("bkpt 255")
+#define configASSERT(x)                         if ( (x) == 0) asm ("bkpt 255")
 
 /* FreeRTOS MPU specific definitions. */
 #define configINCLUDE_APPLICATION_DEFINED_PRIVILEGED_FUNCTIONS 0
+
+#define INCLUDE_vTaskDelay                      1
+#define INCLUDE_vTaskDelayUntil                 1

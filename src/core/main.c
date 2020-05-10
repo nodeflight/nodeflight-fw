@@ -9,6 +9,8 @@
 #include "FreeRTOS.h"
 #include "task.h"
 
+#include "system_stm32f7xx.h"
+
 extern const char __l1conf_start[];
 
 static void main_task(
@@ -43,6 +45,7 @@ void main_task(
 {
     int i;
     int count;
+    TickType_t next_wakeup_time;
 
     printf("\n\nStarting NodeFlight\n\n");
 
@@ -84,6 +87,13 @@ void main_task(
         printf("%c", __l1conf_start[i]);
     }
 
+    printf("SystemCoreClock: %ld\n", SystemCoreClock);
+
+    i = 0;
+    next_wakeup_time = xTaskGetTickCount();
     for (;;) {
+        /* Place this task in the blocked state until it is time to run again. */
+        vTaskDelayUntil(&next_wakeup_time, 1000 / portTICK_PERIOD_MS);
+        printf("Tick... %d\n", i++);
     }
 }

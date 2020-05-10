@@ -55,6 +55,7 @@ PLATFORM_arm_LDFLAGS = \
 # Generic stm32
 
 PLATFORM_stm32_INCLUDES = \
+	platform/stm32 \
 	vendor/stm32/cmsis_core/Core/Include
 
 PLATFORM_stm32_SOURCES = \
@@ -65,6 +66,7 @@ PLATFORM_stm32_SOURCES = \
 
 PLATFORM_stm32_CFLAGS = \
 	-DUSE_FULL_LL_DRIVER \
+	-DHSE_VALUE=8000000 \
 	-mthumb
 
 PLATFORM_stm32_LDFLAGS = \
@@ -132,6 +134,7 @@ PLATFORM_stm32f7xx_SOURCES = \
 	vendor/stm32/stm32f7xx_hal_driver/Src/stm32f7xx_ll_gpio.c \
 	vendor/stm32/stm32f7xx_hal_driver/Src/stm32f7xx_ll_rcc.c \
 	vendor/stm32/stm32f7xx_hal_driver/Src/stm32f7xx_ll_usart.c \
+	vendor/stm32/stm32f7xx_hal_driver/Src/stm32f7xx_ll_utils.c \
 	vendor/rtos/FreeRTOS-kernel/portable/GCC/ARM_CM7/r0p1/port.c
 
 PLATFORM_stm32f7xx_CFLAGS = \
@@ -148,7 +151,6 @@ PLATFORM_stm32f7xx_LDFLAGS = \
 # FreeRTOS configuration
 
 PLATFORM_freertos_INCLUDES = \
-	freertos \
 	vendor/rtos/FreeRTOS-kernel/include
 
 PLATFORM_freertos_SOURCES = \
