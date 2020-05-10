@@ -6,6 +6,8 @@
 #include "hwacc/resource.h"
 #include "hwacc/peripheral.h"
 
+extern const char __l1conf_start[];
+
 int main(
     void)
 {
@@ -52,6 +54,11 @@ int main(
             state->count_allocated,
             rsc->count_avail,
             rsc->ref);
+    }
+
+    printf("layer1 config:\n");
+    for (i = 0; __l1conf_start[i] != 0xff && __l1conf_start[i] != '\0'; i++) {
+        printf("%c", __l1conf_start[i]);
     }
 
     for (;;) {

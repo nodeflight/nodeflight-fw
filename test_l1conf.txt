@@ -1,0 +1,2 @@
+alias uart_stlink uart3 pin_d08 pin_d09
+mod stdio uart_stlink
