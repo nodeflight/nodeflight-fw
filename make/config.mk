@@ -6,21 +6,21 @@ APP = nodeflight
 #######################################################################
 # Target configuration
 
-TARGET_stm32f405_PLATFORM = arm stm32 stm32f4xx
+TARGET_stm32f405_PLATFORM = arm stm32 stm32f4xx freertos
 TARGET_stm32f405_CFLAGS = -DSTM32F405xx
 TARGET_stm32f405_LDFLAGS += -Tstm32f405.ld
 TARGET_stm32f405_SOURCES = \
 	vendor/stm32/cmsis_device_f4/Source/Templates/gcc/startup_stm32f405xx.s \
 	platform/stm32f4xx/hwmap_stm32f405.c
 
-TARGET_stm32f722_PLATFORM = arm stm32 stm32f7xx freertos_cm7
+TARGET_stm32f722_PLATFORM = arm stm32 stm32f7xx freertos
 TARGET_stm32f722_CFLAGS = -DSTM32F722xx
 TARGET_stm32f722_LDFLAGS += -Tstm32f722.ld
 TARGET_stm32f722_SOURCES = \
 	vendor/stm32/cmsis_device_f7/Source/Templates/gcc/startup_stm32f722xx.s \
 	platform/stm32f7xx/hwmap_stm32f722.c
 
-TARGET_stm32f745_PLATFORM = arm stm32 stm32f7xx freertos_cm7
+TARGET_stm32f745_PLATFORM = arm stm32 stm32f7xx freertos
 TARGET_stm32f745_CFLAGS = -DSTM32F745xx
 TARGET_stm32f745_LDFLAGS += -Tstm32f745.ld
 TARGET_stm32f745_SOURCES = \
@@ -121,14 +121,16 @@ PLATFORM_stm32f4xx_LDFLAGS = \
 PLATFORM_stm32f7xx_INCLUDES = \
 	vendor/stm32/cmsis_device_f7/Include \
 	vendor/stm32/stm32f7xx_hal_driver/Inc \
-	platform/stm32f7xx
+	platform/stm32f7xx \
+	vendor/rtos/FreeRTOS-kernel/portable/GCC/ARM_CM7/r0p1
 
 PLATFORM_stm32f7xx_SOURCES = \
 	platform/stm32f7xx/platform.c \
 	vendor/stm32/cmsis_device_f7/Source/Templates/system_stm32f7xx.c \
 	vendor/stm32/stm32f7xx_hal_driver/Src/stm32f7xx_ll_gpio.c \
 	vendor/stm32/stm32f7xx_hal_driver/Src/stm32f7xx_ll_rcc.c \
-	vendor/stm32/stm32f7xx_hal_driver/Src/stm32f7xx_ll_usart.c
+	vendor/stm32/stm32f7xx_hal_driver/Src/stm32f7xx_ll_usart.c \
+	vendor/rtos/FreeRTOS-kernel/portable/GCC/ARM_CM7/r0p1/port.c
 
 PLATFORM_stm32f7xx_CFLAGS = \
 	-mcpu=cortex-m7 \
@@ -143,17 +145,16 @@ PLATFORM_stm32f7xx_LDFLAGS = \
 #######################################################################
 # FreeRTOS configuration
 
-PLATFORM_freertos_cm7_INCLUDES = \
+PLATFORM_freertos_INCLUDES = \
 	freertos \
-	vendor/rtos/FreeRTOS-kernel/include \
-	vendor/rtos/FreeRTOS-kernel/portable/GCC/ARM_CM7/r0p1
+	vendor/rtos/FreeRTOS-kernel/include
 
-PLATFORM_freertos_cm7_SOURCES = \
+PLATFORM_freertos_SOURCES = \
 	vendor/rtos/FreeRTOS-kernel/list.c \
 	vendor/rtos/FreeRTOS-kernel/queue.c \
 	vendor/rtos/FreeRTOS-kernel/tasks.c \
-	vendor/rtos/FreeRTOS-kernel/portable/MemMang/heap_3.c \
-	vendor/rtos/FreeRTOS-kernel/portable/GCC/ARM_CM7/r0p1/port.c
+	vendor/rtos/FreeRTOS-kernel/timers.c \
+	vendor/rtos/FreeRTOS-kernel/portable/MemMang/heap_3.c 
 
 
 #######################################################################
