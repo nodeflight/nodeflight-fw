@@ -98,14 +98,16 @@ PLATFORM_stm32f1xx_LDFLAGS = \
 PLATFORM_stm32f4xx_INCLUDES = \
 	vendor/stm32/cmsis_device_f4/Include \
 	vendor/stm32/stm32f4xx_hal_driver/Inc \
-	platform/stm32f4xx
+	platform/stm32f4xx \
+	vendor/rtos/FreeRTOS-kernel/portable/GCC/ARM_CM4F
 
 PLATFORM_stm32f4xx_SOURCES = \
 	platform/stm32f4xx/platform.c \
 	vendor/stm32/cmsis_device_f4/Source/Templates/system_stm32f4xx.c \
 	vendor/stm32/stm32f4xx_hal_driver/Src/stm32f4xx_ll_gpio.c \
 	vendor/stm32/stm32f4xx_hal_driver/Src/stm32f4xx_ll_rcc.c \
-	vendor/stm32/stm32f4xx_hal_driver/Src/stm32f4xx_ll_usart.c
+	vendor/stm32/stm32f4xx_hal_driver/Src/stm32f4xx_ll_usart.c \
+	vendor/rtos/FreeRTOS-kernel/portable/GCC/ARM_CM4F/port.c
 
 PLATFORM_stm32f4xx_CFLAGS = \
 	-mcpu=cortex-m4 \
