@@ -2,19 +2,6 @@
 
 #include <stdint.h>
 
-/**
- * Interface type
- *
- * The type models the method of access, not the external behaviour. If it modelled as a
- * serial port which handles stream-based IO, it is a serial port independent of being an UART
- * or TCP. Is is a value_out port independent of being a DSHOT, PWM or DAC output.
- */
-
-typedef enum interface_type_s {
-    INTERFACE_NONE = 0,
-    INTERFACE_SERIAL
-} interface_type_t;
-
 typedef struct interface_resource_s interface_resource_t;
 typedef struct interface_header_s interface_header_t;
 
@@ -34,8 +21,7 @@ struct interface_resource_s {
  * determine its type.
  */
 struct interface_header_s {
-    interface_type_t type;
-    uint8_t num_rscs;
+    const peripheral_instance_decl_t *peripheral;
     interface_resource_t *rscs; /* resources in use */
 };
 

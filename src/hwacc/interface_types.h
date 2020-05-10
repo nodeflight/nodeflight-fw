@@ -18,7 +18,7 @@ static inline int interface_serial_write(
     void *buf,
     int bytes)
 {
-    if (iface->type != INTERFACE_SERIAL) {
+    if (iface->peripheral->decl->type != PERIPHERAL_SERIAL) {
         return -1;
     }
     interface_serial_t *if_ser = (interface_serial_t *) iface;

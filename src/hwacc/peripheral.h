@@ -9,15 +9,29 @@ typedef struct peripheral_decl_s peripheral_decl_t;
 typedef struct peripheral_instance_decl_s peripheral_instance_decl_t;
 typedef struct peripheral_instance_resource_s peripheral_instance_resource_t;
 
+/**
+ * Peripheral type
+ *
+ * The type models the method of access, not the external behaviour. If it modelled as a
+ * serial port which handles stream-based IO, it is a serial port independent of being an UART
+ * or TCP. Is is a value_out port independent of being a DSHOT, PWM or DAC output.
+ */
+
+typedef enum peripheral_type_s {
+    PERIPHERAL_NONE = 0,
+    PERIPHERAL_SERIAL
+} peripheral_type_t;
+
 #include "hwacc/interface.h"
 
 struct peripheral_decl_s {
     const char *name;
+    peripheral_type_t type;
     uint16_t num_rscs;
-    interface_header_t *(*init)(
-        const peripheral_instance_decl_t *decl,
-        interface_resource_t *rscs,
+    int (*init)(
+        interface_header_t *iface,
         const char *config);
+    int storage_size;
 };
 
 struct peripheral_instance_decl_s {
@@ -36,11 +50,13 @@ struct peripheral_instance_resource_s {
 #define PERIPHERAL_TYPE_EXTERN(_name) \
     extern const peripheral_decl_t peripheral_ ## _name ## _decl
 
-#define PERIPHERAL_TYPE_DECL(_name, _num_rscs, _init) \
+#define PERIPHERAL_TYPE_DECL(_name, _type, _num_rscs, _init, _storage_size) \
     const peripheral_decl_t peripheral_ ## _name ## _decl = { \
         .name = #_name, \
+        .type = _type, \
         .num_rscs = _num_rscs, \
-        .init = _init \
+        .init = _init, \
+        .storage_size = _storage_size \
     }
 
 /* Add name to section so they can be sorted during linking */

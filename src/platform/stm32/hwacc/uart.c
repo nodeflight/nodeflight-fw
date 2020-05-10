@@ -16,9 +16,8 @@ typedef struct uart_interface_s {
     USART_TypeDef *reg;
 } uart_interface_t;
 
-static interface_header_t *uart_init(
-    const peripheral_instance_decl_t *decl,
-    interface_resource_t *rscs,
+int uart_init(
+    interface_header_t *iface,
     const char *config);
 
 static int uart_write(
@@ -26,21 +25,17 @@ static int uart_write(
     void *buf,
     int bytes);
 
-PERIPHERAL_TYPE_DECL(uart, 2, uart_init);
+PERIPHERAL_TYPE_DECL(uart, PERIPHERAL_SERIAL, 2, uart_init, sizeof(uart_interface_t));
 
-interface_header_t *uart_init(
-    const peripheral_instance_decl_t *decl,
-    interface_resource_t *rscs,
+int uart_init(
+    interface_header_t *iface,
     const char *config)
 {
-    uart_interface_t *if_uart = malloc(sizeof(uart_interface_t));
+    uart_interface_t *if_uart = (uart_interface_t *) iface;
+    interface_resource_t *rscs = if_uart->header.header.rscs;
 
-    if_uart->header.header.type = INTERFACE_SERIAL;
-    if_uart->header.header.num_rscs = decl->decl->num_rscs;
-    if_uart->header.header.rscs = rscs;
     if_uart->header.write = uart_write;
-
-    if_uart->reg = decl->storage;
+    if_uart->reg = if_uart->header.header.peripheral->storage;
 
     gpio_config_by_id(rscs[0].decl->ref, &(LL_GPIO_InitTypeDef) {
         .Mode = LL_GPIO_MODE_ALTERNATE,
@@ -69,7 +64,7 @@ interface_header_t *uart_init(
     });
     LL_USART_Enable(if_uart->reg);
 
-    return (interface_header_t *) if_uart;
+    return 0;
 }
 
 static int uart_write(
