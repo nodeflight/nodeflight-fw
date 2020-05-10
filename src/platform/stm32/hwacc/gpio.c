@@ -41,12 +41,6 @@ static GPIO_TypeDef *const gpio_ports[] = {
 #endif
 };
 
-void *gpio_alloc(
-    int rsc_id)
-{
-    return NULL;
-}
-
 void gpio_config_by_id(
     uint32_t id,
     LL_GPIO_InitTypeDef *init_struct)

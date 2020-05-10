@@ -11,8 +11,6 @@ struct resource_decl_s {
     uint16_t type;
     uint8_t count_avail;
     uint32_t ref;
-    void *(*alloc)(
-        int resource_id);
 };
 
 /* Running state of the resource */
@@ -23,13 +21,12 @@ struct resource_state_s {
 /* Add name to section so they can be sorted during linking */
 #define _RESOURCE_SECTION(_name) __attribute__ ((section(".nf_resource." #_name), used))
 
-#define RESOURCE_DECL(_name, _type, _count, _alloc, _ref) \
+#define RESOURCE_DECL(_name, _type, _count, _ref) \
     const resource_decl_t resource_ ## _name ## _decl _RESOURCE_SECTION(_name) = { \
         .name = #_name, \
         .type = _type, \
         .count_avail = _count, \
         .ref = _ref, \
-        .alloc = _alloc \
     }
 
 resource_state_t *resource_get_state(
