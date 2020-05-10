@@ -6,13 +6,17 @@
 #include "hwacc/resource.h"
 #include "hwacc/peripheral.h"
 
+#include "FreeRTOS.h"
+#include "task.h"
+
 extern const char __l1conf_start[];
+
+static void main_task(
+    void *pvParameters);
 
 int main(
     void)
 {
-    int i;
-    int count;
 
     platform_init();
 
@@ -20,6 +24,25 @@ int main(
         asm ("bkpt 255");
         return 1;
     }
+
+    xTaskCreate(main_task,
+        "main",
+        1024,
+        NULL,
+        tskIDLE_PRIORITY,
+        NULL);
+
+    vTaskStartScheduler();
+    asm ("bkpt 255");
+
+    return 0;
+}
+
+void main_task(
+    void *pvParameters)
+{
+    int i;
+    int count;
 
     printf("\n\nStarting NodeFlight\n\n");
 
@@ -63,5 +86,4 @@ int main(
 
     for (;;) {
     }
-    return 0;
 }
