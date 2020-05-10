@@ -69,6 +69,13 @@ struct peripheral_instance_resource_s {
         .attr = _attr \
     }
 
+#define PERIPHERAL_INSTANCE_RESOURCE_AUTO(_tag, _attr) \
+    { \
+        .tag = #_tag, \
+        .arg_nr = 0xffff, \
+        .attr = _attr \
+    }
+
 #define PERIPHERAL_INSTANCE_DECL(_name, _tag, _storage, ...) \
     const static peripheral_instance_decl_t peripheral_instance_ ##  _tag ## _decl _PERIPHERAL_SECTION(_name, _tag) = { \
         .decl = (const peripheral_decl_t *)&peripheral_ ## _name ## _decl, \

@@ -62,7 +62,7 @@ PLATFORM_stm32_SOURCES = \
 	platform/stm32/hwacc/gpio.c \
 	platform/stm32/hwacc/uart.c \
 	platform/stm32/hwacc/usb_vcp.c \
-	platform/stm32/hwmap/resource_gpio.c
+	platform/stm32/hwmap/resource_stm32.c
 
 PLATFORM_stm32_CFLAGS = \
 	-DUSE_FULL_LL_DRIVER \

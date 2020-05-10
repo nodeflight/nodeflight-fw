@@ -9,7 +9,7 @@
 #include "FreeRTOS.h"
 #include "task.h"
 
-#include "system_stm32f7xx.h"
+#include "stm32.h"
 
 extern const char __l1conf_start[];
 
@@ -22,7 +22,7 @@ int main(
 
     platform_init();
 
-    if (stdout_init("uart3 pin_d08 pin_d09") < 0) {
+    if (stdout_init("uart3 pin_d08 pin_d09 dma_1_1 dma_1_4") < 0) {
         asm ("bkpt 255");
         return 1;
     }
@@ -73,7 +73,7 @@ void main_task(
     for (i = 0; i < count; i++) {
         const resource_decl_t *rsc = resource_get_by_id(i);
         resource_state_t *state = resource_get_state(rsc);
-        printf("resource %3d: %-10s  type: %3u  avail: %3u/%-3u  ref: %08lx\n",
+        printf("resource %3d: %-10s  type: %3u  avail: %3u/%-5u ref: %08lx\n",
             i,
             rsc->name,
             rsc->type,
@@ -89,11 +89,24 @@ void main_task(
 
     printf("SystemCoreClock: %ld\n", SystemCoreClock);
 
+
+    /* To track uart transmission delay */
+    LL_GPIO_Init(GPIOA, &(LL_GPIO_InitTypeDef) {
+        .Pin = 1<<5,
+        .Mode = LL_GPIO_MODE_OUTPUT,
+        .Speed = LL_GPIO_SPEED_FREQ_VERY_HIGH,
+        .OutputType = LL_GPIO_OUTPUT_PUSHPULL,
+        .Pull = LL_GPIO_PULL_NO,
+        .Alternate = 0
+    });
+
     i = 0;
     next_wakeup_time = xTaskGetTickCount();
     for (;;) {
         /* Place this task in the blocked state until it is time to run again. */
         vTaskDelayUntil(&next_wakeup_time, 1000 / portTICK_PERIOD_MS);
+        LL_GPIO_SetOutputPin(GPIOA, 1<<5);
         printf("Tick... %d\n", i++);
+        LL_GPIO_ResetOutputPin(GPIOA, 1<<5);
     }
 }

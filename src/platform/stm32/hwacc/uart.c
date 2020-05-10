@@ -25,7 +25,7 @@ static int uart_write(
     void *buf,
     int bytes);
 
-PERIPHERAL_TYPE_DECL(uart, PERIPHERAL_SERIAL, 2, uart_init, sizeof(uart_interface_t));
+PERIPHERAL_TYPE_DECL(uart, PERIPHERAL_SERIAL, 4, uart_init, sizeof(uart_interface_t));
 
 int uart_init(
     interface_header_t *iface,

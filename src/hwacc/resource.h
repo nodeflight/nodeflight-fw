@@ -3,13 +3,15 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#define RESOURCE_COUNT_INF 0xffff
+
 typedef struct resource_decl_s resource_decl_t;
 typedef struct resource_state_s resource_state_t;
 
 struct resource_decl_s {
-    char name[8];
+    char name[16];
     uint16_t type;
-    uint8_t count_avail;
+    uint16_t count_avail;
     uint32_t ref;
 };
 
