@@ -1,29 +1,16 @@
 include make/config.mk
 include make/verbosity.mk
 
-PLATFORM=$(TARGET_$(TARGET)_PLATFORM)
+include build/config_$(TARGET).mk
 
-ifeq ($(PLATFORM),)
-$(error Unknown target $(TARGET))
-endif
-
-AGGREGATED_VARS=\
-	SOURCES \
-	INCLUDES \
-	CFLAGS \
-	LDFLAGS \
-	CC \
-	ASM \
-	LD \
-	OBJCOPY
-
-define fillvar
-$(var) = \
-	$$(TARGET_$(TARGET)_$(var)) \
-	$(foreach pfm,$(PLATFORM),$$(PLATFORM_$(pfm)_$(var))) \
-	$$(COMMON_$(var))
-endef
-$(foreach var,$(AGGREGATED_VARS),$(eval $(fillvar)))
+SOURCES=$(CONFIG_SOURCES)
+INCLUDES=$(CONFIG_INCLUDES)
+CFLAGS=$(CONFIG_CFLAGS)
+LDFLAGS=$(CONFIG_LDFLAGS)
+CC=$(CONFIG_CC)
+ASM=$(CONFIG_ASM)
+LD=$(CONFIG_LD)
+OBJCOPY=$(CONFIG_OBJCOPY)
 
 CFLAGS+=$(addprefix -Isrc/,$(INCLUDES))
 
@@ -51,6 +38,9 @@ build/$(TARGET)/%.o: src/%.s
 	@mkdir -p $(@D)
 	$(TRACE) ASM $<
 	$(Q)$(CC) $(CFLAGS) -c -o $@ $<
+
+build/config_%.mk: make/config.mk
+	$(MAKE) -f make/config_deps.mk $@
 
 # Incude dependency tracking
 -include $(patsubst %.o,%.d,$(filter %.o,$(OBJECTS)))
