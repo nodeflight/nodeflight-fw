@@ -9,7 +9,7 @@ struct interface_serial_s {
 
     int (*tx_write)(
         interface_serial_t *iface,
-        void *buf,
+        const void *buf,
         int bytes);
 
     void (*tx_wait_done)(

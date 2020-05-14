@@ -13,12 +13,14 @@
 #include <stdio.h>
 #include <string.h>
 
+#define TX_BUF_SIZE 128
+
 typedef struct uart_interface_s {
     interface_serial_t header;
     USART_TypeDef *reg;
 
     const dma_stream_def_t *tx_dma;
-    uint8_t tx_buf[128];
+    uint8_t tx_buf[TX_BUF_SIZE];
 } uart_interface_t;
 
 int uart_init(
@@ -27,7 +29,7 @@ int uart_init(
 
 static int uart_tx_write(
     interface_serial_t *iface,
-    void *buf,
+    const void *buf,
     int bytes);
 
 static void uart_tx_wait_done(
@@ -71,7 +73,7 @@ int uart_init(
         .MemoryOrM2MDstIncMode = LL_DMA_MEMORY_INCREMENT,
         .PeriphOrM2MSrcDataSize = LL_DMA_PDATAALIGN_BYTE,
         .MemoryOrM2MDstDataSize = LL_DMA_MDATAALIGN_BYTE,
-        .NbData = 128,
+        .NbData = 0,
         .Channel = rscs[2].inst->attr << DMA_SxCR_CHSEL_Pos,
         .Priority = LL_DMA_PRIORITY_MEDIUM,
         .FIFOMode = LL_DMA_FIFOMODE_DISABLE,
@@ -108,16 +110,23 @@ int uart_init(
 
 static int uart_tx_write(
     interface_serial_t *iface,
-    void *buf,
+    const void *buf,
     int bytes)
 {
+    int i;
     uart_interface_t *if_uart = (uart_interface_t *) iface;
 
-    memcpy(if_uart->tx_buf, buf, bytes);
-    LL_DMA_SetDataLength(if_uart->tx_dma->reg, if_uart->tx_dma->stream, bytes);
-    LL_DMA_EnableStream(if_uart->tx_dma->reg, if_uart->tx_dma->stream);
+    for (i = 0; i < bytes; i += TX_BUF_SIZE) {
+        int cur_bytes = (i + TX_BUF_SIZE >= bytes) ? bytes - i : TX_BUF_SIZE;
+        /* Block if already transmitting */
+        while (LL_DMA_IsEnabledStream(if_uart->tx_dma->reg, if_uart->tx_dma->stream)) {
+        }
+        memcpy(if_uart->tx_buf, ((const uint8_t *)buf) + i, cur_bytes);
+        LL_DMA_SetDataLength(if_uart->tx_dma->reg, if_uart->tx_dma->stream, cur_bytes);
+        LL_DMA_EnableStream(if_uart->tx_dma->reg, if_uart->tx_dma->stream);
+        LL_USART_ClearFlag_TC(if_uart->reg);
+    }
 
-    LL_USART_ClearFlag_TC(if_uart->reg);
     return bytes;
 }
 
