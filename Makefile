@@ -1,7 +1,6 @@
 include make/verbosity.mk
 
 TARGETS=\
-	stm32f405 \
 	stm32f722 \
 	stm32f745
 

@@ -6,14 +6,18 @@
 #include "hwacc/interface_types.h"
 #include "platform/stm32/hwacc/uart.h"
 #include "platform/stm32/hwacc/gpio.h"
+#include "platform/stm32/hwacc/dma.h"
 
 #include <stddef.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 typedef struct uart_interface_s {
     interface_serial_t header;
     USART_TypeDef *reg;
+
+    uint8_t tx_buf[128];
 } uart_interface_t;
 
 int uart_init(
@@ -37,6 +41,7 @@ int uart_init(
     if_uart->header.write = uart_write;
     if_uart->reg = if_uart->header.header.peripheral->storage;
 
+    /* TX */
     gpio_config_by_id(rscs[0].decl->ref, &(LL_GPIO_InitTypeDef) {
         .Mode = LL_GPIO_MODE_ALTERNATE,
         .Speed = LL_GPIO_SPEED_FREQ_VERY_HIGH,
@@ -44,7 +49,25 @@ int uart_init(
         .Pull = LL_GPIO_PULL_NO,
         .Alternate = rscs[0].inst->attr
     });
+    dma_init_by_id(rscs[2].decl->ref, &(LL_DMA_InitTypeDef) {
+        .PeriphOrM2MSrcAddress = LL_USART_DMA_GetRegAddr(if_uart->reg, LL_USART_DMA_REG_DATA_TRANSMIT),
+        .MemoryOrM2MDstAddress = (uint32_t) if_uart->tx_buf,
+        .Direction = LL_DMA_DIRECTION_MEMORY_TO_PERIPH,
+        .Mode = LL_DMA_MODE_NORMAL, // LL_DMA_MODE_CIRCULAR,
+        .PeriphOrM2MSrcIncMode = LL_DMA_PERIPH_NOINCREMENT,
+        .MemoryOrM2MDstIncMode = LL_DMA_MEMORY_INCREMENT,
+        .PeriphOrM2MSrcDataSize = LL_DMA_PDATAALIGN_BYTE,
+        .MemoryOrM2MDstDataSize = LL_DMA_MDATAALIGN_BYTE,
+        .NbData = 128,
+        .Channel = rscs[2].inst->attr << DMA_SxCR_CHSEL_Pos,
+        .Priority = LL_DMA_PRIORITY_MEDIUM,
+        .FIFOMode = LL_DMA_FIFOMODE_DISABLE,
+        .FIFOThreshold = LL_DMA_FIFOTHRESHOLD_1_2,
+        .MemBurst = LL_DMA_MBURST_SINGLE,
+        .PeriphBurst = LL_DMA_PBURST_SINGLE
+    });
 
+    /* RX */
     gpio_config_by_id(rscs[1].decl->ref, &(LL_GPIO_InitTypeDef) {
         .Mode = LL_GPIO_MODE_ALTERNATE,
         .Speed = LL_GPIO_SPEED_FREQ_VERY_HIGH,
@@ -63,6 +86,10 @@ int uart_init(
         .OverSampling = LL_USART_OVERSAMPLING_16
     });
     LL_USART_Enable(if_uart->reg);
+    LL_USART_EnableDMAReq_TX(if_uart->reg);
+
+    NVIC_ClearPendingIRQ(DMA1_Stream4_IRQn);
+    NVIC_EnableIRQ(DMA1_Stream4_IRQn);
 
     return 0;
 }
@@ -73,13 +100,12 @@ static int uart_write(
     int bytes)
 {
     uart_interface_t *if_uart = (uart_interface_t *) iface;
-    uint8_t *cur = buf;
-    while (bytes--) {
-        while (!LL_USART_IsActiveFlag_TXE(if_uart->reg)) {
-        }
-        LL_USART_TransmitData8(if_uart->reg, *(cur++));
-    }
-    while (!LL_USART_IsActiveFlag_TC(if_uart->reg)) {
-    }
+    interface_resource_t *rscs = if_uart->header.header.rscs;
+
+    memcpy(if_uart->tx_buf, buf, bytes);
+    dma_set_data_length_by_id(rscs[2].decl->ref, bytes);
+    dma_enable_stream_by_id(rscs[2].decl->ref, bytes);
+
+    LL_USART_ClearFlag_TC(if_uart->reg);
     return bytes;
 }

@@ -83,6 +83,7 @@ TARGET_stm32_INCLUDES = \
 	vendor/stm32/cmsis_core/Core/Include
 
 TARGET_stm32_SOURCES = \
+	platform/stm32/hwacc/dma.c \
 	platform/stm32/hwacc/gpio.c \
 	platform/stm32/hwacc/uart.c \
 	platform/stm32/hwacc/usb_vcp.c \
@@ -132,9 +133,11 @@ TARGET_stm32f4xx_INCLUDES = \
 TARGET_stm32f4xx_SOURCES = \
 	platform/stm32f4xx/platform.c \
 	vendor/stm32/cmsis_device_f4/Source/Templates/system_stm32f4xx.c \
+	vendor/stm32/stm32f4xx_hal_driver/Src/stm32f4xx_ll_dma.c \
 	vendor/stm32/stm32f4xx_hal_driver/Src/stm32f4xx_ll_gpio.c \
 	vendor/stm32/stm32f4xx_hal_driver/Src/stm32f4xx_ll_rcc.c \
 	vendor/stm32/stm32f4xx_hal_driver/Src/stm32f4xx_ll_usart.c \
+	vendor/stm32/stm32f4xx_hal_driver/Src/stm32f4xx_ll_utils.c \
 	vendor/rtos/FreeRTOS-kernel/portable/GCC/ARM_CM4F/port.c
 
 TARGET_stm32f4xx_CFLAGS = \
@@ -158,6 +161,7 @@ TARGET_stm32f7xx_INCLUDES = \
 TARGET_stm32f7xx_SOURCES = \
 	platform/stm32f7xx/platform.c \
 	vendor/stm32/cmsis_device_f7/Source/Templates/system_stm32f7xx.c \
+	vendor/stm32/stm32f7xx_hal_driver/Src/stm32f7xx_ll_dma.c \
 	vendor/stm32/stm32f7xx_hal_driver/Src/stm32f7xx_ll_gpio.c \
 	vendor/stm32/stm32f7xx_hal_driver/Src/stm32f7xx_ll_rcc.c \
 	vendor/stm32/stm32f7xx_hal_driver/Src/stm32f7xx_ll_usart.c \

@@ -3,6 +3,7 @@
 /* Just to be able to include the correct HAL drivers independent of platform */
 
 #include "stm32f7xx.h"
+#include "stm32f7xx_ll_dma.h"
 #include "stm32f7xx_ll_pwr.h"
 #include "stm32f7xx_ll_rcc.h"
 #include "stm32f7xx_ll_gpio.h"
