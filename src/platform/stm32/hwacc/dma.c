@@ -3,101 +3,65 @@
 
 #include <stddef.h>
 
-static DMA_TypeDef *dma_reg_by_id(
+static const dma_stream_def_t dma_stream_def[16] = {
+    [DMA_ID(1, 0)] = { .reg = DMA1, .IRQn = DMA1_Stream0_IRQn, .stream = LL_DMA_STREAM_0 },
+    [DMA_ID(1, 1)] = { .reg = DMA1, .IRQn = DMA1_Stream1_IRQn, .stream = LL_DMA_STREAM_1 },
+    [DMA_ID(1, 2)] = { .reg = DMA1, .IRQn = DMA1_Stream2_IRQn, .stream = LL_DMA_STREAM_2 },
+    [DMA_ID(1, 3)] = { .reg = DMA1, .IRQn = DMA1_Stream3_IRQn, .stream = LL_DMA_STREAM_3 },
+    [DMA_ID(1, 4)] = { .reg = DMA1, .IRQn = DMA1_Stream4_IRQn, .stream = LL_DMA_STREAM_4 },
+    [DMA_ID(1, 5)] = { .reg = DMA1, .IRQn = DMA1_Stream5_IRQn, .stream = LL_DMA_STREAM_5 },
+    [DMA_ID(1, 6)] = { .reg = DMA1, .IRQn = DMA1_Stream6_IRQn, .stream = LL_DMA_STREAM_6 },
+    [DMA_ID(1, 7)] = { .reg = DMA1, .IRQn = DMA1_Stream7_IRQn, .stream = LL_DMA_STREAM_7 },
+    [DMA_ID(2, 0)] = { .reg = DMA2, .IRQn = DMA2_Stream0_IRQn, .stream = LL_DMA_STREAM_0 },
+    [DMA_ID(2, 1)] = { .reg = DMA2, .IRQn = DMA2_Stream1_IRQn, .stream = LL_DMA_STREAM_1 },
+    [DMA_ID(2, 2)] = { .reg = DMA2, .IRQn = DMA2_Stream2_IRQn, .stream = LL_DMA_STREAM_2 },
+    [DMA_ID(2, 3)] = { .reg = DMA2, .IRQn = DMA2_Stream3_IRQn, .stream = LL_DMA_STREAM_3 },
+    [DMA_ID(2, 4)] = { .reg = DMA2, .IRQn = DMA2_Stream4_IRQn, .stream = LL_DMA_STREAM_4 },
+    [DMA_ID(2, 5)] = { .reg = DMA2, .IRQn = DMA2_Stream5_IRQn, .stream = LL_DMA_STREAM_5 },
+    [DMA_ID(2, 6)] = { .reg = DMA2, .IRQn = DMA2_Stream6_IRQn, .stream = LL_DMA_STREAM_6 },
+    [DMA_ID(2, 7)] = { .reg = DMA2, .IRQn = DMA2_Stream7_IRQn, .stream = LL_DMA_STREAM_7 }
+};
+
+const dma_stream_def_t *dma_get(
     uint32_t id)
 {
-#ifdef DMA1
-    if ((id & 0xff00) == 0x0100) {
-        return DMA1;
-    }
-#endif
-#ifdef DMA2
-    if ((id & 0xff00) == 0x0200) {
-        return DMA2;
-    }
-#endif
-    return NULL;
+    return &dma_stream_def[id];
 }
 
-uint32_t dma_init_by_id(
-    uint32_t id,
-    LL_DMA_InitTypeDef *init_struct)
+void dma_enable_irq(
+    const dma_stream_def_t *def,
+    uint32_t irq_priority)
 {
-    DMA_TypeDef *reg = dma_reg_by_id(id);
-    uint32_t stream = id & 0x000000ff;
-    if (reg == NULL) {
-        /* TODO: Error handling */
-        return ERROR;
-    }
-
-    return LL_DMA_Init(reg, stream, init_struct);
-}
-
-void dma_set_data_length_by_id(
-    uint32_t id,
-    uint32_t len)
-{
-    DMA_TypeDef *reg = dma_reg_by_id(id);
-    uint32_t stream = id & 0x000000ff;
-    if (reg == NULL) {
-        /* TODO: Error handling */
-        return;
-    }
-    LL_DMA_SetDataLength(reg, stream, len);
-}
-
-void dma_disable_stream_by_id(
-    uint32_t id,
-    uint32_t len)
-{
-    DMA_TypeDef *reg = dma_reg_by_id(id);
-    uint32_t stream = id & 0x000000ff;
-    if (reg == NULL) {
-        /* TODO: Error handling */
-        return;
-    }
-    LL_DMA_DisableStream(reg, stream);
-}
-
-void dma_enable_stream_by_id(
-    uint32_t id,
-    uint32_t len)
-{
-    DMA_TypeDef *reg = dma_reg_by_id(id);
-    uint32_t stream = id & 0x000000ff;
-    if (reg == NULL) {
-        /* TODO: Error handling */
-        return;
-    }
-    LL_DMA_EnableStream(reg, stream);
-    LL_DMA_EnableIT_TC(reg, stream);
+    NVIC_ClearPendingIRQ(def->IRQn);
+    NVIC_EnableIRQ(def->IRQn);
+    NVIC_SetPriority(def->IRQn, irq_priority);
+    LL_DMA_EnableIT_TC(def->reg, def->stream);
 }
 
 static void dma_irq_handler(
-    DMA_TypeDef *reg,
-    uint32_t stream)
+    const dma_stream_def_t *def)
 {
-    if (LL_DMA_IsActiveFlag_TC4(reg)) {
-        LL_DMA_ClearFlag_TC4(reg);
-        LL_DMA_DisableStream(reg, stream);
+    if (LL_DMA_IsActiveFlag_TC4(def->reg)) {
+        LL_DMA_ClearFlag_TC4(def->reg);
+        LL_DMA_DisableStream(def->reg, def->stream);
     }
 }
 
 /* *INDENT-OFF* */
-void DMA1_Stream0_IRQHandler(void) { dma_irq_handler(DMA1, LL_DMA_STREAM_0); }
-void DMA1_Stream1_IRQHandler(void) { dma_irq_handler(DMA1, LL_DMA_STREAM_1); }
-void DMA1_Stream2_IRQHandler(void) { dma_irq_handler(DMA1, LL_DMA_STREAM_2); }
-void DMA1_Stream3_IRQHandler(void) { dma_irq_handler(DMA1, LL_DMA_STREAM_3); }
-void DMA1_Stream4_IRQHandler(void) { dma_irq_handler(DMA1, LL_DMA_STREAM_4); }
-void DMA1_Stream5_IRQHandler(void) { dma_irq_handler(DMA1, LL_DMA_STREAM_5); }
-void DMA1_Stream6_IRQHandler(void) { dma_irq_handler(DMA1, LL_DMA_STREAM_6); }
-void DMA1_Stream7_IRQHandler(void) { dma_irq_handler(DMA1, LL_DMA_STREAM_7); }
-void DMA2_Stream0_IRQHandler(void) { dma_irq_handler(DMA2, LL_DMA_STREAM_0); }
-void DMA2_Stream1_IRQHandler(void) { dma_irq_handler(DMA2, LL_DMA_STREAM_1); }
-void DMA2_Stream2_IRQHandler(void) { dma_irq_handler(DMA2, LL_DMA_STREAM_2); }
-void DMA2_Stream3_IRQHandler(void) { dma_irq_handler(DMA2, LL_DMA_STREAM_3); }
-void DMA2_Stream4_IRQHandler(void) { dma_irq_handler(DMA2, LL_DMA_STREAM_4); }
-void DMA2_Stream5_IRQHandler(void) { dma_irq_handler(DMA2, LL_DMA_STREAM_5); }
-void DMA2_Stream6_IRQHandler(void) { dma_irq_handler(DMA2, LL_DMA_STREAM_6); }
-void DMA2_Stream7_IRQHandler(void) { dma_irq_handler(DMA2, LL_DMA_STREAM_7); }
+void DMA1_Stream0_IRQHandler(void) { dma_irq_handler(&dma_stream_def[DMA_ID(1, 0)]); }
+void DMA1_Stream1_IRQHandler(void) { dma_irq_handler(&dma_stream_def[DMA_ID(1, 1)]); }
+void DMA1_Stream2_IRQHandler(void) { dma_irq_handler(&dma_stream_def[DMA_ID(1, 2)]); }
+void DMA1_Stream3_IRQHandler(void) { dma_irq_handler(&dma_stream_def[DMA_ID(1, 3)]); }
+void DMA1_Stream4_IRQHandler(void) { dma_irq_handler(&dma_stream_def[DMA_ID(1, 4)]); }
+void DMA1_Stream5_IRQHandler(void) { dma_irq_handler(&dma_stream_def[DMA_ID(1, 5)]); }
+void DMA1_Stream6_IRQHandler(void) { dma_irq_handler(&dma_stream_def[DMA_ID(1, 6)]); }
+void DMA1_Stream7_IRQHandler(void) { dma_irq_handler(&dma_stream_def[DMA_ID(1, 7)]); }
+void DMA2_Stream0_IRQHandler(void) { dma_irq_handler(&dma_stream_def[DMA_ID(2, 0)]); }
+void DMA2_Stream1_IRQHandler(void) { dma_irq_handler(&dma_stream_def[DMA_ID(2, 1)]); }
+void DMA2_Stream2_IRQHandler(void) { dma_irq_handler(&dma_stream_def[DMA_ID(2, 2)]); }
+void DMA2_Stream3_IRQHandler(void) { dma_irq_handler(&dma_stream_def[DMA_ID(2, 3)]); }
+void DMA2_Stream4_IRQHandler(void) { dma_irq_handler(&dma_stream_def[DMA_ID(2, 4)]); }
+void DMA2_Stream5_IRQHandler(void) { dma_irq_handler(&dma_stream_def[DMA_ID(2, 5)]); }
+void DMA2_Stream6_IRQHandler(void) { dma_irq_handler(&dma_stream_def[DMA_ID(2, 6)]); }
+void DMA2_Stream7_IRQHandler(void) { dma_irq_handler(&dma_stream_def[DMA_ID(2, 7)]); }
 /* *INDENT-ON* */

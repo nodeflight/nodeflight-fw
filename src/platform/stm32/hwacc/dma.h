@@ -4,20 +4,17 @@
 
 #include "stm32.h"
 
-#define DMA_ID(_DMA, _STREAM) ((_DMA) << 8 | (_STREAM))
+#define DMA_ID(_DMA, _STREAM) (((_DMA) -1) << 3 | (_STREAM))
 
-uint32_t dma_init_by_id(
-    uint32_t id,
-    LL_DMA_InitTypeDef *init_struct);
+typedef struct dma_stream_def_s {
+    DMA_TypeDef *reg;
+    uint32_t IRQn;
+    uint32_t stream;
+} dma_stream_def_t;
 
-void dma_set_data_length_by_id(
-    uint32_t id,
-    uint32_t len);
+const dma_stream_def_t *dma_get(
+    uint32_t id);
 
-void dma_disable_stream_by_id(
-    uint32_t id,
-    uint32_t len);
-
-void dma_enable_stream_by_id(
-    uint32_t id,
-    uint32_t len);
+void dma_enable_irq(
+    const dma_stream_def_t *def,
+    uint32_t irq_priority);

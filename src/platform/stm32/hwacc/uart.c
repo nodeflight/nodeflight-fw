@@ -17,6 +17,7 @@ typedef struct uart_interface_s {
     interface_serial_t header;
     USART_TypeDef *reg;
 
+    const dma_stream_def_t *tx_dma;
     uint8_t tx_buf[128];
 } uart_interface_t;
 
@@ -40,6 +41,7 @@ int uart_init(
 
     if_uart->header.write = uart_write;
     if_uart->reg = if_uart->header.header.peripheral->storage;
+    if_uart->tx_dma = dma_get(rscs[2].decl->ref);
 
     /* TX */
     gpio_config_by_id(rscs[0].decl->ref, &(LL_GPIO_InitTypeDef) {
@@ -49,7 +51,7 @@ int uart_init(
         .Pull = LL_GPIO_PULL_NO,
         .Alternate = rscs[0].inst->attr
     });
-    dma_init_by_id(rscs[2].decl->ref, &(LL_DMA_InitTypeDef) {
+    LL_DMA_Init(if_uart->tx_dma->reg, if_uart->tx_dma->stream, &(LL_DMA_InitTypeDef) {
         .PeriphOrM2MSrcAddress = LL_USART_DMA_GetRegAddr(if_uart->reg, LL_USART_DMA_REG_DATA_TRANSMIT),
         .MemoryOrM2MDstAddress = (uint32_t) if_uart->tx_buf,
         .Direction = LL_DMA_DIRECTION_MEMORY_TO_PERIPH,
@@ -66,6 +68,8 @@ int uart_init(
         .MemBurst = LL_DMA_MBURST_SINGLE,
         .PeriphBurst = LL_DMA_PBURST_SINGLE
     });
+    dma_enable_irq(if_uart->tx_dma, 5);
+    LL_USART_EnableDMAReq_TX(if_uart->reg);
 
     /* RX */
     gpio_config_by_id(rscs[1].decl->ref, &(LL_GPIO_InitTypeDef) {
@@ -86,10 +90,6 @@ int uart_init(
         .OverSampling = LL_USART_OVERSAMPLING_16
     });
     LL_USART_Enable(if_uart->reg);
-    LL_USART_EnableDMAReq_TX(if_uart->reg);
-
-    NVIC_ClearPendingIRQ(DMA1_Stream4_IRQn);
-    NVIC_EnableIRQ(DMA1_Stream4_IRQn);
 
     return 0;
 }
@@ -100,11 +100,10 @@ static int uart_write(
     int bytes)
 {
     uart_interface_t *if_uart = (uart_interface_t *) iface;
-    interface_resource_t *rscs = if_uart->header.header.rscs;
 
     memcpy(if_uart->tx_buf, buf, bytes);
-    dma_set_data_length_by_id(rscs[2].decl->ref, bytes);
-    dma_enable_stream_by_id(rscs[2].decl->ref, bytes);
+    LL_DMA_SetDataLength(if_uart->tx_dma->reg, if_uart->tx_dma->stream, bytes);
+    LL_DMA_EnableStream(if_uart->tx_dma->reg, if_uart->tx_dma->stream);
 
     LL_USART_ClearFlag_TC(if_uart->reg);
     return bytes;
