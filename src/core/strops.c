@@ -29,13 +29,44 @@ const char *strops_next_word(
     const char **ptr)
 {
     const char *start = *ptr;
-    while(**ptr != ' ' && **ptr != '\0') {
+    while (**ptr != ' ' && **ptr != '\0') {
         (*ptr)++;
     }
 
-    while(**ptr == ' ') {
+    while (**ptr == ' ') {
         (*ptr)++;
     }
 
     return start;
+}
+
+/* TODO: unit test */
+int strops_line_copy(
+    char *dst,
+    int dst_len,
+    const char **ptr)
+{
+    int status = 0;
+
+    /* Always keep space for termination */
+    dst_len--;
+
+    while(**ptr != '\n' && **ptr != '\0') {
+        if(dst_len > 0) {
+            *dst = **ptr;
+            dst++;
+            dst_len--;
+        } else {
+            status = -1;
+        }
+        (*ptr)++;
+    }
+    *dst = '\0';
+
+    /* Skip newline, to start on next line next time */
+    if(**ptr == '\n') {
+        (*ptr)++;
+    }
+
+    return status;
 }

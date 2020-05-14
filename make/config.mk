@@ -32,12 +32,14 @@ TARGET_stm32f745_SOURCES = \
 
 TARGET_nodeflight_DEPENDS = freertos
 TARGET_nodeflight_SOURCES = \
+	core/config.c \
 	core/main.c \
-	core/stdout.c \
+	core/module.c \
 	core/strops.c \
 	hwacc/interface.c \
 	hwacc/peripheral.c \
-	hwacc/resource.c
+	hwacc/resource.c \
+	module/io/stdout.c
 
 TARGET_nodeflight_INCLUDES = .
 

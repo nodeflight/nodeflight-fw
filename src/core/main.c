@@ -1,6 +1,7 @@
 #include <stdio.h>
 
-#include "core/stdout.h"
+#include "core/config.h"
+
 #include "platform/platform.h"
 
 #include "hwacc/resource.h"
@@ -11,8 +12,6 @@
 
 #include "stm32.h"
 
-extern const char __l1conf_start[];
-
 static void main_task(
     void *pvParameters);
 
@@ -22,10 +21,7 @@ int main(
 
     platform_init();
 
-    if (stdout_init("uart3 pin_d08 pin_d09 dma_1_3 dma_1_1") < 0) {
-        asm ("bkpt 255");
-        return 1;
-    }
+    config_init();
 
     xTaskCreate(main_task,
         "main",
@@ -82,17 +78,11 @@ void main_task(
             rsc->ref);
     }
 
-    printf("layer1 config:\n");
-    for (i = 0; __l1conf_start[i] != 0xff && __l1conf_start[i] != '\0'; i++) {
-        printf("%c", __l1conf_start[i]);
-    }
-
     printf("SystemCoreClock: %ld\n", SystemCoreClock);
-
 
     /* To track uart transmission delay */
     LL_GPIO_Init(GPIOA, &(LL_GPIO_InitTypeDef) {
-        .Pin = 1<<5,
+        .Pin = 1 << 5,
         .Mode = LL_GPIO_MODE_OUTPUT,
         .Speed = LL_GPIO_SPEED_FREQ_VERY_HIGH,
         .OutputType = LL_GPIO_OUTPUT_PUSHPULL,
@@ -105,8 +95,8 @@ void main_task(
     for (;;) {
         /* Place this task in the blocked state until it is time to run again. */
         vTaskDelayUntil(&next_wakeup_time, 1000 / portTICK_PERIOD_MS);
-        LL_GPIO_SetOutputPin(GPIOA, 1<<5);
+        LL_GPIO_SetOutputPin(GPIOA, 1 << 5);
         printf("Tick... %d\n", i++);
-        LL_GPIO_ResetOutputPin(GPIOA, 1<<5);
+        LL_GPIO_ResetOutputPin(GPIOA, 1 << 5);
     }
 }
