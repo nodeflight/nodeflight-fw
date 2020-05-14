@@ -32,6 +32,13 @@ static int uart_write(
 
 PERIPHERAL_TYPE_DECL(uart, PERIPHERAL_SERIAL, 4, uart_init, sizeof(uart_interface_t));
 
+static void uart_tc_callback(
+    const dma_stream_def_t *def,
+    void *storage)
+{
+    LL_DMA_DisableStream(def->reg, def->stream);
+}
+
 int uart_init(
     interface_header_t *iface,
     const char *config)
@@ -68,7 +75,8 @@ int uart_init(
         .MemBurst = LL_DMA_MBURST_SINGLE,
         .PeriphBurst = LL_DMA_PBURST_SINGLE
     });
-    dma_enable_irq(if_uart->tx_dma, 5);
+    dma_enable_irq(if_uart->tx_dma, 5, if_uart);
+    dma_enable_tc_callback(if_uart->tx_dma, uart_tc_callback);
     LL_USART_EnableDMAReq_TX(if_uart->reg);
 
     /* RX */
