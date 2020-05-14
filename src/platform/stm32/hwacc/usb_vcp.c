@@ -1,4 +1,4 @@
-#include "hwacc/peripheral.h"
+#include "core/peripheral.h"
 
 #include <stdio.h>
 

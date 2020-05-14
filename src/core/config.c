@@ -1,5 +1,5 @@
 #include "core/config.h"
-#include "core/strops.h"
+#include "lib/strops.h"
 #include "core/module.h"
 
 #define LINEBUF_SIZE 256

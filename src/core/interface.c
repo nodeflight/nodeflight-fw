@@ -1,5 +1,5 @@
-#include "hwacc/interface.h"
-#include "core/strops.h"
+#include "core/interface.h"
+#include "lib/strops.h"
 #include <stdlib.h>
 
 interface_resource_t *interface_resource_allocate(

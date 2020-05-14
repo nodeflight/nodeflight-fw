@@ -22,7 +22,7 @@ typedef enum peripheral_type_s {
     PERIPHERAL_SERIAL
 } peripheral_type_t;
 
-#include "hwacc/interface.h"
+#include "core/interface.h"
 
 struct peripheral_decl_s {
     const char *name;

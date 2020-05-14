@@ -5,8 +5,8 @@
 typedef struct interface_resource_s interface_resource_t;
 typedef struct interface_header_s interface_header_t;
 
-#include "hwacc/peripheral.h"
-#include "hwacc/resource.h"
+#include "core/peripheral.h"
+#include "core/resource.h"
 
 struct interface_resource_s {
     const resource_decl_t *decl;

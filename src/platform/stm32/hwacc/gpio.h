@@ -1,6 +1,6 @@
 #pragma once
 
-#include "hwacc/resource.h"
+#include "core/resource.h"
 
 #include "stm32.h"
 

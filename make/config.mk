@@ -35,10 +35,10 @@ TARGET_nodeflight_SOURCES = \
 	core/config.c \
 	core/main.c \
 	core/module.c \
-	core/strops.c \
-	hwacc/interface.c \
-	hwacc/peripheral.c \
-	hwacc/resource.c \
+	lib/strops.c \
+	core/interface.c \
+	core/peripheral.c \
+	core/resource.c \
 	module/io/stdout.c
 
 TARGET_nodeflight_INCLUDES = .

@@ -1,4 +1,4 @@
-#include "core/strops.h"
+#include "lib/strops.h"
 
 /* TODO: unit test */
 int strops_word_cmp(

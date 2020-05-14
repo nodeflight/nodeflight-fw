@@ -1,6 +1,6 @@
 #pragma once
 
-#include "hwacc/interface.h"
+#include "core/interface.h"
 
 typedef struct interface_serial_s interface_serial_t;
 

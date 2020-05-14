@@ -1,6 +1,6 @@
 #pragma once
 
-#include "hwacc/peripheral.h"
+#include "core/peripheral.h"
 
 #include "stm32.h"
 

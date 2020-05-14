@@ -1,5 +1,5 @@
-#include "hwacc/resource.h"
-#include "core/strops.h"
+#include "core/resource.h"
+#include "lib/strops.h"
 
 #include <stdbool.h>
 #include <stddef.h>

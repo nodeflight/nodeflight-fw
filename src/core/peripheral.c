@@ -1,6 +1,6 @@
-#include "hwacc/peripheral.h"
-#include "hwacc/resource.h"
-#include "core/strops.h"
+#include "core/peripheral.h"
+#include "core/resource.h"
+#include "lib/strops.h"
 
 #include <string.h>
 #include <stdlib.h>

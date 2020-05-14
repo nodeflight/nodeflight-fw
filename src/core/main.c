@@ -4,8 +4,8 @@
 
 #include "platform/platform.h"
 
-#include "hwacc/resource.h"
-#include "hwacc/peripheral.h"
+#include "core/resource.h"
+#include "core/peripheral.h"
 
 #include "FreeRTOS.h"
 #include "task.h"

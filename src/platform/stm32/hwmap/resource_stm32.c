@@ -1,4 +1,4 @@
-#include "hwacc/resource.h"
+#include "core/resource.h"
 
 #include "platform/stm32/hwacc/gpio.h"
 #include "platform/stm32/hwacc/dma.h"

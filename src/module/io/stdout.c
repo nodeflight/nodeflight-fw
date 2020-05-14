@@ -1,6 +1,6 @@
 #include "core/module.h"
-#include "hwacc/interface.h"
-#include "hwacc/interface_types.h"
+#include "core/interface.h"
+#include "core/interface_types.h"
 
 #include <stdint.h>
 #include <stddef.h>

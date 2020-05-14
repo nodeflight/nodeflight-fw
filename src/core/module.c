@@ -1,5 +1,5 @@
 #include "core/module.h"
-#include "core/strops.h"
+#include "lib/strops.h"
 
 const extern module_decl_t __nf_module_start[];
 const extern module_decl_t __nf_module_end[];

@@ -1,5 +1,5 @@
-#include "hwacc/peripheral.h"
-#include "hwacc/resource.h"
+#include "core/peripheral.h"
+#include "core/resource.h"
 
 #include "platform/stm32/hwacc/uart.h"
 
