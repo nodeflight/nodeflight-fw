@@ -15,7 +15,8 @@ int _write(
     /* stdout */
     if (fd == 1) {
         if(if_stdout != NULL) {
-            interface_serial_write(if_stdout, buf, size);
+            interface_serial_tx_wait_done(if_stdout);
+            interface_serial_tx_write(if_stdout, buf, size);
         }
         return size;
     }

@@ -25,10 +25,13 @@ int uart_init(
     interface_header_t *iface,
     const char *config);
 
-static int uart_write(
+static int uart_tx_write(
     interface_serial_t *iface,
     void *buf,
     int bytes);
+
+static void uart_tx_wait_done(
+    interface_serial_t *iface);
 
 PERIPHERAL_TYPE_DECL(uart, PERIPHERAL_SERIAL, 4, uart_init, sizeof(uart_interface_t));
 
@@ -46,7 +49,8 @@ int uart_init(
     uart_interface_t *if_uart = (uart_interface_t *) iface;
     interface_resource_t *rscs = if_uart->header.header.rscs;
 
-    if_uart->header.write = uart_write;
+    if_uart->header.tx_write = uart_tx_write;
+    if_uart->header.tx_wait_done = uart_tx_wait_done;
     if_uart->reg = if_uart->header.header.peripheral->storage;
     if_uart->tx_dma = dma_get(rscs[2].decl->ref);
 
@@ -102,7 +106,7 @@ int uart_init(
     return 0;
 }
 
-static int uart_write(
+static int uart_tx_write(
     interface_serial_t *iface,
     void *buf,
     int bytes)
@@ -115,4 +119,12 @@ static int uart_write(
 
     LL_USART_ClearFlag_TC(if_uart->reg);
     return bytes;
+}
+
+void uart_tx_wait_done(
+    interface_serial_t *iface)
+{
+    uart_interface_t *if_uart = (uart_interface_t *) iface;
+    while (!LL_USART_IsActiveFlag_TC(if_uart->reg)) {
+    }
 }
