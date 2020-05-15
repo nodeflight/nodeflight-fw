@@ -1,3 +1,14 @@
+#!/bin/bash
+
+BASEDIR=$(git rev-parse --show-toplevel)
+cd $BASEDIR
+
+for F in $(find "src" -name '*.[ch]' -not -path 'src/vendor/*'); do
+	if grep -q 'You should have received a copy of the GNU General Public License' ${F}; then
+		printf "Already applied to %-60s %s\n" "${F}" "$(grep 'Copyright (C)' "${F}")"
+	else
+		mv "${F}" "${F}_orig"
+		cat > "${F}" <<EOF
 /*
  * NodeFlight - platform for embedded control systems 
  * Copyright (C) 2020  Max Sikström
@@ -16,20 +27,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "core/peripheral.h"
+EOF
+		cat "${F}_orig" >> "${F}"
+		rm "${F}_orig"
+		printf "Licence added to   %-60s %s\n" "${F}" "$(grep 'Copyright (C)' "${F}")"
+	fi
+done
 
-#include <stdio.h>
-
-// static void *usb_vcp_init(
-//     const peripheral_instance_decl_t *instance);
-
-// PERIPHERAL_TYPE_DECL(usb_vcp, PERIPHERAL_SERIAL, usb_vcp_init);
-
-// PERIPHERAL_INSTANCE_DECL(usb_vcp, usb_vcp, "USB VCP", NULL);
-
-// void *usb_vcp_init(
-//     const peripheral_instance_decl_t *instance)
-// {
-//     printf("Init USB VCP something\n");
-//     return NULL;
-// }
+echo "Verify git diff before commit!"
