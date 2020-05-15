@@ -30,15 +30,10 @@ TARGET_stm32f745_SOURCES = \
 #######################################################################
 # Common configuration
 
-TARGET_nodeflight_DEPENDS = freertos lib
+TARGET_nodeflight_DEPENDS = freertos core lib
 TARGET_nodeflight_SOURCES = \
-	core/config.c \
 	core/main.c \
-	core/module.c \
 	lib/strops.c \
-	core/interface.c \
-	core/peripheral.c \
-	core/resource.c \
 	module/io/stdout.c
 
 TARGET_nodeflight_INCLUDES = .
@@ -52,13 +47,42 @@ TARGET_nodeflight_CFLAGS = \
 	-Wpedantic \
 	-MMD
 
+TARGET_core_SOURCES = \
+	core/config.c \
+	core/module.c \
+	core/interface.c \
+	core/peripheral.c \
+	core/resource.c
 
 TARGET_lib_SOURCES = \
 	lib/strops.c \
 	lib/map.c
 
 #######################################################################
+# Unit test framework
+
+TARGET_unittest_DEPENDS = lib native
+TARGET_unittest_INCLUDES = .
+TARGET_unittest_SOURCES = \
+	unittest/main.c
+
+
+#######################################################################
 # Platform configuration
+
+TARGET_native_CC      = gcc
+TARGET_native_ASM     = gcc
+TARGET_native_LD      = gcc
+TARGET_native_OBJCOPY = objcopy
+
+TARGET_native_CFLAGS = \
+	-g \
+	-O3 \
+	-Wdouble-promotion \
+	-Wall \
+	-Werror \
+	-Wpedantic \
+	-MMD
 
 # Generic Cortex-M
 

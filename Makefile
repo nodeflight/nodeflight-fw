@@ -9,9 +9,19 @@ TARGET=""
 
 all: $(addprefix build.,$(TARGETS))
 
+check: unittest
+
 build.%: FORCE
 	$(TRACE) MAKE $@
 	$(Q)$(MAKE) -f make/main.mk TARGET=$*
+
+unittest: build/nodeflight-unittest.elf
+	$(TRACE) UNITTEST
+	$(Q)$<
+
+build/nodeflight-%.elf: FORCE
+	$(TRACE) MAKE $@
+	$(Q)$(MAKE) -f make/main.mk TARGET=$* build/nodeflight-$*.elf
 
 clean: FORCE
 	rm -rf build
