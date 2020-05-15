@@ -1,6 +1,7 @@
 #include "core/module.h"
 #include "core/interface.h"
 #include "core/interface_types.h"
+#include "core/config.h"
 
 #include <stdint.h>
 #include <stddef.h>
@@ -30,12 +31,14 @@ int _write(
 int stdout_init(
     const char *tag)
 {
+    const char *peripheral_config;
     /* Can only have one stdout module loaded */
     if (if_stdout != NULL) {
         return -1;
     }
 
-    if_stdout = interface_create(tag);
+    peripheral_config = config_get_peripheral_config(tag);
+    if_stdout = interface_create(peripheral_config);
     if (if_stdout == NULL) {
         return -1;
     }

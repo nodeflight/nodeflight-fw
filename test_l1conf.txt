@@ -1,2 +1,2 @@
-mod stdout uart3 pin_d08 pin_d09 dma_1_3 dma_1_1
-
+per uart_st uart3 pin_d08 pin_d09 dma_1_3 dma_1_1
+mod stdout uart_st

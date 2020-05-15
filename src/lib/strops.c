@@ -1,4 +1,6 @@
 #include "lib/strops.h"
+#include <stddef.h>
+#include <stdlib.h>
 
 /* TODO: unit test */
 int strops_word_cmp(
@@ -51,8 +53,8 @@ int strops_line_copy(
     /* Always keep space for termination */
     dst_len--;
 
-    while(**ptr != '\n' && **ptr != '\0') {
-        if(dst_len > 0) {
+    while (**ptr != '\n' && **ptr != '\0') {
+        if (dst_len > 0) {
             *dst = **ptr;
             dst++;
             dst_len--;
@@ -64,9 +66,53 @@ int strops_line_copy(
     *dst = '\0';
 
     /* Skip newline, to start on next line next time */
-    if(**ptr == '\n') {
+    if (**ptr == '\n') {
         (*ptr)++;
     }
 
     return status;
+}
+
+char *strops_word_dup(
+    const char *source)
+{
+    int len;
+    int i;
+    char *dest;
+
+    len = 0;
+    while (source[len] != '\0' && source[len] != '\n' && source[len] != ' ') {
+        len++;
+    }
+    dest = malloc(len + 1);
+    if (dest == NULL) {
+        return NULL;
+    }
+    for (i = 0; i < len; i++) {
+        dest[i] = source[i];
+    }
+    dest[len] = '\0';
+    return dest;
+}
+
+char *strops_line_dup(
+    const char *source)
+{
+    int len;
+    int i;
+    char *dest;
+
+    len = 0;
+    while (source[len] != '\0' && source[len] != '\n') {
+        len++;
+    }
+    dest = malloc(len + 1);
+    if (dest == NULL) {
+        return NULL;
+    }
+    for (i = 0; i < len; i++) {
+        dest[i] = source[i];
+    }
+    dest[len] = '\0';
+    return dest;
 }

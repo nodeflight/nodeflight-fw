@@ -30,7 +30,7 @@ TARGET_stm32f745_SOURCES = \
 #######################################################################
 # Common configuration
 
-TARGET_nodeflight_DEPENDS = freertos
+TARGET_nodeflight_DEPENDS = freertos lib
 TARGET_nodeflight_SOURCES = \
 	core/config.c \
 	core/main.c \
@@ -52,6 +52,10 @@ TARGET_nodeflight_CFLAGS = \
 	-Wpedantic \
 	-MMD
 
+
+TARGET_lib_SOURCES = \
+	lib/strops.c \
+	lib/map.c
 
 #######################################################################
 # Platform configuration
