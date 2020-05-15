@@ -1,17 +1,17 @@
 /*
- * NodeFlight - platform for embedded control systems 
+ * NodeFlight - platform for embedded control systems
  * Copyright (C) 2020  Max Sikström
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
@@ -68,8 +68,8 @@ static void platform_clock_config(
         .APB1CLKDivider = LL_RCC_APB2_DIV_2
     });
 
-    if(status != SUCCESS) {
-        asm("bkpt 255");
+    if (status != SUCCESS) {
+        asm ("bkpt 255");
     }
     LL_PWR_EnableOverDriveMode();
 
@@ -78,7 +78,7 @@ static void platform_clock_config(
     LL_RCC_SetUSARTClockSource(LL_RCC_USART2_CLKSOURCE_PCLK1);
     LL_RCC_SetUSARTClockSource(LL_RCC_USART3_CLKSOURCE_PCLK1);
     LL_RCC_SetUSARTClockSource(LL_RCC_USART6_CLKSOURCE_PCLK2);
-    
+
     LL_RCC_SetUARTClockSource(LL_RCC_UART4_CLKSOURCE_PCLK1);
     LL_RCC_SetUARTClockSource(LL_RCC_UART5_CLKSOURCE_PCLK1);
     LL_RCC_SetUARTClockSource(LL_RCC_UART7_CLKSOURCE_PCLK1);

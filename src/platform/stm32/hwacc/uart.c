@@ -1,17 +1,17 @@
 /*
- * NodeFlight - platform for embedded control systems 
+ * NodeFlight - platform for embedded control systems
  * Copyright (C) 2020  Max Sikström
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
@@ -139,7 +139,7 @@ static int uart_tx_write(
         /* Block if already transmitting */
         while (LL_DMA_IsEnabledStream(if_uart->tx_dma->reg, if_uart->tx_dma->stream)) {
         }
-        memcpy(if_uart->tx_buf, ((const uint8_t *)buf) + i, cur_bytes);
+        memcpy(if_uart->tx_buf, ((const uint8_t *) buf) + i, cur_bytes);
         LL_DMA_SetDataLength(if_uart->tx_dma->reg, if_uart->tx_dma->stream, cur_bytes);
         LL_DMA_EnableStream(if_uart->tx_dma->reg, if_uart->tx_dma->stream);
         LL_USART_ClearFlag_TC(if_uart->reg);
