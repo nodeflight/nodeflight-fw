@@ -22,3 +22,6 @@
 [submodule "src/vendor/rtos/FreeRTOS-kernel"]
 	path = src/vendor/rtos/FreeRTOS-kernel
 	url = https://github.com/freertos/FreeRTOS-kernel.git
+[submodule "src/vendor/tinyprintf"]
+	path = src/vendor/tinyprintf
+	url = https://github.com/cjlano/tinyprintf.git

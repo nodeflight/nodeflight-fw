@@ -30,7 +30,7 @@ TARGET_stm32f745_SOURCES = \
 #######################################################################
 # Common configuration
 
-TARGET_nodeflight_DEPENDS = freertos core lib
+TARGET_nodeflight_DEPENDS = freertos tinyprintf core lib
 TARGET_nodeflight_SOURCES = \
 	core/main.c \
 	lib/strops.c \
@@ -46,6 +46,14 @@ TARGET_nodeflight_CFLAGS = \
 	-Werror \
 	-Wpedantic \
 	-MMD
+
+TARGET_tinyprintf_SOURCES = \
+	vendor/tinyprintf/tinyprintf.c
+
+TARGET_tinyprintf_CFLAGS = \
+	-DTINYPRINTF_DEFINE_TFP_PRINTF=1 \
+	-DTINYPRINTF_OVERRIDE_LIBC=0 \
+	-TINYPRINTF_DEFINE_TFP_SPRINTF=1
 
 TARGET_core_SOURCES = \
 	core/config.c \
@@ -219,4 +227,4 @@ TARGET_freertos_SOURCES = \
 	vendor/rtos/FreeRTOS-kernel/queue.c \
 	vendor/rtos/FreeRTOS-kernel/tasks.c \
 	vendor/rtos/FreeRTOS-kernel/timers.c \
-	vendor/rtos/FreeRTOS-kernel/portable/MemMang/heap_3.c 
+	integration/heap.c 

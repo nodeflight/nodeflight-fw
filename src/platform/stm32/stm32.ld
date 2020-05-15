@@ -116,15 +116,13 @@ SECTIONS
     __bss_end__ = _ebss;
   } >RAM
 
-  /* User_heap_stack section, used to check that there is enough RAM left */
+  /* Allocate space for heap */
   ._user_heap_stack :
   {
     . = ALIGN(8);
-    PROVIDE ( end = . );
-    PROVIDE ( _end = . );
-    . = . + _Min_Heap_Size;
-    . = . + _Min_Stack_Size;
-    . = ALIGN(8);
+    PROVIDE ( __heap_start = . );
+    . = ORIGIN(RAM) + LENGTH(RAM) - _Main_Stack_Size;
+    PROVIDE ( __heap_end = . );
   } >RAM
 
   

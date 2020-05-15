@@ -18,7 +18,7 @@
 
 #include "core/interface.h"
 #include "lib/strops.h"
-#include <stdlib.h>
+#include "FreeRTOS.h"
 
 interface_resource_t *interface_resource_allocate(
     const peripheral_instance_decl_t *peripheral,
@@ -26,7 +26,7 @@ interface_resource_t *interface_resource_allocate(
 {
     int rsc_count = peripheral->decl->num_rscs;
     int i;
-    interface_resource_t *rscs = malloc(sizeof(interface_resource_t) * rsc_count);
+    interface_resource_t *rscs = pvPortMalloc(sizeof(interface_resource_t) * rsc_count);
     if (rscs == NULL) {
         return NULL;
     }
@@ -64,7 +64,7 @@ interface_header_t *interface_create(
         return NULL;
     }
 
-    interface_header_t *iface = malloc(decl->decl->storage_size);
+    interface_header_t *iface = pvPortMalloc(decl->decl->storage_size);
     if (iface == NULL) {
         /* TODO: error handling */
         asm ("bkpt 255");

@@ -21,6 +21,8 @@
 #include "core/interface_types.h"
 #include "core/config.h"
 
+#include "vendor/tinyprintf/tinyprintf.h"
+
 #include <stdint.h>
 #include <stddef.h>
 
@@ -31,35 +33,27 @@ static int stdout_init(
 
 MODULE_DECL(stdout, stdout_init);
 
-int _write(
-    int fd,
-    uint8_t *buf,
-    int size)
+static void stdout_putc(
+    void *storage,
+    char c)
 {
-    /* stdout */
-    if (fd == 1) {
-        if (if_stdout != NULL) {
-            interface_serial_tx_write(if_stdout, buf, size);
-        }
-        return size;
-    }
-    return -1;
+    interface_header_t *if_stdout = storage;
+    interface_serial_tx_write(if_stdout, &c, 1);
 }
 
 int stdout_init(
     const char *tag)
 {
+    interface_header_t *if_stdout;
     const char *peripheral_config;
-    /* Can only have one stdout module loaded */
-    if (if_stdout != NULL) {
-        return -1;
-    }
 
     peripheral_config = config_get_peripheral_config(tag);
     if_stdout = interface_create(peripheral_config);
     if (if_stdout == NULL) {
         return -1;
     }
+
+    init_printf(if_stdout, stdout_putc);
 
     return 0;
 }

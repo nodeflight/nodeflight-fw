@@ -18,7 +18,7 @@
 
 #include "lib/strops.h"
 #include <stddef.h>
-#include <stdlib.h>
+#include "FreeRTOS.h"
 
 /* TODO: unit test */
 int strops_word_cmp(
@@ -102,7 +102,7 @@ char *strops_word_dup(
     while (source[len] != '\0' && source[len] != '\n' && source[len] != ' ') {
         len++;
     }
-    dest = malloc(len + 1);
+    dest = pvPortMalloc(len + 1);
     if (dest == NULL) {
         return NULL;
     }
@@ -124,7 +124,7 @@ char *strops_line_dup(
     while (source[len] != '\0' && source[len] != '\n') {
         len++;
     }
-    dest = malloc(len + 1);
+    dest = pvPortMalloc(len + 1);
     if (dest == NULL) {
         return NULL;
     }

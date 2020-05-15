@@ -18,10 +18,10 @@
 
 #include "core/resource.h"
 #include "lib/strops.h"
+#include "FreeRTOS.h"
 
 #include <stdbool.h>
 #include <stddef.h>
-#include <stdlib.h>
 #include <string.h>
 
 const extern resource_decl_t __nf_resource_start[];
@@ -37,10 +37,9 @@ static void resource_init_state(
     if (resource_states == NULL) {
         resource_count = __nf_resource_end - __nf_resource_start;
         int mem_size = sizeof(resource_state_t) * resource_count;
-        resource_states = malloc(mem_size);
+        resource_states = pvPortMalloc(mem_size);
         if (resource_states == NULL) {
             /* TODO: error handling */
-            asm ("bkpt 255");
             for (;;) {
             }
         }

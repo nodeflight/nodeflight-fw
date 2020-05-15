@@ -27,8 +27,6 @@
 #include "platform/stm32/hwacc/dma.h"
 
 #include <stddef.h>
-#include <stdlib.h>
-#include <stdio.h>
 #include <string.h>
 
 #define TX_BUF_SIZE 128

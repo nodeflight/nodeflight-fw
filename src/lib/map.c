@@ -18,9 +18,9 @@
 
 #include "lib/map.h"
 #include "lib/strops.h"
+#include "FreeRTOS.h"
 #include <stdint.h>
 #include <stddef.h>
-#include <stdlib.h>
 
 #define MAP_ELEMS_PER_CHUNK 16
 
@@ -39,7 +39,7 @@ struct map_s {
 map_t *map_create(
     void)
 {
-    map_t *map = malloc(sizeof(map_t));
+    map_t *map = pvPortMalloc(sizeof(map_t));
     int i;
     if (map == NULL) {
         return NULL;
