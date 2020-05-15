@@ -20,7 +20,7 @@
 #include "core/resource.h"
 #include "lib/strops.h"
 
-#include <string.h>
+#include <stddef.h>
 
 const extern peripheral_instance_decl_t __nf_peripheral_start[];
 const extern peripheral_instance_decl_t __nf_peripheral_end[];

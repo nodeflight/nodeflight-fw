@@ -16,24 +16,10 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+#pragma once
+
 #include "core/peripheral.h"
 
-typedef struct usb_vcp_interface_s usb_vcp_interface_t;
+#include "stm32.h"
 
-struct usb_vcp_interface_s {
-    uint8_t dummy;
-};
-
-static int usb_vcp_init(
-    interface_header_t *iface,
-    const char *config);
-
-PERIPHERAL_TYPE_DECL(usb_vcp, PERIPHERAL_SERIAL, 0, usb_vcp_init, sizeof(usb_vcp_interface_t));
-
-static int usb_vcp_init(
-    interface_header_t *iface,
-    const char *config)
-{
-    /* TODO: Implement... */
-    return -1;
-}
+PERIPHERAL_TYPE_EXTERN(usb_vcp);

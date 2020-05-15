@@ -20,6 +20,7 @@
 #include "core/resource.h"
 
 #include "platform/stm32/hwacc/uart.h"
+#include "platform/stm32/hwacc/usb_vcp.h"
 
 #include "stm32.h"
 
@@ -129,4 +130,8 @@ PERIPHERAL_INSTANCE_DECL(uart, uart8, UART8,
     PERIPHERAL_INSTANCE_RESOURCE(UART_DMA_TX, dma_1_0, 5),
 
     PERIPHERAL_INSTANCE_RESOURCE(UART_DMA_RX, dma_1_6, 5)
+);
+
+PERIPHERAL_INSTANCE_DECL(usb_vcp, usb_vcp, NULL,
+    PERIPHERAL_INSTANCE_RESOURCE_TERMINATION
 );

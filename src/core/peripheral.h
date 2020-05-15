@@ -87,11 +87,11 @@ struct peripheral_instance_resource_s {
         .attr = _attr \
     }
 
-#define PERIPHERAL_INSTANCE_RESOURCE_AUTO(_tag, _attr) \
+#define PERIPHERAL_INSTANCE_RESOURCE_TERMINATION \
     { \
-        .tag = #_tag, \
-        .arg_nr = 0xffff, \
-        .attr = _attr \
+        .tag = NULL, \
+        .arg_nr = 0, \
+        .attr = 0 \
     }
 
 #define PERIPHERAL_INSTANCE_DECL(_name, _tag, _storage, ...) \
@@ -100,7 +100,7 @@ struct peripheral_instance_resource_s {
         .tag = #_tag, \
         .resources = (const peripheral_instance_resource_t[]) { \
             __VA_ARGS__, \
-            {.tag = NULL, .arg_nr = 0, .attr = 0} \
+            PERIPHERAL_INSTANCE_RESOURCE_TERMINATION \
         }, \
         .storage = (_storage) \
     }
