@@ -23,10 +23,15 @@
 typedef struct interface_serial_s interface_serial_t;
 typedef struct interface_serial_config_s interface_serial_config_t;
 
+#define INTERFACE_SERIAL_INVERTED_TX 0x00000001
+#define INTERFACE_SERIAL_INVERTED_RX 0x00000002
+#define INTERFACE_SERIAL_HALF_DUPLEX 0x00000004
+
 struct interface_serial_config_s {
     uint32_t baudrate;
     uint16_t tx_buf_size;
     uint16_t rx_buf_size;
+    uint32_t flags;
 };
 
 struct interface_serial_s {

@@ -23,3 +23,11 @@
 #include "stm32.h"
 
 PERIPHERAL_TYPE_EXTERN(uart);
+
+enum {
+    UART_ARG_PIN_TX = 0,
+    UART_ARG_PIN_RX,
+    UART_ARG_DMA_TX,
+    UART_ARG_DMA_RX,
+    UART_NUM_ARGS
+};
