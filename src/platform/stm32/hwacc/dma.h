@@ -23,6 +23,7 @@
 #include "stm32.h"
 
 #define DMA_ID(_DMA, _STREAM) (((_DMA) -1) << 3 | (_STREAM))
+#define DMA_ID_NONE 0xffffffff
 
 typedef struct dma_stream_def_s dma_stream_def_t;
 

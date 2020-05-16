@@ -70,7 +70,6 @@ int uart_init(
     const char *config)
 {
     uart_interface_t *if_uart = (uart_interface_t *) iface;
-    interface_resource_t *rscs = if_uart->header.header.rscs;
 
     if_uart->header.configure = uart_configure;
     if_uart->header.tx_write = uart_tx_write;
@@ -78,7 +77,7 @@ int uart_init(
 
     if_uart->reg = if_uart->header.header.peripheral->storage;
 
-    if_uart->tx_dma = dma_get(rscs[2].decl->ref);
+    if_uart->tx_dma = NULL;
     if_uart->tx_buf = NULL;
     if_uart->tx_buf_size = 0;
 
@@ -103,45 +102,50 @@ int uart_configure(
     });
 
     /* TX */
-    if_uart->tx_buf = pvPortMalloc(config->tx_buf_size);
-    if_uart->tx_buf_size = config->tx_buf_size;
+    if (rscs[0].decl->ref != GPIO_ID_NONE || rscs[2].decl->ref == DMA_ID_NONE) {
+        if_uart->tx_dma = dma_get(rscs[2].decl->ref);
+        if_uart->tx_buf = pvPortMalloc(config->tx_buf_size);
+        if_uart->tx_buf_size = config->tx_buf_size;
 
-    gpio_config_by_id(rscs[0].decl->ref, &(LL_GPIO_InitTypeDef) {
-        .Mode = LL_GPIO_MODE_ALTERNATE,
-        .Speed = LL_GPIO_SPEED_FREQ_VERY_HIGH,
-        .OutputType = LL_GPIO_OUTPUT_PUSHPULL,
-        .Pull = LL_GPIO_PULL_NO,
-        .Alternate = rscs[0].inst->attr
-    });
-    LL_DMA_Init(if_uart->tx_dma->reg, if_uart->tx_dma->stream, &(LL_DMA_InitTypeDef) {
-        .PeriphOrM2MSrcAddress = LL_USART_DMA_GetRegAddr(if_uart->reg, LL_USART_DMA_REG_DATA_TRANSMIT),
-        .MemoryOrM2MDstAddress = (uint32_t) if_uart->tx_buf,
-        .Direction = LL_DMA_DIRECTION_MEMORY_TO_PERIPH,
-        .Mode = LL_DMA_MODE_NORMAL, // LL_DMA_MODE_CIRCULAR,
-        .PeriphOrM2MSrcIncMode = LL_DMA_PERIPH_NOINCREMENT,
-        .MemoryOrM2MDstIncMode = LL_DMA_MEMORY_INCREMENT,
-        .PeriphOrM2MSrcDataSize = LL_DMA_PDATAALIGN_BYTE,
-        .MemoryOrM2MDstDataSize = LL_DMA_MDATAALIGN_BYTE,
-        .NbData = 0,
-        .Channel = rscs[2].inst->attr << DMA_SxCR_CHSEL_Pos,
-        .Priority = LL_DMA_PRIORITY_MEDIUM,
-        .FIFOMode = LL_DMA_FIFOMODE_DISABLE,
-        .FIFOThreshold = LL_DMA_FIFOTHRESHOLD_1_2,
-        .MemBurst = LL_DMA_MBURST_SINGLE,
-        .PeriphBurst = LL_DMA_PBURST_SINGLE
-    });
-    dma_enable_irq(if_uart->tx_dma, 5, if_uart);
-    dma_set_transfer_complete_cb(if_uart->tx_dma, uart_tx_tc_callback);
-    LL_USART_EnableDMAReq_TX(if_uart->reg);
+        gpio_config_by_id(rscs[0].decl->ref, &(LL_GPIO_InitTypeDef) {
+            .Mode = LL_GPIO_MODE_ALTERNATE,
+            .Speed = LL_GPIO_SPEED_FREQ_VERY_HIGH,
+            .OutputType = LL_GPIO_OUTPUT_PUSHPULL,
+            .Pull = LL_GPIO_PULL_NO,
+            .Alternate = rscs[0].inst->attr
+        });
+        LL_DMA_Init(if_uart->tx_dma->reg, if_uart->tx_dma->stream, &(LL_DMA_InitTypeDef) {
+            .PeriphOrM2MSrcAddress = LL_USART_DMA_GetRegAddr(if_uart->reg, LL_USART_DMA_REG_DATA_TRANSMIT),
+            .MemoryOrM2MDstAddress = (uint32_t) if_uart->tx_buf,
+            .Direction = LL_DMA_DIRECTION_MEMORY_TO_PERIPH,
+            .Mode = LL_DMA_MODE_NORMAL, // LL_DMA_MODE_CIRCULAR,
+            .PeriphOrM2MSrcIncMode = LL_DMA_PERIPH_NOINCREMENT,
+            .MemoryOrM2MDstIncMode = LL_DMA_MEMORY_INCREMENT,
+            .PeriphOrM2MSrcDataSize = LL_DMA_PDATAALIGN_BYTE,
+            .MemoryOrM2MDstDataSize = LL_DMA_MDATAALIGN_BYTE,
+            .NbData = 0,
+            .Channel = rscs[2].inst->attr << DMA_SxCR_CHSEL_Pos,
+            .Priority = LL_DMA_PRIORITY_MEDIUM,
+            .FIFOMode = LL_DMA_FIFOMODE_DISABLE,
+            .FIFOThreshold = LL_DMA_FIFOTHRESHOLD_1_2,
+            .MemBurst = LL_DMA_MBURST_SINGLE,
+            .PeriphBurst = LL_DMA_PBURST_SINGLE
+        });
+        dma_enable_irq(if_uart->tx_dma, 5, if_uart);
+        dma_set_transfer_complete_cb(if_uart->tx_dma, uart_tx_tc_callback);
+        LL_USART_EnableDMAReq_TX(if_uart->reg);
+    }
 
     /* RX */
-    gpio_config_by_id(rscs[1].decl->ref, &(LL_GPIO_InitTypeDef) {
-        .Mode = LL_GPIO_MODE_ALTERNATE,
-        .Speed = LL_GPIO_SPEED_FREQ_VERY_HIGH,
-        .OutputType = LL_GPIO_OUTPUT_OPENDRAIN,
-        .Pull = LL_GPIO_PULL_NO,
-        .Alternate = rscs[1].inst->attr
-    });
+    if (rscs[1].decl->ref != GPIO_ID_NONE || rscs[3].decl->ref == DMA_ID_NONE) {
+        gpio_config_by_id(rscs[1].decl->ref, &(LL_GPIO_InitTypeDef) {
+            .Mode = LL_GPIO_MODE_ALTERNATE,
+            .Speed = LL_GPIO_SPEED_FREQ_VERY_HIGH,
+            .OutputType = LL_GPIO_OUTPUT_OPENDRAIN,
+            .Pull = LL_GPIO_PULL_NO,
+            .Alternate = rscs[1].inst->attr
+        });
+    }
 
     LL_USART_Enable(if_uart->reg);
 
