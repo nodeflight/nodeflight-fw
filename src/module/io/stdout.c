@@ -105,6 +105,11 @@ int stdout_init(
     if (out_if->if_stdout == NULL) {
         return -1;
     }
+    interface_serial_configure(out_if->if_stdout, &(const interface_serial_config_t) {
+        .baudrate = 115200,
+        .tx_buf_size = MAX_LINE_LENGTH,
+        .rx_buf_size = 0
+    });
 
     init_printf(out_if, stdout_putc);
 

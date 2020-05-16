@@ -26,22 +26,27 @@
 #include "platform/stm32/hwacc/gpio.h"
 #include "platform/stm32/hwacc/dma.h"
 
+#include "FreeRTOS.h"
+
 #include <stddef.h>
 #include <string.h>
-
-#define TX_BUF_SIZE 128
 
 typedef struct uart_interface_s {
     interface_serial_t header;
     USART_TypeDef *reg;
 
     const dma_stream_def_t *tx_dma;
-    uint8_t tx_buf[TX_BUF_SIZE];
+    uint8_t *tx_buf;
+    uint16_t tx_buf_size;
 } uart_interface_t;
 
-int uart_init(
+static int uart_init(
     interface_header_t *iface,
     const char *config);
+
+static int uart_configure(
+    interface_serial_t *iface,
+    const interface_serial_config_t *config);
 
 static int uart_tx_write(
     interface_serial_t *iface,
@@ -67,12 +72,40 @@ int uart_init(
     uart_interface_t *if_uart = (uart_interface_t *) iface;
     interface_resource_t *rscs = if_uart->header.header.rscs;
 
+    if_uart->header.configure = uart_configure;
     if_uart->header.tx_write = uart_tx_write;
     if_uart->header.tx_wait_done = uart_tx_wait_done;
+
     if_uart->reg = if_uart->header.header.peripheral->storage;
+
     if_uart->tx_dma = dma_get(rscs[2].decl->ref);
+    if_uart->tx_buf = NULL;
+    if_uart->tx_buf_size = 0;
+
+    return 0;
+}
+
+int uart_configure(
+    interface_serial_t *iface,
+    const interface_serial_config_t *config)
+{
+    uart_interface_t *if_uart = (uart_interface_t *) iface;
+    interface_resource_t *rscs = if_uart->header.header.rscs;
+
+    LL_USART_Init(if_uart->reg, &(LL_USART_InitTypeDef) {
+        .BaudRate = config->baudrate,
+        .DataWidth = LL_USART_DATAWIDTH_8B,
+        .StopBits = LL_USART_STOPBITS_1,
+        .Parity = LL_USART_PARITY_NONE,
+        .TransferDirection = LL_USART_DIRECTION_TX_RX,
+        .HardwareFlowControl = LL_USART_HWCONTROL_NONE,
+        .OverSampling = LL_USART_OVERSAMPLING_16
+    });
 
     /* TX */
+    if_uart->tx_buf = pvPortMalloc(config->tx_buf_size);
+    if_uart->tx_buf_size = config->tx_buf_size;
+
     gpio_config_by_id(rscs[0].decl->ref, &(LL_GPIO_InitTypeDef) {
         .Mode = LL_GPIO_MODE_ALTERNATE,
         .Speed = LL_GPIO_SPEED_FREQ_VERY_HIGH,
@@ -110,21 +143,12 @@ int uart_init(
         .Alternate = rscs[1].inst->attr
     });
 
-    LL_USART_Init(if_uart->reg, &(LL_USART_InitTypeDef) {
-        .BaudRate = 115200,
-        .DataWidth = LL_USART_DATAWIDTH_8B,
-        .StopBits = LL_USART_STOPBITS_1,
-        .Parity = LL_USART_PARITY_NONE,
-        .TransferDirection = LL_USART_DIRECTION_TX_RX,
-        .HardwareFlowControl = LL_USART_HWCONTROL_NONE,
-        .OverSampling = LL_USART_OVERSAMPLING_16
-    });
     LL_USART_Enable(if_uart->reg);
 
     return 0;
 }
 
-static int uart_tx_write(
+int uart_tx_write(
     interface_serial_t *iface,
     const void *buf,
     int bytes)
@@ -132,8 +156,15 @@ static int uart_tx_write(
     int i;
     uart_interface_t *if_uart = (uart_interface_t *) iface;
 
-    for (i = 0; i < bytes; i += TX_BUF_SIZE) {
-        int cur_bytes = (i + TX_BUF_SIZE >= bytes) ? bytes - i : TX_BUF_SIZE;
+    if (if_uart->tx_buf == NULL) {
+        return -1;
+    }
+
+    for (i = 0; i < bytes; i += if_uart->tx_buf_size) {
+        int cur_bytes = bytes - i;
+        if (cur_bytes > if_uart->tx_buf_size) {
+            cur_bytes = if_uart->tx_buf_size;
+        }
         /* Block if already transmitting */
         while (LL_DMA_IsEnabledStream(if_uart->tx_dma->reg, if_uart->tx_dma->stream)) {
         }
