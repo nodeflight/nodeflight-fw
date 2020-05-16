@@ -32,7 +32,9 @@ static void config_parse_line(
     const char *line)
 {
     const char *command = strops_next_word(&line);
-    if (0 == strops_word_cmp("mod", command)) {
+    if (*command == '\0' || *command == '#') {
+        /* Ignore empty lines and comments */
+    } else if (0 == strops_word_cmp("mod", command)) {
         /* Load module */
         const char *name = strops_next_word(&line);
         if (0 != module_init(name, line)) {

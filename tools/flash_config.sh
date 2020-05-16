@@ -7,4 +7,9 @@ if [ "$1" == "" ]; then
 	exit 1
 fi
 
-st-flash --reset write $1 0x08060000
+TEMPFILE=$(mktemp -t nf_l1_conf_)
+cat "$1" > $TEMPFILE
+dd if=/dev/zero bs=1 count=1 >> $TEMPFILE
+xxd $TEMPFILE
+st-flash --reset write $TEMPFILE 0x08060000
+rm $TEMPFILE
