@@ -53,7 +53,7 @@ static void uart_tx_wait_done(
 
 PERIPHERAL_TYPE_DECL(uart, PERIPHERAL_SERIAL, 4, uart_init, sizeof(uart_interface_t));
 
-static void uart_tc_callback(
+static void uart_tx_tc_callback(
     const dma_stream_def_t *def,
     void *storage)
 {
@@ -98,7 +98,7 @@ int uart_init(
         .PeriphBurst = LL_DMA_PBURST_SINGLE
     });
     dma_enable_irq(if_uart->tx_dma, 5, if_uart);
-    dma_enable_tc_callback(if_uart->tx_dma, uart_tc_callback);
+    dma_set_transfer_complete_cb(if_uart->tx_dma, uart_tx_tc_callback);
     LL_USART_EnableDMAReq_TX(if_uart->reg);
 
     /* RX */

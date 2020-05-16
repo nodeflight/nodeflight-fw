@@ -26,7 +26,7 @@
 
 typedef struct dma_stream_def_s dma_stream_def_t;
 
-typedef void (*dma_tc_callback_t)(
+typedef void (*dma_callback_t)(
     const dma_stream_def_t *def,
     void *storage);
 
@@ -48,6 +48,22 @@ void dma_enable_irq(
     uint32_t irq_priority,
     void *storage);
 
-void dma_enable_tc_callback(
+void dma_set_fifo_error_cb(
     const dma_stream_def_t *def,
-    dma_tc_callback_t tc_callback);
+    dma_callback_t callback);
+
+void dma_set_direct_mode_error_cb(
+    const dma_stream_def_t *def,
+    dma_callback_t callback);
+
+void dma_set_transfer_error_cb(
+    const dma_stream_def_t *def,
+    dma_callback_t callback);
+
+void dma_set_half_transfer_cb(
+    const dma_stream_def_t *def,
+    dma_callback_t callback);
+
+void dma_set_transfer_complete_cb(
+    const dma_stream_def_t *def,
+    dma_callback_t callback);

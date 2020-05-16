@@ -25,7 +25,11 @@ typedef struct dma_stream_state_s dma_stream_state_t;
 
 struct dma_stream_state_s {
     void *storage;
-    dma_tc_callback_t tc_callback;
+    dma_callback_t cb_fifo_error;
+    dma_callback_t cb_direct_mode_error;
+    dma_callback_t cb_transfer_error;
+    dma_callback_t cb_half_transfer;
+    dma_callback_t cb_transfer_complete;
 };
 
 static const dma_stream_def_t dma_stream_def[16] = {
@@ -49,7 +53,9 @@ static const dma_stream_def_t dma_stream_def[16] = {
 /* *INDENT-ON* */
 };
 
-static dma_stream_state_t dma_stream_state_def[16];
+static dma_stream_state_t dma_stream_state_def[16] = {
+    0
+};
 
 const dma_stream_def_t *dma_get(
     uint32_t id)
@@ -71,12 +77,48 @@ void dma_enable_irq(
     state->storage = storage;
 }
 
-void dma_enable_tc_callback(
+void dma_set_fifo_error_cb(
     const dma_stream_def_t *def,
-    dma_tc_callback_t tc_callback)
+    dma_callback_t callback)
 {
     dma_stream_state_t *state = &dma_stream_state_def[def - dma_stream_def];
-    state->tc_callback = tc_callback;
+    state->cb_fifo_error = callback;
+    LL_DMA_EnableIT_FE(def->reg, def->stream);
+}
+
+void dma_set_direct_mode_error_cb(
+    const dma_stream_def_t *def,
+    dma_callback_t callback)
+{
+    dma_stream_state_t *state = &dma_stream_state_def[def - dma_stream_def];
+    state->cb_direct_mode_error = callback;
+    LL_DMA_EnableIT_DME(def->reg, def->stream);
+}
+
+void dma_set_transfer_error_cb(
+    const dma_stream_def_t *def,
+    dma_callback_t callback)
+{
+    dma_stream_state_t *state = &dma_stream_state_def[def - dma_stream_def];
+    state->cb_transfer_error = callback;
+    LL_DMA_EnableIT_TE(def->reg, def->stream);
+}
+
+void dma_set_half_transfer_cb(
+    const dma_stream_def_t *def,
+    dma_callback_t callback)
+{
+    dma_stream_state_t *state = &dma_stream_state_def[def - dma_stream_def];
+    state->cb_half_transfer = callback;
+    LL_DMA_EnableIT_HT(def->reg, def->stream);
+}
+
+void dma_set_transfer_complete_cb(
+    const dma_stream_def_t *def,
+    dma_callback_t callback)
+{
+    dma_stream_state_t *state = &dma_stream_state_def[def - dma_stream_def];
+    state->cb_transfer_complete = callback;
     LL_DMA_EnableIT_TC(def->reg, def->stream);
 }
 
@@ -84,11 +126,32 @@ static void dma_irq_handler(
     const dma_stream_def_t *def,
     dma_stream_state_t *state)
 {
-    if (def->flags[0] & (1 << (def->flag_bit + DMA_LISR_TCIF0_Pos))) {
-        def->flags[2] |= (1 << (def->flag_bit + DMA_LIFCR_CTCIF0_Pos));
-        if (state->tc_callback != NULL) {
-            state->tc_callback(def, state->storage);
-        }
+    /* Get flags, aligned to first bits */
+    uint32_t flags = def->flags[0] >> def->flag_bit;
+
+    /* Clear all flags, always */
+    def->flags[2] = (
+        DMA_LIFCR_CFEIF0
+        | DMA_LIFCR_CDMEIF0
+        | DMA_LIFCR_CTEIF0
+        | DMA_LIFCR_CHTIF0
+        | DMA_LIFCR_CTCIF0
+        ) << def->flag_bit;
+
+    if ((flags & DMA_LISR_FEIF0) && state->cb_fifo_error != NULL) {
+        state->cb_fifo_error(def, state->storage);
+    }
+    if ((flags & DMA_LISR_DMEIF0) && state->cb_direct_mode_error != NULL) {
+        state->cb_direct_mode_error(def, state->storage);
+    }
+    if ((flags & DMA_LISR_TEIF0) && state->cb_transfer_error != NULL) {
+        state->cb_transfer_error(def, state->storage);
+    }
+    if ((flags & DMA_LISR_HTIF0) && state->cb_half_transfer != NULL) {
+        state->cb_half_transfer(def, state->storage);
+    }
+    if ((flags & DMA_LISR_TCIF0) && state->cb_transfer_complete != NULL) {
+        state->cb_transfer_complete(def, state->storage);
     }
 }
 
