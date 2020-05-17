@@ -34,6 +34,7 @@ TARGET_nodeflight_DEPENDS = freertos tinyprintf core lib
 TARGET_nodeflight_SOURCES = \
 	core/main.c \
 	lib/strops.c \
+	module/rc_rx/fport.c \
 	module/io/stdout.c
 
 TARGET_nodeflight_INCLUDES = .
@@ -125,7 +126,8 @@ TARGET_stm32_SOURCES = \
 	platform/stm32/hwacc/gpio.c \
 	platform/stm32/hwacc/uart.c \
 	platform/stm32/hwacc/usb_vcp.c \
-	platform/stm32/hwmap/resource_stm32.c
+	platform/stm32/hwmap/resource_stm32.c \
+	platform/stm32/fault_irq.c
 
 TARGET_stm32_CFLAGS = \
 	-DUSE_FULL_LL_DRIVER \

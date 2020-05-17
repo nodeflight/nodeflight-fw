@@ -32,6 +32,13 @@ struct interface_serial_config_s {
     uint16_t tx_buf_size;
     uint16_t rx_buf_size;
     uint32_t flags;
+
+    void (*rx_done)(
+        const uint8_t *buf,
+        uint16_t len,
+        void *storage);
+
+    void *storage;
 };
 
 struct interface_serial_s {

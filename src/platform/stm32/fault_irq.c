@@ -16,17 +16,13 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#pragma once
-
-/* Just to be able to include the correct HAL drivers independent of platform */
-
-#include "stm32f7xx.h"
-#include "stm32f7xx_ll_dma.h"
-#include "stm32f7xx_ll_pwr.h"
-#include "stm32f7xx_ll_rcc.h"
-#include "stm32f7xx_ll_gpio.h"
-#include "stm32f7xx_ll_usart.h"
-#include "stm32f7xx_ll_utils.h"
-
-/* Maximum number of uarts available, sets limit of allocated arrays for storage */
-#define UART_MAX_COUNT 8
+/*
+ * Don't do anything special, but keeping it separate from Default_Handler will make it easier to identify hardfaults
+ * from other unimplemented interrupts in GDB backtrace
+ */
+void HardFault_Handler(
+    void)
+{
+    for (;;) {
+    }
+}

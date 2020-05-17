@@ -129,14 +129,8 @@ static void dma_irq_handler(
     /* Get flags, aligned to first bits */
     uint32_t flags = def->flags[0] >> def->flag_bit;
 
-    /* Clear all flags, always */
-    def->flags[2] = (
-        DMA_LIFCR_CFEIF0
-        | DMA_LIFCR_CDMEIF0
-        | DMA_LIFCR_CTEIF0
-        | DMA_LIFCR_CHTIF0
-        | DMA_LIFCR_CTCIF0
-        ) << def->flag_bit;
+    /* Clear the flags identified. Any missed flags will be taken next IRQ */
+    def->flags[2] = flags << def->flag_bit;
 
     if ((flags & DMA_LISR_FEIF0) && state->cb_fifo_error != NULL) {
         state->cb_fifo_error(def, state->storage);

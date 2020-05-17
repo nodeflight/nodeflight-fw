@@ -24,6 +24,21 @@
 
 PERIPHERAL_TYPE_EXTERN(uart);
 
+typedef struct uart_def_s uart_def_t;
+
+struct uart_def_s {
+    USART_TypeDef *reg;
+    uint8_t id;
+    uint32_t IRQn;
+};
+
+#define UART_DEF(_UART, _ID) \
+    (void *) &(const uart_def_t) { \
+        .reg = _UART, \
+        .id = _ID, \
+        .IRQn = _UART ## _IRQn \
+    }
+
 enum {
     UART_ARG_PIN_TX = 0,
     UART_ARG_PIN_RX,

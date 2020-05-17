@@ -42,12 +42,13 @@ int main(
 
     config_init();
 
-    xTaskCreate(main_task,
-        "main",
-        1024,
-        NULL,
-        tskIDLE_PRIORITY,
-        NULL);
+    // xTaskCreate(main_task,
+    // "main",
+    // 1024,
+    // NULL,
+    // tskIDLE_PRIORITY,
+    // NULL);
+    (void) main_task;
 
     vTaskStartScheduler();
     asm ("bkpt 255");
