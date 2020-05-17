@@ -35,6 +35,10 @@
 #define FPORT_FLAG_CH18       0x02
 #define FPORT_FLAG_CH17       0x04
 
+#define FPORT_TIMEOUT         (50 * portTICK_PERIOD_MS)
+
+#define FPORT_NOTIFY_PACKET   (1 << 0)
+
 typedef struct fport_s fport_t;
 
 struct fport_s {
@@ -115,10 +119,10 @@ static int fport_unpack_packet(
     /* Fetch checksum */
     GET_ESC_CHAR(c);
     checksum += c;
-    while(checksum > 0xff) {
+    while (checksum > 0xff) {
         checksum = (checksum & 0xff) + (checksum >> 8);
     }
-    if(checksum != 0xff) {
+    if (checksum != 0xff) {
         return -3;
     }
 
@@ -180,7 +184,7 @@ static void fport_rx_done(
     }
 
     BaseType_t should_switch = pdFALSE;
-    xTaskNotifyFromISR(fport_if->task, 0x00000001, eSetBits, &should_switch);
+    xTaskNotifyFromISR(fport_if->task, FPORT_NOTIFY_PACKET, eSetBits, &should_switch);
     portYIELD_FROM_ISR(should_switch);
 }
 
@@ -237,23 +241,27 @@ void fport_task(
     tfp_printf("fport loaded\n");
 
     for (;;) {
-        xTaskNotifyWait(0x00, UINT32_MAX, &notify_value, 500 * portTICK_PERIOD_MS);
-        tfp_printf("fport");
-        for (i = 0; i < 16; i++) {
-            tfp_printf(" %u", fport_if->channel[i]);
+        xTaskNotifyWait(0x00, UINT32_MAX, &notify_value, FPORT_TIMEOUT);
+        if (notify_value & FPORT_NOTIFY_PACKET) {
+            tfp_printf("fport");
+            for (i = 0; i < 16; i++) {
+                tfp_printf(" %u", fport_if->channel[i]);
+            }
+            if (fport_if->flags & FPORT_FLAG_FAILSAFE) {
+                tfp_printf(" fs");
+            }
+            if (fport_if->flags & FPORT_FLAG_FRAME_LOST) {
+                tfp_printf(" lost");
+            }
+            if (fport_if->flags & FPORT_FLAG_CH17) {
+                tfp_printf(" c17");
+            }
+            if (fport_if->flags & FPORT_FLAG_CH18) {
+                tfp_printf(" c18");
+            }
+            tfp_printf(" rssi=%u\n", fport_if->rssi);
+        } else {
+            tfp_printf("fport no packet\n");
         }
-        if(fport_if->flags & FPORT_FLAG_FAILSAFE) {
-            tfp_printf(" fs");
-        }
-        if(fport_if->flags & FPORT_FLAG_FRAME_LOST) {
-            tfp_printf(" lost");
-        }
-        if(fport_if->flags & FPORT_FLAG_CH17) {
-            tfp_printf(" c17");
-        }
-        if(fport_if->flags & FPORT_FLAG_CH18) {
-            tfp_printf(" c18");
-        }
-        tfp_printf(" rssi=%u\n", fport_if->rssi);
     }
 }
