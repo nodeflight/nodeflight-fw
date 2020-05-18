@@ -21,7 +21,7 @@
 #include "FreeRTOS.h"
 
 if_rs_t *if_rs_allocate(
-    const pp_instance_decl_t *peripheral,
+    const pp_inst_decl_t *peripheral,
     const char **argp)
 {
     int rsc_count = peripheral->decl->num_rscs;
@@ -60,7 +60,7 @@ if_header_t *if_create(
 {
     const char *cur_conf = config;
 
-    const pp_instance_decl_t *decl = pp_get_by_tag(strops_next_word(&cur_conf));
+    const pp_inst_decl_t *decl = pp_get_by_tag(strops_next_word(&cur_conf));
     if (decl == NULL) {
         /* TODO: error handling */
         asm ("bkpt 255");

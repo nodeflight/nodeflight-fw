@@ -69,12 +69,12 @@ void main_task(
 
     count = pp_get_count();
     for (i = 0; i < count; i++) {
-        const pp_instance_decl_t *inst = pp_get_by_index(i);
+        const pp_inst_decl_t *inst = pp_get_by_index(i);
         tfp_printf("peripheral: %-10s  tag: %-16s\n",
             inst->decl->name,
             inst->tag);
 
-        const pp_instance_rs_t *rsc;
+        const pp_inst_rs_t *rsc;
         for (rsc = inst->rscs; rsc->tag != NULL; rsc++) {
             tfp_printf("    tag: %8s  arg_nr: %u  attr: %u\n",
                 rsc->tag,

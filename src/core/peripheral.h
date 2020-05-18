@@ -24,8 +24,8 @@
  * Common
  **********************/
 typedef struct pp_decl_s pp_decl_t;
-typedef struct pp_instance_decl_s pp_instance_decl_t;
-typedef struct pp_instance_rs_s pp_instance_rs_t;
+typedef struct pp_inst_decl_s pp_inst_decl_t;
+typedef struct pp_inst_rs_s pp_inst_rs_t;
 
 /**
  * Peripheral type
@@ -52,14 +52,14 @@ struct pp_decl_s {
     int storage_size;
 };
 
-struct pp_instance_decl_s {
+struct pp_inst_decl_s {
     const pp_decl_t *decl;
     const char *tag;
-    const pp_instance_rs_t *rscs;
+    const pp_inst_rs_t *rscs;
     void *storage;
 };
 
-struct pp_instance_rs_s {
+struct pp_inst_rs_s {
     const char *tag;
     uint16_t arg_nr;
     uint16_t attr;
@@ -80,41 +80,41 @@ struct pp_instance_rs_s {
 /* Add name to section so they can be sorted during linking */
 #define _PP_SECTION(_name, _tag) __attribute__ ((section(".nf_peripheral." #_name "_" #_tag), used))
 
-#define PP_INSTANCE_RS(_arg_nr, _tag, _attr) \
+#define PP_INST_RS(_arg_nr, _tag, _attr) \
     { \
         .tag = #_tag, \
         .arg_nr = _arg_nr, \
         .attr = _attr \
     }
 
-#define PP_INSTANCE_RS_TERMINATION \
+#define PP_INST_RS_TERMINATION \
     { \
         .tag = NULL, \
         .arg_nr = 0, \
         .attr = 0 \
     }
 
-#define PP_INSTANCE_DECL(_name, _tag, _storage, ...) \
-    const static pp_instance_decl_t pp_instance_ ##  _tag ## _decl _PP_SECTION(_name, _tag) = { \
+#define PP_INST_DECL(_name, _tag, _storage, ...) \
+    const static pp_inst_decl_t pp_inst_ ##  _tag ## _decl _PP_SECTION(_name, _tag) = { \
         .decl = (const pp_decl_t *)&pp_ ## _name ## _decl, \
         .tag = #_tag, \
-        .rscs = (const pp_instance_rs_t[]) { \
+        .rscs = (const pp_inst_rs_t[]) { \
             __VA_ARGS__, \
-            PP_INSTANCE_RS_TERMINATION \
+            PP_INST_RS_TERMINATION \
         }, \
         .storage = (_storage) \
     }
 
-const pp_instance_decl_t *pp_get_by_index(
+const pp_inst_decl_t *pp_get_by_index(
     int index);
 
 const int pp_get_count(
     void);
 
-const pp_instance_decl_t *pp_get_by_tag(
+const pp_inst_decl_t *pp_get_by_tag(
     const char *tag);
 
-const pp_instance_rs_t *pp_get_rs_by_tag(
-    const pp_instance_decl_t *peripheral,
+const pp_inst_rs_t *pp_get_rs_by_tag(
+    const pp_inst_decl_t *peripheral,
     int arg_nr,
     const char *tag);
