@@ -37,7 +37,7 @@ static void config_parse_line(
     } else if (0 == strops_word_cmp("mod", command)) {
         /* Load module */
         const char *name = strops_next_word(&line);
-        if (0 != module_init(name, line)) {
+        if (0 != md_init(name, line)) {
             /* TODO: Error handling */
         }
     } else if (0 == strops_word_cmp("per", command)) {

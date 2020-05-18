@@ -56,7 +56,7 @@ struct stdout_s {
 static int stdout_init(
     const char *tag);
 
-MODULE_DECL(stdout, stdout_init);
+MD_DECL(stdout, stdout_init);
 
 /**
  * Guard for multiple allocations

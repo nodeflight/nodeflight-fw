@@ -57,7 +57,7 @@ static int fport_init(
 static void fport_task(
     void *storage);
 
-MODULE_DECL(fport, fport_init);
+MD_DECL(fport, fport_init);
 
 #define GET_ESC_CHAR(_TGT) \
     do { \

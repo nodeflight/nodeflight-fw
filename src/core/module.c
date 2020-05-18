@@ -19,14 +19,14 @@
 #include "core/module.h"
 #include "lib/strops.h"
 
-const extern module_decl_t __nf_module_start[];
-const extern module_decl_t __nf_module_end[];
+const extern md_decl_t __nf_module_start[];
+const extern md_decl_t __nf_module_end[];
 
-int module_init(
+int md_init(
     const char *name,
     const char *config)
 {
-    const module_decl_t *cur;
+    const md_decl_t *cur;
     for (cur = __nf_module_start; cur < __nf_module_end; cur++) {
         if (strops_word_cmp(cur->name, name) == 0) {
             return cur->init(config);

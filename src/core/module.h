@@ -18,22 +18,22 @@
 
 #pragma once
 
-typedef struct module_decl_s module_decl_t;
+typedef struct md_decl_s md_decl_t;
 
-struct module_decl_s {
+struct md_decl_s {
     const char *name;
     int (*init)(
         const char *config);
 };
 
-#define _MODULE_SECTION(_name) __attribute__ ((section(".nf_module." #_name), used))
+#define _MD_SECTION(_name) __attribute__ ((section(".nf_module." #_name), used))
 
-#define MODULE_DECL(_name, _init) \
-    const module_decl_t module_ ## _name ## _decl _MODULE_SECTION(_name) = { \
+#define MD_DECL(_name, _init) \
+    const md_decl_t md_ ## _name ## _decl _MD_SECTION(_name) = { \
         .name = #_name, \
         .init = _init \
     }
 
-int module_init(
+int md_init(
     const char *name,
     const char *config);
