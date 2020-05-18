@@ -42,7 +42,7 @@
 typedef struct fport_s fport_t;
 
 struct fport_s {
-    interface_header_t *if_ser;
+    if_header_t *if_ser;
 
     uint16_t channel[16];
     uint8_t flags;
@@ -221,19 +221,19 @@ int fport_init(
         15,
         &fport_if->task);
 
-    fport_if->if_ser = interface_create(peripheral_config, PERIPHERAL_SERIAL);
+    fport_if->if_ser = if_create(peripheral_config, PERIPHERAL_SERIAL);
     if (fport_if->if_ser == NULL) {
         return -1;
     }
-    INTERFACE_SERIAL(fport_if->if_ser)->configure(INTERFACE_SERIAL(fport_if->if_ser),
-        &(const interface_serial_config_t) {
+    IF_SERIAL(fport_if->if_ser)->configure(IF_SERIAL(fport_if->if_ser),
+        &(const if_serial_config_t) {
         .baudrate = 115200,
         .tx_buf_size = 16,
         .rx_buf_size = 128,
         .flags = (
-            INTERFACE_SERIAL_HALF_DUPLEX
-            | INTERFACE_SERIAL_INVERTED_RX
-            | INTERFACE_SERIAL_INVERTED_TX
+            IF_SERIAL_HALF_DUPLEX
+            | IF_SERIAL_INVERTED_RX
+            | IF_SERIAL_INVERTED_TX
             ),
         .rx_done = fport_rx_done,
         .storage = fport_if

@@ -47,7 +47,7 @@ struct peripheral_decl_s {
     peripheral_type_t type;
     uint16_t num_rscs;
     int (*init)(
-        interface_header_t *iface,
+        if_header_t *iface,
         const char *config);
     int storage_size;
 };

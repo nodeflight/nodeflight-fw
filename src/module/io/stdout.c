@@ -47,7 +47,7 @@
 typedef struct stdout_s stdout_t;
 
 struct stdout_s {
-    interface_header_t *if_stdout;
+    if_header_t *if_stdout;
     char *buffer;
     uint16_t pos;
     uint16_t size;
@@ -70,7 +70,7 @@ static void stdout_putc(
     stdout_t *out_if = storage;
     out_if->buffer[out_if->pos++] = c;
     if (out_if->pos >= out_if->size || c == '\n') {
-        INTERFACE_SERIAL(out_if->if_stdout)->tx_write(INTERFACE_SERIAL(out_if->if_stdout), out_if->buffer, out_if->pos);
+        IF_SERIAL(out_if->if_stdout)->tx_write(IF_SERIAL(out_if->if_stdout), out_if->buffer, out_if->pos);
         out_if->pos = 0;
     }
 }
@@ -101,12 +101,12 @@ int stdout_init(
     if (out_if->buffer == NULL) {
         return -1;
     }
-    out_if->if_stdout = interface_create(peripheral_config, PERIPHERAL_SERIAL);
+    out_if->if_stdout = if_create(peripheral_config, PERIPHERAL_SERIAL);
     if (out_if->if_stdout == NULL) {
         return -1;
     }
-    INTERFACE_SERIAL(out_if->if_stdout)->configure(INTERFACE_SERIAL(out_if->if_stdout),
-        &(const interface_serial_config_t) {
+    IF_SERIAL(out_if->if_stdout)->configure(IF_SERIAL(out_if->if_stdout),
+        &(const if_serial_config_t) {
         .baudrate = 115200,
         .tx_buf_size = MAX_LINE_LENGTH,
         .rx_buf_size = 0,

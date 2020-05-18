@@ -34,12 +34,12 @@
 #define UART_TX_DMA_IRQ_PRIORITY 11
 #define UART_RX_CHAR_IRQ_PRIORITY 10
 
-typedef struct uart_interface_s uart_interface_t;
+typedef struct uart_if_s uart_if_t;
 
-struct uart_interface_s {
-    interface_serial_t header;
+struct uart_if_s {
+    if_serial_t header;
     uart_def_t def; /* Keep a copy for quick access. Just a few bytes */
-    interface_serial_config_t config;
+    if_serial_config_t config;
 
     const dma_stream_def_t *tx_dma;
     uint8_t *tx_buf;
@@ -52,22 +52,22 @@ struct uart_interface_s {
 };
 
 static int uart_init(
-    interface_header_t *iface,
+    if_header_t *iface,
     const char *config);
 
 static int uart_configure(
-    interface_serial_t *iface,
-    const interface_serial_config_t *config);
+    if_serial_t *iface,
+    const if_serial_config_t *config);
 
 static int uart_tx_write(
-    interface_serial_t *iface,
+    if_serial_t *iface,
     const void *buf,
     int bytes);
 
 static void uart_tx_wait_done(
-    interface_serial_t *iface);
+    if_serial_t *iface);
 
-static uart_interface_t *uart_ifs[UART_MAX_COUNT] = {
+static uart_if_t *uart_ifs[UART_MAX_COUNT] = {
     0
 };
 
@@ -76,7 +76,7 @@ PERIPHERAL_TYPE_DECL(
     PERIPHERAL_SERIAL,
     UART_NUM_ARGS,
     uart_init,
-    sizeof(uart_interface_t));
+    sizeof(uart_if_t));
 
 static void uart_tx_tc_callback(
     const dma_stream_def_t *def,
@@ -86,10 +86,10 @@ static void uart_tx_tc_callback(
 }
 
 int uart_init(
-    interface_header_t *iface,
+    if_header_t *iface,
     const char *config)
 {
-    uart_interface_t *if_uart = (uart_interface_t *) iface;
+    uart_if_t *if_uart = (uart_if_t *) iface;
 
     if_uart->header.configure = uart_configure;
     if_uart->header.tx_write = uart_tx_write;
@@ -112,11 +112,11 @@ int uart_init(
 }
 
 int uart_configure(
-    interface_serial_t *iface,
-    const interface_serial_config_t *config)
+    if_serial_t *iface,
+    const if_serial_config_t *config)
 {
-    uart_interface_t *if_uart = (uart_interface_t *) iface;
-    interface_resource_t *rscs = if_uart->header.header.rscs;
+    uart_if_t *if_uart = (uart_if_t *) iface;
+    if_resource_t *rscs = if_uart->header.header.rscs;
     uint32_t irqn = if_uart->def.IRQn;
     if_uart->config = *config;
 
@@ -153,7 +153,7 @@ int uart_configure(
             .Alternate = rscs[UART_ARG_PIN_TX].inst->attr
         });
         LL_USART_SetTXPinLevel(if_uart->def.reg,
-            (config->flags & INTERFACE_SERIAL_INVERTED_TX)
+            (config->flags & IF_SERIAL_INVERTED_TX)
             ? LL_USART_TXPIN_LEVEL_INVERTED
             : LL_USART_TXPIN_LEVEL_STANDARD
         );
@@ -196,7 +196,7 @@ int uart_configure(
             .Alternate = rscs[UART_ARG_PIN_RX].inst->attr
         });
         LL_USART_SetRXPinLevel(if_uart->def.reg,
-            (config->flags & INTERFACE_SERIAL_INVERTED_RX)
+            (config->flags & IF_SERIAL_INVERTED_RX)
             ? LL_USART_RXPIN_LEVEL_INVERTED
             : LL_USART_RXPIN_LEVEL_STANDARD
         );
@@ -214,12 +214,12 @@ int uart_configure(
 }
 
 int uart_tx_write(
-    interface_serial_t *iface,
+    if_serial_t *iface,
     const void *buf,
     int bytes)
 {
     int i;
-    uart_interface_t *if_uart = (uart_interface_t *) iface;
+    uart_if_t *if_uart = (uart_if_t *) iface;
 
     if (if_uart->tx_buf == NULL) {
         return -1;
@@ -243,15 +243,15 @@ int uart_tx_write(
 }
 
 void uart_tx_wait_done(
-    interface_serial_t *iface)
+    if_serial_t *iface)
 {
-    uart_interface_t *if_uart = (uart_interface_t *) iface;
+    uart_if_t *if_uart = (uart_if_t *) iface;
     while (!LL_USART_IsActiveFlag_TC(if_uart->def.reg)) {
     }
 }
 
 static void uart_irqhandler(
-    uart_interface_t *if_uart)
+    uart_if_t *if_uart)
 {
     uint32_t isr = if_uart->def.reg->ISR;
     if_uart->def.reg->ICR = isr;

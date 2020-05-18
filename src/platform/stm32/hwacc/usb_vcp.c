@@ -18,20 +18,20 @@
 
 #include "core/peripheral.h"
 
-typedef struct usb_vcp_interface_s usb_vcp_interface_t;
+typedef struct usb_vcp_if_s usb_vcp_if_t;
 
-struct usb_vcp_interface_s {
+struct usb_vcp_if_s {
     uint8_t dummy;
 };
 
 static int usb_vcp_init(
-    interface_header_t *iface,
+    if_header_t *iface,
     const char *config);
 
-PERIPHERAL_TYPE_DECL(usb_vcp, PERIPHERAL_SERIAL, 0, usb_vcp_init, sizeof(usb_vcp_interface_t));
+PERIPHERAL_TYPE_DECL(usb_vcp, PERIPHERAL_SERIAL, 0, usb_vcp_init, sizeof(usb_vcp_if_t));
 
 static int usb_vcp_init(
-    interface_header_t *iface,
+    if_header_t *iface,
     const char *config)
 {
     /* TODO: Implement... */

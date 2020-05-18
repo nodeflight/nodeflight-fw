@@ -20,13 +20,13 @@
 
 #include <stdint.h>
 
-typedef struct interface_resource_s interface_resource_t;
-typedef struct interface_header_s interface_header_t;
+typedef struct if_resource_s if_resource_t;
+typedef struct if_header_s if_header_t;
 
 #include "core/peripheral.h"
 #include "core/resource.h"
 
-struct interface_resource_s {
+struct if_resource_s {
     const resource_decl_t *decl;
     const peripheral_instance_resource_t *inst;
 };
@@ -38,15 +38,15 @@ struct interface_resource_s {
  * is this header, which means all interface pointers can be type cast to the header to
  * determine its type.
  */
-struct interface_header_s {
+struct if_header_s {
     const peripheral_instance_decl_t *peripheral;
-    interface_resource_t *rscs; /* resources in use */
+    if_resource_t *rscs; /* resources in use */
 };
 
-interface_resource_t *interface_resource_allocate(
+if_resource_t *if_resource_allocate(
     const peripheral_instance_decl_t *peripheral,
     const char **argp);
 
-interface_header_t *interface_create(
+if_header_t *if_create(
     const char *config,
     peripheral_type_t type);
