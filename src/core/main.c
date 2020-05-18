@@ -74,8 +74,8 @@ void main_task(
             inst->decl->name,
             inst->tag);
 
-        const pp_instance_resource_t *rsc;
-        for (rsc = inst->resources; rsc->tag != NULL; rsc++) {
+        const pp_instance_rs_t *rsc;
+        for (rsc = inst->rscs; rsc->tag != NULL; rsc++) {
             tfp_printf("    tag: %8s  arg_nr: %u  attr: %u\n",
                 rsc->tag,
                 rsc->arg_nr,
@@ -85,11 +85,11 @@ void main_task(
 
     tfp_printf("\nResources:\n\n");
 
-    count = resource_get_count();
+    count = rs_get_count();
     for (i = 0; i < count; i++) {
-        const resource_decl_t *rsc = resource_get_by_id(i);
-        resource_state_t *state = resource_get_state(rsc);
-        tfp_printf("resource %3d: %-10s  type: %3u  avail: %3u/%-5u ref: %08lx\n",
+        const rs_decl_t *rsc = rs_get_by_id(i);
+        rs_state_t *state = rs_get_state(rsc);
+        tfp_printf("rs %3d: %-10s  type: %3u  avail: %3u/%-5u ref: %08lx\n",
             i,
             rsc->name,
             rsc->type,

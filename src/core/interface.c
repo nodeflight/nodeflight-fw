@@ -20,13 +20,13 @@
 #include "lib/strops.h"
 #include "FreeRTOS.h"
 
-if_resource_t *if_resource_allocate(
+if_rs_t *if_rs_allocate(
     const pp_instance_decl_t *peripheral,
     const char **argp)
 {
     int rsc_count = peripheral->decl->num_rscs;
     int i;
-    if_resource_t *rscs = pvPortMalloc(sizeof(if_resource_t) * rsc_count);
+    if_rs_t *rscs = pvPortMalloc(sizeof(if_rs_t) * rsc_count);
     if (rscs == NULL) {
         return NULL;
     }
@@ -34,9 +34,9 @@ if_resource_t *if_resource_allocate(
     /* Fetch resources */
     for (i = 0; i < rsc_count; i++) {
         const char *arg = strops_next_word(argp);
-        if_resource_t *rsc = &rscs[i];
-        rsc->decl = resource_get_by_tag(arg);
-        rsc->inst = pp_get_resource_by_tag(peripheral, i, arg);
+        if_rs_t *rsc = &rscs[i];
+        rsc->decl = rs_get_by_tag(arg);
+        rsc->inst = pp_get_rs_by_tag(peripheral, i, arg);
         if (rsc->decl == NULL || rsc->inst == NULL) {
             return NULL;
         }
@@ -44,8 +44,8 @@ if_resource_t *if_resource_allocate(
 
     /* Allocate resources */
     for (i = 0; i < rsc_count; i++) {
-        if_resource_t *rsc = &rscs[i];
-        if (!resource_allocate(rsc->decl)) {
+        if_rs_t *rsc = &rscs[i];
+        if (!rs_allocate(rsc->decl)) {
             /* TODO: Properly handle if resources could not be allocated... */
             return NULL;
         }
@@ -80,7 +80,7 @@ if_header_t *if_create(
         return NULL;
     }
     iface->peripheral = decl;
-    iface->rscs = if_resource_allocate(decl, &cur_conf);
+    iface->rscs = if_rs_allocate(decl, &cur_conf);
     if (iface->rscs == NULL) {
         /* TODO: error handling */
         asm ("bkpt 255");

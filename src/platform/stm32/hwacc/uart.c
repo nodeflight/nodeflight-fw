@@ -116,7 +116,7 @@ int uart_configure(
     const if_serial_config_t *config)
 {
     uart_if_t *if_uart = (uart_if_t *) iface;
-    if_resource_t *rscs = if_uart->header.header.rscs;
+    if_rs_t *rscs = if_uart->header.header.rscs;
     uint32_t irqn = if_uart->def.IRQn;
     if_uart->config = *config;
 

@@ -21,45 +21,45 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#define RESOURCE_COUNT_INF 0xffff
+#define RS_COUNT_INF 0xffff
 
-typedef struct resource_decl_s resource_decl_t;
-typedef struct resource_state_s resource_state_t;
+typedef struct rs_decl_s rs_decl_t;
+typedef struct rs_state_s rs_state_t;
 
-struct resource_decl_s {
+struct rs_decl_s {
     char name[16];
     uint16_t type;
     uint16_t count_avail;
     uint32_t ref;
 };
 
-/* Running state of the resource */
-struct resource_state_s {
+/* Running state of the rs */
+struct rs_state_s {
     uint8_t count_allocated;
 };
 
 /* Add name to section so they can be sorted during linking */
-#define _RESOURCE_SECTION(_name) __attribute__ ((section(".nf_resource." #_name), used))
+#define _RS_SECTION(_name) __attribute__ ((section(".nf_resource." #_name), used))
 
-#define RESOURCE_DECL(_name, _type, _count, _ref) \
-    const resource_decl_t resource_ ## _name ## _decl _RESOURCE_SECTION(_name) = { \
+#define RS_DECL(_name, _type, _count, _ref) \
+    const rs_decl_t rs_ ## _name ## _decl _RS_SECTION(_name) = { \
         .name = #_name, \
         .type = _type, \
         .count_avail = _count, \
         .ref = _ref, \
     }
 
-resource_state_t *resource_get_state(
-    const resource_decl_t *rsc);
+rs_state_t *rs_get_state(
+    const rs_decl_t *rsc);
 
-const resource_decl_t *resource_get_by_id(
+const rs_decl_t *rs_get_by_id(
     int index);
 
-const int resource_get_count(
+const int rs_get_count(
     void);
 
-const resource_decl_t *resource_get_by_tag(
+const rs_decl_t *rs_get_by_tag(
     const char *tag);
 
-bool resource_allocate(
-    const resource_decl_t *rsc);
+bool rs_allocate(
+    const rs_decl_t *rsc);

@@ -24,52 +24,52 @@
 #include <stddef.h>
 #include <string.h>
 
-const extern resource_decl_t __nf_resource_start[];
-const extern resource_decl_t __nf_resource_end[];
+const extern rs_decl_t __nf_resource_start[];
+const extern rs_decl_t __nf_resource_end[];
 
 /* Array, indexed according to position in __nf_resource_* */
-static int resource_count;
-static resource_state_t *resource_states = NULL;
+static int rs_count;
+static rs_state_t *rs_states = NULL;
 
-static void resource_init_state(
+static void rs_init_state(
     void)
 {
-    if (resource_states == NULL) {
-        resource_count = __nf_resource_end - __nf_resource_start;
-        int mem_size = sizeof(resource_state_t) * resource_count;
-        resource_states = pvPortMalloc(mem_size);
-        if (resource_states == NULL) {
+    if (rs_states == NULL) {
+        rs_count = __nf_resource_end - __nf_resource_start;
+        int mem_size = sizeof(rs_state_t) * rs_count;
+        rs_states = pvPortMalloc(mem_size);
+        if (rs_states == NULL) {
             /* TODO: error handling */
             for (;;) {
             }
         }
-        memset(resource_states, 0, mem_size);
+        memset(rs_states, 0, mem_size);
     }
 }
 
-resource_state_t *resource_get_state(
-    const resource_decl_t *rsc)
+rs_state_t *rs_get_state(
+    const rs_decl_t *rsc)
 {
-    resource_init_state();
-    return &resource_states[rsc - __nf_resource_start];
+    rs_init_state();
+    return &rs_states[rsc - __nf_resource_start];
 }
 
-const resource_decl_t *resource_get_by_id(
+const rs_decl_t *rs_get_by_id(
     int index)
 {
     return &__nf_resource_start[index];
 }
 
-const int resource_get_count(
+const int rs_get_count(
     void)
 {
     return __nf_resource_end - __nf_resource_start;
 }
 
-const resource_decl_t *resource_get_by_tag(
+const rs_decl_t *rs_get_by_tag(
     const char *tag)
 {
-    const resource_decl_t *rsc;
+    const rs_decl_t *rsc;
     for (rsc = __nf_resource_start; rsc < __nf_resource_end; rsc++) {
         if (0 == strops_word_cmp(rsc->name, tag)) {
             return rsc;
@@ -78,10 +78,10 @@ const resource_decl_t *resource_get_by_tag(
     return NULL;
 }
 
-bool resource_allocate(
-    const resource_decl_t *rsc)
+bool rs_allocate(
+    const rs_decl_t *rsc)
 {
-    resource_state_t *state = resource_get_state(rsc);
+    rs_state_t *state = rs_get_state(rsc);
     if (rsc->count_avail > state->count_allocated) {
         state->count_allocated++;
         return true;

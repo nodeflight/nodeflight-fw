@@ -49,13 +49,13 @@ const pp_instance_decl_t *pp_get_by_tag(
     return NULL;
 }
 
-const pp_instance_resource_t *pp_get_resource_by_tag(
+const pp_instance_rs_t *pp_get_rs_by_tag(
     const pp_instance_decl_t *peripheral,
     int arg_nr,
     const char *tag)
 {
-    const pp_instance_resource_t *rsc;
-    for (rsc = peripheral->resources; rsc->tag != NULL; rsc++) {
+    const pp_instance_rs_t *rsc;
+    for (rsc = peripheral->rscs; rsc->tag != NULL; rsc++) {
         if (rsc->arg_nr == arg_nr && 0 == strops_word_cmp(rsc->tag, tag)) {
             return rsc;
         }

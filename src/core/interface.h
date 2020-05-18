@@ -20,15 +20,15 @@
 
 #include <stdint.h>
 
-typedef struct if_resource_s if_resource_t;
+typedef struct if_rs_s if_rs_t;
 typedef struct if_header_s if_header_t;
 
 #include "core/peripheral.h"
 #include "core/resource.h"
 
-struct if_resource_s {
-    const resource_decl_t *decl;
-    const pp_instance_resource_t *inst;
+struct if_rs_s {
+    const rs_decl_t *decl;
+    const pp_instance_rs_t *inst;
 };
 
 /**
@@ -40,10 +40,10 @@ struct if_resource_s {
  */
 struct if_header_s {
     const pp_instance_decl_t *peripheral;
-    if_resource_t *rscs; /* resources in use */
+    if_rs_t *rscs; /* resources in use */
 };
 
-if_resource_t *if_resource_allocate(
+if_rs_t *if_rs_allocate(
     const pp_instance_decl_t *peripheral,
     const char **argp);
 
