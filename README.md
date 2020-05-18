@@ -56,13 +56,13 @@ NodeFlight is implemented on top of FreeRTOS, which means FreeRTOS terminology i
 
 NodeFlight is built up of a set of main compoonents:
 
-| Component  | Description                                                           | Comment                             |
-| ---------- | --------------------------------------------------------------------- | ----------------------------------- |
-| Peripheral | An generic peripheral, enabling access to I/O or similar. UARTs, SPI  | Implementation specific to platform |
-| Resource   | A resource shared between peripherals. For example PINs, DMA          | Implementation specific to platform |
-| Interface  | An instance of a peripheral, for example UART3 with given pins        | Created by configuration            |
-| Module     | A type of node, which adds functionality to an instance               | Created by configuration            |
-| Schedule   | A set of operations, added by modules, to be executed a ga given rate | Not implemented                     |
+| Component  | Short | Description                                                           | Comment                             |
+| ---------- | ----- | --------------------------------------------------------------------- | ----------------------------------- |
+| Peripheral | pp    | An generic peripheral, enabling access to I/O or similar. UARTs, SPI  | Implementation specific to platform |
+| Resource   | rs    | A resource shared between peripherals. For example PINs, DMA          | Implementation specific to platform |
+| Interface  | if    | An instance of a peripheral, for example UART3 with given pins        | Created by configuration            |
+| Module     | md    | A type of node, which adds functionality to an instance               | Created by configuration            |
+| Schedule   | sh    | A set of operations, added by modules, to be executed a ga given rate | Not implemented                     |
 
 ## Terminology
 
