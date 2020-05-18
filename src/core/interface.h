@@ -28,7 +28,7 @@ typedef struct if_header_s if_header_t;
 
 struct if_resource_s {
     const resource_decl_t *decl;
-    const peripheral_instance_resource_t *inst;
+    const pp_instance_resource_t *inst;
 };
 
 /**
@@ -39,14 +39,14 @@ struct if_resource_s {
  * determine its type.
  */
 struct if_header_s {
-    const peripheral_instance_decl_t *peripheral;
+    const pp_instance_decl_t *peripheral;
     if_resource_t *rscs; /* resources in use */
 };
 
 if_resource_t *if_resource_allocate(
-    const peripheral_instance_decl_t *peripheral,
+    const pp_instance_decl_t *peripheral,
     const char **argp);
 
 if_header_t *if_create(
     const char *config,
-    peripheral_type_t type);
+    pp_type_t type);

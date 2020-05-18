@@ -23,9 +23,9 @@
 /**********************
  * Common
  **********************/
-typedef struct peripheral_decl_s peripheral_decl_t;
-typedef struct peripheral_instance_decl_s peripheral_instance_decl_t;
-typedef struct peripheral_instance_resource_s peripheral_instance_resource_t;
+typedef struct pp_decl_s pp_decl_t;
+typedef struct pp_instance_decl_s pp_instance_decl_t;
+typedef struct pp_instance_resource_s pp_instance_resource_t;
 
 /**
  * Peripheral type
@@ -35,16 +35,16 @@ typedef struct peripheral_instance_resource_s peripheral_instance_resource_t;
  * or TCP. Is is a value_out port independent of being a DSHOT, PWM or DAC output.
  */
 
-typedef enum peripheral_type_s {
-    PERIPHERAL_NONE = 0,
-    PERIPHERAL_SERIAL
-} peripheral_type_t;
+typedef enum pp_type_s {
+    PP_NONE = 0,
+    PP_SERIAL
+} pp_type_t;
 
 #include "core/interface.h"
 
-struct peripheral_decl_s {
+struct pp_decl_s {
     const char *name;
-    peripheral_type_t type;
+    pp_type_t type;
     uint16_t num_rscs;
     int (*init)(
         if_header_t *iface,
@@ -52,24 +52,24 @@ struct peripheral_decl_s {
     int storage_size;
 };
 
-struct peripheral_instance_decl_s {
-    const peripheral_decl_t *decl;
+struct pp_instance_decl_s {
+    const pp_decl_t *decl;
     const char *tag;
-    const peripheral_instance_resource_t *resources;
+    const pp_instance_resource_t *resources;
     void *storage;
 };
 
-struct peripheral_instance_resource_s {
+struct pp_instance_resource_s {
     const char *tag;
     uint16_t arg_nr;
     uint16_t attr;
 };
 
-#define PERIPHERAL_TYPE_EXTERN(_name) \
-    extern const peripheral_decl_t peripheral_ ## _name ## _decl
+#define PP_TYPE_EXTERN(_name) \
+    extern const pp_decl_t pp_ ## _name ## _decl
 
-#define PERIPHERAL_TYPE_DECL(_name, _type, _num_rscs, _init, _storage_size) \
-    const peripheral_decl_t peripheral_ ## _name ## _decl = { \
+#define PP_TYPE_DECL(_name, _type, _num_rscs, _init, _storage_size) \
+    const pp_decl_t pp_ ## _name ## _decl = { \
         .name = #_name, \
         .type = _type, \
         .num_rscs = _num_rscs, \
@@ -78,43 +78,43 @@ struct peripheral_instance_resource_s {
     }
 
 /* Add name to section so they can be sorted during linking */
-#define _PERIPHERAL_SECTION(_name, _tag) __attribute__ ((section(".nf_peripheral." #_name "_" #_tag), used))
+#define _PP_SECTION(_name, _tag) __attribute__ ((section(".nf_peripheral." #_name "_" #_tag), used))
 
-#define PERIPHERAL_INSTANCE_RESOURCE(_arg_nr, _tag, _attr) \
+#define PP_INSTANCE_RESOURCE(_arg_nr, _tag, _attr) \
     { \
         .tag = #_tag, \
         .arg_nr = _arg_nr, \
         .attr = _attr \
     }
 
-#define PERIPHERAL_INSTANCE_RESOURCE_TERMINATION \
+#define PP_INSTANCE_RESOURCE_TERMINATION \
     { \
         .tag = NULL, \
         .arg_nr = 0, \
         .attr = 0 \
     }
 
-#define PERIPHERAL_INSTANCE_DECL(_name, _tag, _storage, ...) \
-    const static peripheral_instance_decl_t peripheral_instance_ ##  _tag ## _decl _PERIPHERAL_SECTION(_name, _tag) = { \
-        .decl = (const peripheral_decl_t *)&peripheral_ ## _name ## _decl, \
+#define PP_INSTANCE_DECL(_name, _tag, _storage, ...) \
+    const static pp_instance_decl_t pp_instance_ ##  _tag ## _decl _PP_SECTION(_name, _tag) = { \
+        .decl = (const pp_decl_t *)&pp_ ## _name ## _decl, \
         .tag = #_tag, \
-        .resources = (const peripheral_instance_resource_t[]) { \
+        .resources = (const pp_instance_resource_t[]) { \
             __VA_ARGS__, \
-            PERIPHERAL_INSTANCE_RESOURCE_TERMINATION \
+            PP_INSTANCE_RESOURCE_TERMINATION \
         }, \
         .storage = (_storage) \
     }
 
-const peripheral_instance_decl_t *peripheral_get_by_index(
+const pp_instance_decl_t *pp_get_by_index(
     int index);
 
-const int peripheral_get_count(
+const int pp_get_count(
     void);
 
-const peripheral_instance_decl_t *peripheral_get_by_tag(
+const pp_instance_decl_t *pp_get_by_tag(
     const char *tag);
 
-const peripheral_instance_resource_t *peripheral_get_resource_by_tag(
-    const peripheral_instance_decl_t *peripheral,
+const pp_instance_resource_t *pp_get_resource_by_tag(
+    const pp_instance_decl_t *peripheral,
     int arg_nr,
     const char *tag);

@@ -63,7 +63,7 @@ void config_init(
     }
 }
 
-const char *config_get_peripheral_config(
+const char *config_get_pp_config(
     const char *tag)
 {
     return map_get(config_per, tag);

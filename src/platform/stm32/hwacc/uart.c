@@ -71,9 +71,9 @@ static uart_if_t *uart_ifs[UART_MAX_COUNT] = {
     0
 };
 
-PERIPHERAL_TYPE_DECL(
+PP_TYPE_DECL(
     uart,
-    PERIPHERAL_SERIAL,
+    PP_SERIAL,
     UART_NUM_ARGS,
     uart_init,
     sizeof(uart_if_t));

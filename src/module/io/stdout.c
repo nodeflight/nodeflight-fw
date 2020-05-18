@@ -78,15 +78,15 @@ static void stdout_putc(
 int stdout_init(
     const char *tag)
 {
-    const char *peripheral_config;
+    const char *pp_config;
     stdout_t *out_if;
 
     if (stdout_loaded) {
         /* Only one stdout module may be used at a time */
         return -1;
     }
-    peripheral_config = config_get_peripheral_config(tag);
-    if (peripheral_config == NULL) {
+    pp_config = config_get_pp_config(tag);
+    if (pp_config == NULL) {
         return -1;
     }
 
@@ -101,7 +101,7 @@ int stdout_init(
     if (out_if->buffer == NULL) {
         return -1;
     }
-    out_if->if_stdout = if_create(peripheral_config, PERIPHERAL_SERIAL);
+    out_if->if_stdout = if_create(pp_config, PP_SERIAL);
     if (out_if->if_stdout == NULL) {
         return -1;
     }

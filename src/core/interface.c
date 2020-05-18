@@ -21,7 +21,7 @@
 #include "FreeRTOS.h"
 
 if_resource_t *if_resource_allocate(
-    const peripheral_instance_decl_t *peripheral,
+    const pp_instance_decl_t *peripheral,
     const char **argp)
 {
     int rsc_count = peripheral->decl->num_rscs;
@@ -36,7 +36,7 @@ if_resource_t *if_resource_allocate(
         const char *arg = strops_next_word(argp);
         if_resource_t *rsc = &rscs[i];
         rsc->decl = resource_get_by_tag(arg);
-        rsc->inst = peripheral_get_resource_by_tag(peripheral, i, arg);
+        rsc->inst = pp_get_resource_by_tag(peripheral, i, arg);
         if (rsc->decl == NULL || rsc->inst == NULL) {
             return NULL;
         }
@@ -56,11 +56,11 @@ if_resource_t *if_resource_allocate(
 
 if_header_t *if_create(
     const char *config,
-    peripheral_type_t type)
+    pp_type_t type)
 {
     const char *cur_conf = config;
 
-    const peripheral_instance_decl_t *decl = peripheral_get_by_tag(strops_next_word(&cur_conf));
+    const pp_instance_decl_t *decl = pp_get_by_tag(strops_next_word(&cur_conf));
     if (decl == NULL) {
         /* TODO: error handling */
         asm ("bkpt 255");

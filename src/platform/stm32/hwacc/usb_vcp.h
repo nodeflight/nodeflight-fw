@@ -22,4 +22,4 @@
 
 #include "stm32.h"
 
-PERIPHERAL_TYPE_EXTERN(usb_vcp);
+PP_TYPE_EXTERN(usb_vcp);

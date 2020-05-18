@@ -67,14 +67,14 @@ void main_task(
 
     tfp_printf("\nPeripherals:\n\n");
 
-    count = peripheral_get_count();
+    count = pp_get_count();
     for (i = 0; i < count; i++) {
-        const peripheral_instance_decl_t *inst = peripheral_get_by_index(i);
+        const pp_instance_decl_t *inst = pp_get_by_index(i);
         tfp_printf("peripheral: %-10s  tag: %-16s\n",
             inst->decl->name,
             inst->tag);
 
-        const peripheral_instance_resource_t *rsc;
+        const pp_instance_resource_t *rsc;
         for (rsc = inst->resources; rsc->tag != NULL; rsc++) {
             tfp_printf("    tag: %8s  arg_nr: %u  attr: %u\n",
                 rsc->tag,

@@ -194,12 +194,12 @@ static void fport_rx_done(
 int fport_init(
     const char *tag)
 {
-    const char *peripheral_config;
+    const char *pp_config;
     fport_t *fport_if;
     int i;
 
-    peripheral_config = config_get_peripheral_config(tag);
-    if (peripheral_config == NULL) {
+    pp_config = config_get_pp_config(tag);
+    if (pp_config == NULL) {
         return -1;
     }
 
@@ -221,7 +221,7 @@ int fport_init(
         15,
         &fport_if->task);
 
-    fport_if->if_ser = if_create(peripheral_config, PERIPHERAL_SERIAL);
+    fport_if->if_ser = if_create(pp_config, PP_SERIAL);
     if (fport_if->if_ser == NULL) {
         return -1;
     }

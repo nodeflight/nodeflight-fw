@@ -28,7 +28,7 @@ static int usb_vcp_init(
     if_header_t *iface,
     const char *config);
 
-PERIPHERAL_TYPE_DECL(usb_vcp, PERIPHERAL_SERIAL, 0, usb_vcp_init, sizeof(usb_vcp_if_t));
+PP_TYPE_DECL(usb_vcp, PP_SERIAL, 0, usb_vcp_init, sizeof(usb_vcp_if_t));
 
 static int usb_vcp_init(
     if_header_t *iface,

@@ -22,7 +22,7 @@
 
 #include "stm32.h"
 
-PERIPHERAL_TYPE_EXTERN(uart);
+PP_TYPE_EXTERN(uart);
 
 typedef struct uart_def_s uart_def_t;
 
