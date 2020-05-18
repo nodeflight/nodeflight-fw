@@ -28,8 +28,8 @@ typedef struct uart_def_s uart_def_t;
 
 struct uart_def_s {
     USART_TypeDef *reg;
-    uint8_t id;
-    uint32_t IRQn;
+    uint16_t id;
+    int16_t IRQn;
 };
 
 #define UART_DEF(_UART, _ID) \

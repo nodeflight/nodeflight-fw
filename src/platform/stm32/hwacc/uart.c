@@ -28,8 +28,6 @@
 
 #include "FreeRTOS.h"
 
-#include "vendor/tinyprintf/tinyprintf.h"
-
 #include <stddef.h>
 #include <string.h>
 
@@ -102,6 +100,11 @@ int uart_init(
     if_uart->tx_dma = NULL;
     if_uart->tx_buf = NULL;
     if_uart->tx_buf_size = 0;
+
+    if (uart_ifs[if_uart->def.id] != NULL) {
+        /* Already created - error */
+        return -1;
+    }
 
     uart_ifs[if_uart->def.id] = if_uart;
 
