@@ -193,6 +193,7 @@ int fport_init(
 {
     const char *peripheral_config;
     fport_t *fport_if;
+    int i;
 
     peripheral_config = config_get_peripheral_config(tag);
     if (peripheral_config == NULL) {
@@ -203,6 +204,12 @@ int fport_init(
     if (fport_if == NULL) {
         return -1;
     }
+
+    for(i=0; i<16; i++) {
+        fport_if->channel[i] = 0;
+    }
+    fport_if->rssi = 0;
+    fport_if->flags = FPORT_FLAG_FAILSAFE;
 
     xTaskCreate(fport_task,
         "fport_proc",
