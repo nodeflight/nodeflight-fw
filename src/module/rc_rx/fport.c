@@ -149,6 +149,9 @@ static void fport_rx_done(
     int packet_len;
 
     fport_t *fport_if = storage;
+    
+    /* If a frame is received, but contains no data, assume failsafe */
+    fport_if->flags = FPORT_FLAG_FAILSAFE;
 
     while ((packet_len = fport_unpack_packet(packet, sizeof(packet), &buf, &len)) > 0) {
         if (packet[0] == 0x00 && packet_len == 25) {
