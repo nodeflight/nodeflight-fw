@@ -48,4 +48,5 @@ interface_resource_t *interface_resource_allocate(
     const char **argp);
 
 interface_header_t *interface_create(
-    const char *config);
+    const char *config,
+    peripheral_type_t type);

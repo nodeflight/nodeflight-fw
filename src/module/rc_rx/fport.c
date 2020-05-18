@@ -149,7 +149,7 @@ static void fport_rx_done(
     int packet_len;
 
     fport_t *fport_if = storage;
-    
+
     /* If a frame is received, but contains no data, assume failsafe */
     fport_if->flags = FPORT_FLAG_FAILSAFE;
 
@@ -208,7 +208,7 @@ int fport_init(
         return -1;
     }
 
-    for(i=0; i<16; i++) {
+    for (i = 0; i < 16; i++) {
         fport_if->channel[i] = 0;
     }
     fport_if->rssi = 0;
@@ -221,11 +221,12 @@ int fport_init(
         15,
         &fport_if->task);
 
-    fport_if->if_ser = interface_create(peripheral_config);
+    fport_if->if_ser = interface_create(peripheral_config, PERIPHERAL_SERIAL);
     if (fport_if->if_ser == NULL) {
         return -1;
     }
-    interface_serial_configure(fport_if->if_ser, &(const interface_serial_config_t) {
+    INTERFACE_SERIAL(fport_if->if_ser)->configure(INTERFACE_SERIAL(fport_if->if_ser),
+        &(const interface_serial_config_t) {
         .baudrate = 115200,
         .tx_buf_size = 16,
         .rx_buf_size = 128,

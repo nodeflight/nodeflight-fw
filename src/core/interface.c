@@ -55,12 +55,21 @@ interface_resource_t *interface_resource_allocate(
 }
 
 interface_header_t *interface_create(
-    const char *config)
+    const char *config,
+    peripheral_type_t type)
 {
     const char *cur_conf = config;
 
     const peripheral_instance_decl_t *decl = peripheral_get_by_tag(strops_next_word(&cur_conf));
     if (decl == NULL) {
+        /* TODO: error handling */
+        asm ("bkpt 255");
+        return NULL;
+    }
+    if (decl->decl->type != type) {
+        /* Not the correct type, error */
+        /* TODO: error handling */
+        asm ("bkpt 255");
         return NULL;
     }
 
