@@ -21,6 +21,7 @@
 
 #include "platform/stm32/hwacc/uart.h"
 #include "platform/stm32/hwacc/usb_vcp.h"
+#include "platform/stm32/hwacc/timer.h"
 
 #include "stm32.h"
 
@@ -169,4 +170,8 @@ PP_INST_DECL(uart, uart8, UART_DEF(UART8, 7),
 
 PP_INST_DECL(usb_vcp, usb_vcp, NULL,
     PP_INST_RS_TERMINATION
+);
+
+PP_INST_DECL(timer, tim5_ch1, TIMER_DEF(5, 1),
+    PP_INST_RS(TIMER_ARG_PIN, pin_a00, 2)
 );

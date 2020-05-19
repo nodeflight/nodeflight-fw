@@ -18,17 +18,28 @@
 
 #pragma once
 
-/* Just to be able to include the correct HAL drivers independent of platform */
+#include "core/peripheral.h"
 
-#include "stm32f7xx.h"
-#include "stm32f7xx_ll_dma.h"
-#include "stm32f7xx_ll_pwr.h"
-#include "stm32f7xx_ll_rcc.h"
-#include "stm32f7xx_ll_gpio.h"
-#include "stm32f7xx_ll_tim.h"
-#include "stm32f7xx_ll_usart.h"
-#include "stm32f7xx_ll_utils.h"
+#include "stm32.h"
 
-/* Maximum number of resources available, sets limit of allocated arrays for storage */
-#define UART_MAX_COUNT 8
-#define TIMER_MAX_COUNT 14
+PP_TYPE_EXTERN(timer);
+
+typedef struct timer_def_s timer_def_t;
+
+struct timer_def_s {
+    TIM_TypeDef *reg;
+    uint32_t channel;
+    uint8_t timer_id; /* TIM resource id enumerated from 0 (TIM1 = id 0, TIM3 = id 2) */
+};
+
+#define TIMER_DEF(_TIMER_ID, _CH) \
+    (void *) &(const timer_def_t) { \
+        .reg = TIM ## _TIMER_ID, \
+        .channel = LL_TIM_CHANNEL_CH ## _CH, \
+        .timer_id = _TIMER_ID - 1 \
+    }
+
+enum {
+    TIMER_ARG_PIN = 0,
+    TIMER_NUM_ARGS
+};

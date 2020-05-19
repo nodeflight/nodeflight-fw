@@ -34,8 +34,9 @@ TARGET_nodeflight_DEPENDS = freertos tinyprintf core lib
 TARGET_nodeflight_SOURCES = \
 	core/main.c \
 	lib/strops.c \
-	module/rc_rx/fport.c \
-	module/io/stdout.c
+	module/control/servo.c \
+	module/io/stdout.c \
+	module/rc_rx/fport.c
 
 TARGET_nodeflight_INCLUDES = .
 
@@ -124,6 +125,7 @@ TARGET_stm32_INCLUDES = \
 TARGET_stm32_SOURCES = \
 	platform/stm32/hwacc/dma.c \
 	platform/stm32/hwacc/gpio.c \
+	platform/stm32/hwacc/timer.c \
 	platform/stm32/hwacc/uart.c \
 	platform/stm32/hwacc/usb_vcp.c \
 	platform/stm32/hwmap/resource_stm32.c \
@@ -204,6 +206,7 @@ TARGET_stm32f7xx_SOURCES = \
 	vendor/stm32/stm32f7xx_hal_driver/Src/stm32f7xx_ll_dma.c \
 	vendor/stm32/stm32f7xx_hal_driver/Src/stm32f7xx_ll_gpio.c \
 	vendor/stm32/stm32f7xx_hal_driver/Src/stm32f7xx_ll_rcc.c \
+	vendor/stm32/stm32f7xx_hal_driver/Src/stm32f7xx_ll_tim.c \
 	vendor/stm32/stm32f7xx_hal_driver/Src/stm32f7xx_ll_usart.c \
 	vendor/stm32/stm32f7xx_hal_driver/Src/stm32f7xx_ll_utils.c \
 	vendor/rtos/FreeRTOS-kernel/portable/GCC/ARM_CM7/r0p1/port.c
