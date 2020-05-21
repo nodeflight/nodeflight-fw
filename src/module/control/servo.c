@@ -26,7 +26,7 @@
 
 #include <stddef.h>
 
-#define PWM_CLOCK_HZ      3600000UL                /**< source clock frequency, ticks per second */
+#define PWM_CLOCK_HZ      2048000UL                /**< source clock frequency, ticks per second */
 #define PWM_FREQUENCY_HZ  50UL                     /**< pulses per second */
 #define PWM_MS            (PWM_CLOCK_HZ / 1000UL)  /**< ticks per millisecond */
 

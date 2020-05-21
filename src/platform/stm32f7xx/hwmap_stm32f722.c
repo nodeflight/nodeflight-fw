@@ -171,10 +171,6 @@ PP_INST_DECL(uart, uart8, UART_DEF(UART8, 7),
 PP_INST_DECL(usb_vcp, usb_vcp, NULL,
     PP_INST_RS_TERMINATION
 );
-/*
-    PP_INST_RS(TIMER_ARG_PIN, pin_a00, 0x0002),
-    PP_INST_RS(TIMER_ARG_DMA, dma_1_2, 6)
-*/
 
 PP_INST_DECL(timer, tim1_ch1, TIMER_DEF(1, 1),
     PP_INST_RS(TIMER_ARG_PIN, pin_a07, 0x0101),
