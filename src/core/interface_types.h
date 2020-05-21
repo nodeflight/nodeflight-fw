@@ -96,13 +96,20 @@ struct if_pwm_config_s {
     uint16_t pulses_count;
 
     /**
-     * Number of pulses in a cycle.
+     * Callback for updating pulse widths
      *
-     * For servo output, only single pulse width is repeated, and therefore num_pulses=1
+     * The function is called once every cycle, and is intended for fulling out one buffer.
      *
-     * For DSHOT, margin is needed between bursts of 16 pulses. Reasonable value would be 20-25
+     * @param values array of pulse widths. Size specified in pulses_count
      */
-    uint16_t pulses_cycle;
+    void (*update_values_cb)(
+        uint32_t *values,
+        void *storage);
+
+    /**
+     * Pointer to pass to the callbacks;
+     */
+    void *storage;
 };
 
 struct if_pwm_s {
@@ -114,15 +121,6 @@ struct if_pwm_s {
     int (*configure)(
         if_pwm_t *iface,
         const if_pwm_config_t *config);
-
-    /**
-     * Set output
-     *
-     * pulse_widths points to an array of the configured size of pulses_count
-     */
-    int (*set_output)(
-        if_pwm_t *iface,
-        const uint16_t *pulse_widths);
 };
 
 #define IF_PWM(_INTERFACE) ((if_pwm_t *) (_INTERFACE))

@@ -173,5 +173,7 @@ PP_INST_DECL(usb_vcp, usb_vcp, NULL,
 );
 
 PP_INST_DECL(timer, tim5_ch1, TIMER_DEF(5, 1),
-    PP_INST_RS(TIMER_ARG_PIN, pin_a00, 2)
+    PP_INST_RS(TIMER_ARG_PIN, pin_a00, 2),
+
+    PP_INST_RS(TIMER_ARG_DMA, dma_1_2, 6)
 );

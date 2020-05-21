@@ -20,14 +20,15 @@
 #include "core/peripheral.h"
 #include "core/resource.h"
 #include "core/interface_types.h"
+#include "platform/stm32/hwacc/dma.h"
 #include "platform/stm32/hwacc/timer.h"
 #include "platform/stm32/hwacc/gpio.h"
 
 #include "FreeRTOS.h"
 
-#include "vendor/tinyprintf/tinyprintf.h"
-
 #include <stddef.h>
+
+#define TIMER_DMA_IRQ_PRIORITY 9
 
 typedef struct timer_if_s timer_if_t;
 
@@ -35,7 +36,11 @@ struct timer_if_s {
     if_pwm_t header;
     timer_def_t def;
 
-    uint8_t dummy;
+    const dma_stream_def_t *dma;
+
+    uint32_t *pulses;
+
+    if_pwm_config_t config;
 };
 
 static int timer_init(
@@ -46,9 +51,9 @@ static int timer_configure(
     if_pwm_t *iface,
     const if_pwm_config_t *config);
 
-static int timer_set_output(
-    if_pwm_t *iface,
-    const uint16_t *widths);
+static void timer_update_values_cb(
+    const dma_stream_def_t *def,
+    void *storage);
 
 PP_TYPE_DECL(
     timer,
@@ -64,7 +69,6 @@ int timer_init(
     timer_if_t *if_pwm = (timer_if_t *) iface;
 
     if_pwm->header.configure = timer_configure;
-    if_pwm->header.set_output = timer_set_output;
 
     if_pwm->def = *((const timer_def_t *) if_pwm->header.header.peripheral->storage);
     return 0;
@@ -76,16 +80,33 @@ int timer_configure(
 {
     timer_if_t *if_pwm = (timer_if_t *) iface;
     if_rs_t *rscs = if_pwm->header.header.rscs;
-    /* TIM6 CH1 A00 AF2 */
+    int i;
+
+    if_pwm->config = *config;
+
+    if_pwm->dma = dma_get(rscs[TIMER_ARG_DMA].decl->ref);
+    if (if_pwm->dma == NULL) {
+        return -1;
+    }
+
+    if_pwm->pulses = pvPortMalloc(sizeof(uint32_t) * config->pulses_count);
+    if (if_pwm->pulses == NULL) {
+        return -1;
+    }
+
+    for (i = 0; i < if_pwm->config.pulses_count; i++) {
+        if_pwm->pulses[i] = 0;
+    }
 
     /* TODO: Keep state for when reusing timers for other channels */
     LL_TIM_Init(if_pwm->def.reg, &(LL_TIM_InitTypeDef) {
         .Prescaler = (SystemCoreClock / config->clock_hz) - 1, /* Prescale down to 1us */
         .CounterMode = LL_TIM_COUNTERMODE_UP,
-        .Autoreload = config->period_ticks,
+        .Autoreload = config->period_ticks - 1,
         .ClockDivision = LL_TIM_CLOCKDIVISION_DIV1,
         .RepetitionCounter = 0
     });
+    LL_TIM_EnableCounter(if_pwm->def.reg);
 
     LL_TIM_OC_Init(if_pwm->def.reg, if_pwm->def.channel, &(LL_TIM_OC_InitTypeDef) {
         .OCMode = LL_TIM_OCMODE_PWM1,
@@ -106,51 +127,40 @@ int timer_configure(
         .Alternate = rscs[TIMER_ARG_PIN].inst->attr
     });
 
-    LL_TIM_OC_EnablePreload(if_pwm->def.reg, if_pwm->def.channel);
-    LL_TIM_OC_DisableFast(if_pwm->def.reg, if_pwm->def.channel);
+    LL_DMA_Init(if_pwm->dma->reg, if_pwm->dma->stream, &(LL_DMA_InitTypeDef) {
+        .PeriphOrM2MSrcAddress = if_pwm->def.compare_reg,
+        .MemoryOrM2MDstAddress = (uint32_t) if_pwm->pulses,
+        .Direction = LL_DMA_DIRECTION_MEMORY_TO_PERIPH,
+        .Mode = LL_DMA_MODE_CIRCULAR,
+        .PeriphOrM2MSrcIncMode = LL_DMA_PERIPH_NOINCREMENT,
+        .MemoryOrM2MDstIncMode = LL_DMA_MEMORY_INCREMENT,
+        .PeriphOrM2MSrcDataSize = LL_DMA_PDATAALIGN_WORD,
+        .MemoryOrM2MDstDataSize = LL_DMA_PDATAALIGN_WORD,
+        .NbData = if_pwm->config.pulses_count,
+        .Channel = rscs[TIMER_ARG_DMA].inst->attr << DMA_SxCR_CHSEL_Pos,
+        .Priority = LL_DMA_PRIORITY_HIGH,
+        .FIFOMode = LL_DMA_FIFOMODE_DISABLE,
+        .FIFOThreshold = LL_DMA_FIFOTHRESHOLD_1_2,
+        .MemBurst = LL_DMA_MBURST_SINGLE,
+        .PeriphBurst = LL_DMA_PBURST_SINGLE
+    });
 
-    LL_TIM_EnableCounter(if_pwm->def.reg);
-    // LL_EX_TIM_CC_EnableNChannel(timer, channel);
-    LL_TIM_CC_EnableChannel(if_pwm->def.reg, if_pwm->def.channel);
+    dma_enable_irq(if_pwm->dma, TIMER_DMA_IRQ_PRIORITY, if_pwm);
+    dma_set_transfer_complete_cb(if_pwm->dma, timer_update_values_cb);
+    
+    LL_DMA_EnableStream(if_pwm->dma->reg, if_pwm->dma->stream);
 
-    LL_TIM_EnableAllOutputs(if_pwm->def.reg);
+    LL_TIM_EnableDMAReq_CC1(if_pwm->def.reg);
+
     LL_TIM_EnableARRPreload(if_pwm->def.reg);
-    LL_TIM_EnableCounter(if_pwm->def.reg);
-
-    LL_TIM_EnableAllOutputs(if_pwm->def.reg);
 
     return 0;
 }
 
-static int timer_set_output(
-    if_pwm_t *iface,
-    const uint16_t *widths)
+static void timer_update_values_cb(
+    const dma_stream_def_t *def,
+    void *storage)
 {
-    timer_if_t *if_pwm = (timer_if_t *) iface;
-    switch (if_pwm->def.channel) {
-    case LL_TIM_CHANNEL_CH1:
-        LL_TIM_OC_SetCompareCH1(if_pwm->def.reg, widths[0]);
-        break;
-
-    case LL_TIM_CHANNEL_CH2:
-        LL_TIM_OC_SetCompareCH2(if_pwm->def.reg, widths[0]);
-        break;
-
-    case LL_TIM_CHANNEL_CH3:
-        LL_TIM_OC_SetCompareCH3(if_pwm->def.reg, widths[0]);
-        break;
-
-    case LL_TIM_CHANNEL_CH4:
-        LL_TIM_OC_SetCompareCH4(if_pwm->def.reg, widths[0]);
-        break;
-
-    case LL_TIM_CHANNEL_CH5:
-        LL_TIM_OC_SetCompareCH5(if_pwm->def.reg, widths[0]);
-        break;
-
-    case LL_TIM_CHANNEL_CH6:
-        LL_TIM_OC_SetCompareCH6(if_pwm->def.reg, widths[0]);
-        break;
-    }
-    return 0;
+    timer_if_t *if_pwm = storage;
+    if_pwm->config.update_values_cb(if_pwm->pulses, if_pwm->config.storage);
 }

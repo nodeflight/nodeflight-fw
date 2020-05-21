@@ -28,6 +28,7 @@ typedef struct timer_def_s timer_def_t;
 
 struct timer_def_s {
     TIM_TypeDef *reg;
+    uint32_t compare_reg;
     uint32_t channel;
     uint8_t timer_id; /* TIM resource id enumerated from 0 (TIM1 = id 0, TIM3 = id 2) */
 };
@@ -35,11 +36,13 @@ struct timer_def_s {
 #define TIMER_DEF(_TIMER_ID, _CH) \
     (void *) &(const timer_def_t) { \
         .reg = TIM ## _TIMER_ID, \
+        .compare_reg = (uint32_t) &TIM ## _TIMER_ID->CCR ## _CH, \
         .channel = LL_TIM_CHANNEL_CH ## _CH, \
         .timer_id = _TIMER_ID - 1 \
     }
 
 enum {
     TIMER_ARG_PIN = 0,
+    TIMER_ARG_DMA,
     TIMER_NUM_ARGS
 };
