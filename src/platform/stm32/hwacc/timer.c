@@ -124,7 +124,7 @@ int timer_configure(
         .Speed = LL_GPIO_SPEED_FREQ_VERY_HIGH,
         .OutputType = LL_GPIO_OUTPUT_PUSHPULL,
         .Pull = LL_GPIO_PULL_NO,
-        .Alternate = rscs[TIMER_ARG_PIN].inst->attr
+        .Alternate = rscs[TIMER_ARG_PIN].inst->attr & 0x000f
     });
 
     LL_DMA_Init(if_pwm->dma->reg, if_pwm->dma->stream, &(LL_DMA_InitTypeDef) {
