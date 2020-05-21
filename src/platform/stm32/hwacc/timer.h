@@ -28,17 +28,23 @@ typedef struct timer_def_s timer_def_t;
 
 struct timer_def_s {
     TIM_TypeDef *reg;
+    int32_t irqn;
     uint32_t compare_reg;
     uint32_t channel;
+    uint32_t channel_n;
     uint8_t timer_id; /* TIM resource id enumerated from 0 (TIM1 = id 0, TIM3 = id 2) */
+    uint8_t channel_id; /* TIM resource id enumerated from 0 (TIM1 = id 0, TIM3 = id 2) */
 };
 
-#define TIMER_DEF(_TIMER_ID, _CH) \
+#define TIMER_DEF(_TIMER_ID, _CH, _IRQN) \
     (void *) &(const timer_def_t) { \
         .reg = TIM ## _TIMER_ID, \
+        .irqn = _IRQN, \
         .compare_reg = (uint32_t) &TIM ## _TIMER_ID->CCR ## _CH, \
         .channel = LL_TIM_CHANNEL_CH ## _CH, \
-        .timer_id = _TIMER_ID - 1 \
+        .channel_n = LL_TIM_CHANNEL_CH ## _CH ## N, \
+        .timer_id = _TIMER_ID - 1, \
+        .channel_id = _CH - 1 \
     }
 
 enum {

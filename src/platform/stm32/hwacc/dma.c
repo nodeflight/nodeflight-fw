@@ -60,7 +60,11 @@ static dma_stream_state_t dma_stream_state_def[16] = {
 const dma_stream_def_t *dma_get(
     uint32_t id)
 {
-    return &dma_stream_def[id];
+    if(id == DMA_ID_NONE) {
+        return NULL;
+    } else {
+        return &dma_stream_def[id];
+    }
 }
 
 void dma_enable_irq(
