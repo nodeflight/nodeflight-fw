@@ -236,4 +236,5 @@ TARGET_freertos_SOURCES = \
 	vendor/rtos/FreeRTOS-kernel/queue.c \
 	vendor/rtos/FreeRTOS-kernel/tasks.c \
 	vendor/rtos/FreeRTOS-kernel/timers.c \
+	integration/freertos_hooks.c \
 	integration/heap.c 

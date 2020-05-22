@@ -259,7 +259,7 @@ int scheduler_init_clients(
     return 0;
 }
 
-static void scheduler_task(
+void scheduler_task(
     void *storage)
 {
     scheduler_t *sched = (scheduler_t *) storage;
