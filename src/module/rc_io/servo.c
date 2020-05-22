@@ -20,9 +20,12 @@
 #include "core/peripheral.h"
 #include "core/config.h"
 #include "core/interface_types.h"
+#include "core/scheduler.h"
 
 #include "FreeRTOS.h"
 #include "task.h"
+
+#include "vendor/tinyprintf/tinyprintf.h"
 
 #include <stddef.h>
 
@@ -45,6 +48,13 @@ static int servo_init(
 
 static void servo_new_values(
     uint32_t *values,
+    void *storage);
+
+static void servo_sched_init(
+    float period_sec,
+    void *storage);
+
+static void servo_sched_run(
     void *storage);
 
 MD_DECL(servo, servo_init);
@@ -84,13 +94,41 @@ int servo_init(
 
     servo->value = 1.5 * PWM_MS;
 
+    scheduler_register_client("temp_sched", servo_sched_init, servo_sched_run, servo);
+
     return 0;
 }
 
-static void servo_new_values(
+void servo_new_values(
     uint32_t *values,
     void *storage)
 {
     servo_t *servo = storage;
     values[0] = servo->value;
+}
+
+void servo_sched_init(
+    float period_sec,
+    void *storage)
+{
+    servo_t *servo = storage;
+    (void) servo;
+}
+
+/* Temporary, until link infrastructure exists */
+extern float temp_fport_values[];
+
+void servo_sched_run(
+    void *storage)
+{
+    servo_t *servo = storage;
+    float value = temp_fport_values[0];
+
+    if (value < 0.0f) {
+        value = 0.0f;
+    }
+    if (value > 1.0f) {
+        value = 1.0f;
+    }
+    servo->value = PWM_MS + (uint32_t) (value * PWM_MS);
 }

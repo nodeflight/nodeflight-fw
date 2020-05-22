@@ -20,6 +20,7 @@
 #include "core/interface.h"
 #include "core/interface_types.h"
 #include "core/config.h"
+#include "core/scheduler.h"
 #include "FreeRTOS.h"
 #include "task.h"
 
@@ -35,9 +36,14 @@
 #define FPORT_FLAG_CH18       0x02
 #define FPORT_FLAG_CH17       0x04
 
+#define FPORT_TASK_PRIORITY   15
+
 #define FPORT_TIMEOUT         (50 * portTICK_PERIOD_MS)
 
 #define FPORT_NOTIFY_PACKET   (1 << 0)
+
+#define FPORT_CHANNEL_MIN     192
+#define FPORT_CHANNEL_MAX     1792
 
 typedef struct fport_s fport_t;
 
@@ -218,7 +224,7 @@ int fport_init(
         "fport_proc",
         1024,
         fport_if,
-        15,
+        FPORT_TASK_PRIORITY,
         &fport_if->task);
 
     fport_if->if_ser = if_create(pp_config, PP_SERIAL);
@@ -242,37 +248,37 @@ int fport_init(
     return 0;
 }
 
+float temp_fport_values[16];
+
 void fport_task(
     void *storage)
 {
     fport_t *fport_if = storage;
-    int i;
     uint32_t notify_value;
+    int i;
 
-    tfp_printf("fport loaded\n");
+    scheduler_t *tmp_sched = scheduler_get("temp_sched");
 
     for (;;) {
         xTaskNotifyWait(0x00, UINT32_MAX, &notify_value, FPORT_TIMEOUT);
         if (notify_value & FPORT_NOTIFY_PACKET) {
-            tfp_printf("fport");
-            for (i = 0; i < 16; i++) {
-                tfp_printf(" %u", fport_if->channel[i]);
-            }
             if (fport_if->flags & FPORT_FLAG_FAILSAFE) {
-                tfp_printf(" fs");
+                /* Failsafe */
+            } else if (fport_if->flags & FPORT_FLAG_FRAME_LOST) {
+                /* Frame lost */
+            } else {
+                /* Successful RX */
+                for (i = 0; i < 16; i++) {
+                    temp_fport_values[i] =
+                        (float) (fport_if->channel[i] - FPORT_CHANNEL_MIN)
+                        / (FPORT_CHANNEL_MAX - FPORT_CHANNEL_MIN);
+                }
             }
-            if (fport_if->flags & FPORT_FLAG_FRAME_LOST) {
-                tfp_printf(" lost");
-            }
-            if (fport_if->flags & FPORT_FLAG_CH17) {
-                tfp_printf(" c17");
-            }
-            if (fport_if->flags & FPORT_FLAG_CH18) {
-                tfp_printf(" c18");
-            }
-            tfp_printf(" rssi=%u\n", fport_if->rssi);
         } else {
-            tfp_printf("fport no packet\n");
+            /* Timeout */
+        }
+        if (tmp_sched != NULL) {
+            scheduler_trigger(tmp_sched);
         }
     }
 }

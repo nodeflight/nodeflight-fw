@@ -22,16 +22,28 @@
 
 #include "core/resource.h"
 #include "core/peripheral.h"
+#include "core/scheduler.h"
+
+#include "integration/heap.h"
 
 #include "FreeRTOS.h"
 #include "task.h"
 
-#include "stm32.h"
-
 #include "vendor/tinyprintf/tinyprintf.h"
 
-static void main_task(
-    void *pvParameters);
+static void print_boot_message(
+    void)
+{
+    uint32_t mem_size;
+    uint32_t mem_used;
+    tfp_printf("\nNodeFlight loaded\n\n");
+
+    mem_size = heap_get_size();
+    mem_used = heap_get_usage();
+    tfp_printf("memory usage: %lu / %lu (%lu%%)\n", mem_used, mem_size, (100UL * mem_used) / mem_size);
+
+    tfp_printf("\n");
+}
 
 int main(
     void)
@@ -40,85 +52,21 @@ int main(
 
     platform_init();
 
+    scheduler_init();
+
+    /* Temporary, explicitly triggered from fport */
+    scheduler_define("temp_sched", 0.009f);
+
     config_init();
 
-    // xTaskCreate(main_task,
-    // "main",
-    // 1024,
-    // NULL,
-    // tskIDLE_PRIORITY,
-    // NULL);
-    (void) main_task;
+    scheduler_init_clients();
+
+    print_boot_message();
 
     vTaskStartScheduler();
-    asm ("bkpt 255");
+
+    for (;;) {
+    }
 
     return 0;
-}
-
-void main_task(
-    void *pvParameters)
-{
-    int i;
-    int count;
-    TickType_t next_wakeup_time;
-
-    tfp_printf("Starting NodeFlight\n");
-
-    tfp_printf("\nPeripherals:\n\n");
-
-    count = pp_get_count();
-    for (i = 0; i < count; i++) {
-        const pp_inst_decl_t *inst = pp_get_by_index(i);
-        tfp_printf("peripheral: %-10s  tag: %-16s\n",
-            inst->decl->name,
-            inst->tag);
-
-        const pp_inst_rs_t *rsc;
-        for (rsc = inst->rscs; rsc->tag != NULL; rsc++) {
-            tfp_printf("    tag: %8s  arg_nr: %u  attr: %u\n",
-                rsc->tag,
-                rsc->arg_nr,
-                rsc->attr);
-        }
-    }
-
-    tfp_printf("\nResources:\n\n");
-
-    count = rs_get_count();
-    for (i = 0; i < count; i++) {
-        const rs_decl_t *rsc = rs_get_by_id(i);
-        rs_state_t *state = rs_get_state(rsc);
-        tfp_printf("rs %3d: %-10s  type: %3u  avail: %3u/%-5u ref: %08lx\n",
-            i,
-            rsc->name,
-            rsc->type,
-            state->count_allocated,
-            rsc->count_avail,
-            rsc->ref);
-    }
-
-    tfp_printf("SystemCoreClock: %ld\n", SystemCoreClock);
-
-    /* To track uart transmission delay */
-    LL_GPIO_Init(GPIOA, &(LL_GPIO_InitTypeDef) {
-        .Pin = 1 << 5,
-        .Mode = LL_GPIO_MODE_OUTPUT,
-        .Speed = LL_GPIO_SPEED_FREQ_VERY_HIGH,
-        .OutputType = LL_GPIO_OUTPUT_PUSHPULL,
-        .Pull = LL_GPIO_PULL_NO,
-        .Alternate = 0
-    });
-
-    tfp_printf("Mem free: %u\n", xPortGetFreeHeapSize());
-
-    i = 0;
-    next_wakeup_time = xTaskGetTickCount();
-    for (;;) {
-        /* Place this task in the blocked state until it is time to run again. */
-        vTaskDelayUntil(&next_wakeup_time, 1000 / portTICK_PERIOD_MS);
-        LL_GPIO_SetOutputPin(GPIOA, 1 << 5);
-        tfp_printf("Tick... %d\n", i++);
-        LL_GPIO_ResetOutputPin(GPIOA, 1 << 5);
-    }
 }

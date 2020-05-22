@@ -27,6 +27,8 @@
 #include "task.h"
 #undef  MPU_WRAPPERS_INCLUDED_FROM_API_FILE
 
+#include "integration/heap.h"
+
 #define ALIGN_BYTES 4
 
 #if ALIGN_BYTES & (ALIGN_BYTES - 1)
@@ -93,4 +95,16 @@ size_t xPortGetFreeHeapSize(
     void)
 {
     return __heap_end - cur_alloc;
+}
+
+uint32_t heap_get_size(
+    void)
+{
+    return __heap_end - __heap_start;
+}
+
+uint32_t heap_get_usage(
+    void)
+{
+    return cur_alloc - __heap_start;
 }

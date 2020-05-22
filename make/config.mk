@@ -62,7 +62,8 @@ TARGET_core_SOURCES = \
 	core/module.c \
 	core/interface.c \
 	core/peripheral.c \
-	core/resource.c
+	core/resource.c \
+	core/scheduler.c
 
 TARGET_lib_SOURCES = \
 	lib/strops.c \
