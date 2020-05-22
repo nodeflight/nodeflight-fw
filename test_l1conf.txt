@@ -1,12 +1,14 @@
 per uart_st uart3 pin_d08 pin_none dma_1_3 dma_none
 mod stdout uart_st
 
+sch @rx 3
+
 per uart_fport uart2 pin_none pin_d06 dma_none dma_1_5
-mod fport uart_fport
+mod fport uart_fport @rx
 
 per pwm1 tim2_ch1 pin_a00 dma_none
 per pwm2 tim3_ch3 pin_b00 dma_none
 per pwm3 tim3_ch4 pin_b01 dma_none
-mod servo pwm1
-mod servo pwm2
-mod servo pwm3
+mod servo pwm1 @rx
+mod servo pwm2 @rx
+mod servo pwm3 @rx

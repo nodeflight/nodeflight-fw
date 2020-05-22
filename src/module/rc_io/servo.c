@@ -44,7 +44,7 @@ struct servo_s {
 };
 
 static int servo_init(
-    const char *tag);
+    md_arg_t *args);
 
 static void servo_new_values(
     uint32_t *values,
@@ -57,29 +57,24 @@ static void servo_sched_init(
 static void servo_sched_run(
     void *storage);
 
-MD_DECL(servo, servo_init);
+MD_DECL(servo, "ps", servo_init);
 
 int servo_init(
-    const char *tag)
+    md_arg_t *args)
 {
-    servo_t *servo;
-    const char *pp_config;
-    int status;
-
-    pp_config = config_get_pp_config(tag);
-    if (pp_config == NULL) {
+    if (args[0].iface->peripheral->decl->type != PP_PWM) {
         return -1;
     }
+
+    servo_t *servo;
+    int status;
 
     servo = pvPortMalloc(sizeof(servo_t));
     if (servo == NULL) {
         return -1;
     }
 
-    servo->if_pwm = IF_PWM(if_create(pp_config, PP_PWM));
-    if (servo->if_pwm == NULL) {
-        return -1;
-    }
+    servo->if_pwm = IF_PWM(args[0].iface);
 
     status = servo->if_pwm->configure(servo->if_pwm, &(const if_pwm_config_t) {
         .clock_hz = PWM_CLOCK_HZ,
@@ -94,7 +89,7 @@ int servo_init(
 
     servo->value = 1.5 * PWM_MS;
 
-    scheduler_register_client("temp_sched", servo_sched_init, servo_sched_run, servo);
+    scheduler_register_client(args[1].sched, servo_sched_init, servo_sched_run, servo);
 
     return 0;
 }

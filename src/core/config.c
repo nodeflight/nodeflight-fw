@@ -18,8 +18,11 @@
 
 #include "core/config.h"
 #include "core/module.h"
+#include "core/scheduler.h"
 #include "lib/strops.h"
 #include "lib/map.h"
+
+#include "vendor/tinyprintf/tinyprintf.h"
 
 #define LINEBUF_SIZE 256
 
@@ -34,16 +37,25 @@ static void config_parse_line(
     const char *command = strops_next_word(&line);
     if (*command == '\0' || *command == '#') {
         /* Ignore empty lines and comments */
+    } else if (0 == strops_word_cmp("per", command)) {
+        /* Load peripheral definition */
+        const char *name = strops_next_word(&line);
+        map_set(config_per, name, strops_line_dup(line));
+    } else if (0 == strops_word_cmp("sch", command)) {
+        const char *name = strops_next_word(&line);
+        const char *prio_str = strops_next_word(&line);
+        if (*name != '\0' && *prio_str != '\0') {
+            int priority = strops_word_to_int(prio_str);
+            if (NULL == scheduler_define(name, priority)) {
+                /* TODO: Error handling */
+            }
+        }
     } else if (0 == strops_word_cmp("mod", command)) {
         /* Load module */
         const char *name = strops_next_word(&line);
         if (0 != md_init(name, line)) {
             /* TODO: Error handling */
         }
-    } else if (0 == strops_word_cmp("per", command)) {
-        /* Load peripheral definition */
-        const char *name = strops_next_word(&line);
-        map_set(config_per, name, strops_line_dup(line));
     } else {
         /* TODO: Error handling */
     }

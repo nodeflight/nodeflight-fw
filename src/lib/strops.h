@@ -18,6 +18,8 @@
 
 #pragma once
 
+#include <stdint.h>
+
 int strops_word_cmp(
     const char *word,
     const char *line);
@@ -35,3 +37,9 @@ char *strops_word_dup(
 
 char *strops_line_dup(
     const char *source);
+
+int32_t strops_word_to_int(
+    const char *word);
+
+float strops_word_to_float(
+    const char *line);

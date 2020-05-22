@@ -54,9 +54,9 @@ struct stdout_s {
 };
 
 static int stdout_init(
-    const char *tag);
+    md_arg_t *args);
 
-MD_DECL(stdout, stdout_init);
+MD_DECL(stdout, "p", stdout_init);
 
 /**
  * Guard for multiple allocations
@@ -76,20 +76,19 @@ static void stdout_putc(
 }
 
 int stdout_init(
-    const char *tag)
+    md_arg_t *args)
 {
-    const char *pp_config;
+    if (args[0].iface->peripheral->decl->type != PP_SERIAL) {
+        return -1;
+    }
+    
     stdout_t *out_if;
 
     if (stdout_loaded) {
         /* Only one stdout module may be used at a time */
         return -1;
     }
-    pp_config = config_get_pp_config(tag);
-    if (pp_config == NULL) {
-        return -1;
-    }
-
+    
     out_if = pvPortMalloc(sizeof(stdout_t));
     if (out_if == NULL) {
         return -1;
@@ -101,10 +100,8 @@ int stdout_init(
     if (out_if->buffer == NULL) {
         return -1;
     }
-    out_if->if_stdout = if_create(pp_config, PP_SERIAL);
-    if (out_if->if_stdout == NULL) {
-        return -1;
-    }
+    out_if->if_stdout = args[0].iface;
+
     IF_SERIAL(out_if->if_stdout)->configure(IF_SERIAL(out_if->if_stdout),
         &(const if_serial_config_t) {
         .baudrate = 115200,

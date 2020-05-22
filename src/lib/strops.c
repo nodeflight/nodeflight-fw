@@ -18,6 +18,7 @@
 
 #include "lib/strops.h"
 #include <stddef.h>
+#include <stdbool.h>
 #include "FreeRTOS.h"
 
 /* TODO: unit test */
@@ -133,4 +134,61 @@ char *strops_line_dup(
     }
     dest[len] = '\0';
     return dest;
+}
+
+int32_t strops_word_to_int(
+    const char *word)
+{
+    bool neg = false;
+    int32_t res = 0;
+
+    if (*word == '-') {
+        word++;
+        neg = true;
+    }
+
+    while (*word >= '0' && *word <= '9') {
+        res = (res * 10L) + (*word - '0');
+        word++;
+    }
+
+    if (neg) {
+        return -res;
+    } else {
+        return res;
+    }
+}
+
+
+float strops_word_to_float(
+    const char *word)
+{
+    bool neg = false;
+    float res = 0.0f;
+
+    if (*word == '-') {
+        word++;
+        neg = true;
+    }
+
+    while (*word >= '0' && *word <= '9') {
+        res = (res * 10.0f) + (*word - '0');
+        word++;
+    }
+
+    if (*word == '.') {
+        word++;
+        float fact = 0.1f;
+        while (*word >= '0' && *word <= '9') {
+            res += fact * (*word - '0');
+            word++;
+            fact *= 0.1f;
+        }
+    }
+
+    if (neg) {
+        return -res;
+    } else {
+        return res;
+    }
 }

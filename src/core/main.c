@@ -45,28 +45,36 @@ static void print_boot_message(
     tfp_printf("\n");
 }
 
+static void main_task(
+    void *storage);
+
 int main(
     void)
 {
     vPortInitialiseBlocks();
-
     platform_init();
+
+    xTaskCreate(main_task, "main", 1024, NULL, 0, NULL);
+
+    vTaskStartScheduler();
+    return 0;
+}
+
+static void main_task(
+    void *storage)
+{
 
     scheduler_init();
 
-    /* Temporary, explicitly triggered from fport */
-    scheduler_define("temp_sched", 0.009f);
-
     config_init();
 
-    scheduler_init_clients();
+    if (0 != scheduler_init_clients()) {
+        /* TODO: Error handling */
+    }
 
     print_boot_message();
 
-    vTaskStartScheduler();
-
+    vTaskSuspend(NULL);
     for (;;) {
     }
-
-    return 0;
 }

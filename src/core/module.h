@@ -18,19 +18,42 @@
 
 #pragma once
 
+typedef union md_arg_u md_arg_t;
 typedef struct md_decl_s md_decl_t;
+
+#include "core/interface.h"
+#include "core/scheduler.h"
+
+union md_arg_u {
+    if_header_t *iface;
+    scheduler_t *sched;
+};
 
 struct md_decl_s {
     const char *name;
+    const char *args;
     int (*init)(
-        const char *config);
+        md_arg_t *args);
 };
 
 #define _MD_SECTION(_name) __attribute__ ((section(".nf_module." #_name), used))
 
-#define MD_DECL(_name, _init) \
+/**
+ * Declare a module
+ *
+ * _args is a string defining the types each arg to the module. One letter per argument:
+ *
+ * - 'p' = peripheral
+ * - 's' = scheduler
+ *
+ * @param _name name of the module, and section name. Unique, without quotes
+ * @param _args string of argument types, one char per type
+ * @param _init init function for the module
+ */
+#define MD_DECL(_name, _args, _init) \
     const md_decl_t md_ ## _name ## _decl _MD_SECTION(_name) = { \
         .name = #_name, \
+        .args = _args, \
         .init = _init \
     }
 

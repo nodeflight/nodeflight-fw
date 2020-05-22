@@ -17,19 +17,84 @@
  */
 
 #include "core/module.h"
+#include "core/config.h"
+#include "core/interface.h"
+#include "core/scheduler.h"
 #include "lib/strops.h"
+
+#include <stddef.h>
+
+#define MD_MAX_ARGS 16
 
 const extern md_decl_t __nf_module_start[];
 const extern md_decl_t __nf_module_end[];
+
+static if_header_t *md_load_interface(
+    const char *tag)
+{
+    const char *pp_config;
+
+    pp_config = config_get_pp_config(tag);
+    if (pp_config == NULL) {
+        return NULL;
+    }
+
+    return if_create(pp_config, PP_NONE);
+}
+
+static int md_init_mod(
+    const md_decl_t *md,
+    const char *config)
+{
+    md_arg_t args[MD_MAX_ARGS];
+    const char *argptr = &md->args[0];
+    int i = 0;
+    while (*argptr != '\0') {
+        const char *arg_str = strops_next_word(&config);
+
+        bool optional = (*argptr == '?');
+        if (optional) {
+            argptr++;
+        }
+
+        if (optional && 0 == strops_word_cmp("-", arg_str)) {
+            args[i].iface = NULL; /* Union, all pointers, everything will be NULL */
+        } else {
+            switch (*argptr) {
+            case 'p':
+                args[i].iface = md_load_interface(arg_str);
+                if (args[i].iface == NULL) {
+                    return -1;
+                }
+                break;
+
+            case 's':
+                args[i].sched = scheduler_get(arg_str);
+                if (args[i].sched == NULL) {
+                    return -1;
+                }
+                break;
+
+            default:
+                return -1;
+            }
+        }
+
+        argptr++;
+        i++;
+    }
+
+    return md->init(args);
+}
 
 int md_init(
     const char *name,
     const char *config)
 {
-    const md_decl_t *cur;
-    for (cur = __nf_module_start; cur < __nf_module_end; cur++) {
-        if (strops_word_cmp(cur->name, name) == 0) {
-            return cur->init(config);
+    const md_decl_t *md;
+    for (md = __nf_module_start; md < __nf_module_end; md++) {
+        if (strops_word_cmp(md->name, name) == 0) {
+            return md_init_mod(md, config);
         }
     }
     return -1;

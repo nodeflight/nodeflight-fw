@@ -33,16 +33,20 @@ void scheduler_init(
 
 scheduler_t *scheduler_define(
     const char *name,
-    int task_priority);
+    int priority);
 
 scheduler_client_t *scheduler_register_client(
-    const char *name,
+    scheduler_t *sched,
     scheduler_clinet_init_t init,
     scheduler_clinet_run_t run,
     void *storage);
 
 scheduler_t *scheduler_get(
     const char *name);
+
+int scheduler_configure_source(
+    scheduler_t *sched,
+    float period_sec);
 
 void scheduler_trigger_from_isr(
     scheduler_t *scheduler);

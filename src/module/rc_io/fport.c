@@ -45,25 +45,27 @@
 #define FPORT_CHANNEL_MIN     192
 #define FPORT_CHANNEL_MAX     1792
 
+#define FPORT_STACK_WORDS     512
+
 typedef struct fport_s fport_t;
 
 struct fport_s {
     if_header_t *if_ser;
+    scheduler_t *target_scheduler;
+    TaskHandle_t task;
 
     uint16_t channel[16];
     uint8_t flags;
     uint8_t rssi;
-
-    TaskHandle_t task;
 };
 
 static int fport_init(
-    const char *tag);
+    md_arg_t *args);
 
 static void fport_task(
     void *storage);
 
-MD_DECL(fport, fport_init);
+MD_DECL(fport, "p?s", fport_init);
 
 #define GET_ESC_CHAR(_TGT) \
     do { \
@@ -198,14 +200,12 @@ static void fport_rx_done(
 }
 
 int fport_init(
-    const char *tag)
+    md_arg_t *args)
 {
-    const char *pp_config;
     fport_t *fport_if;
     int i;
 
-    pp_config = config_get_pp_config(tag);
-    if (pp_config == NULL) {
+    if (args[0].iface->peripheral->decl->type != PP_SERIAL) {
         return -1;
     }
 
@@ -219,18 +219,22 @@ int fport_init(
     }
     fport_if->rssi = 0;
     fport_if->flags = FPORT_FLAG_FAILSAFE;
+    fport_if->if_ser = args[0].iface;
+    fport_if->target_scheduler = args[1].sched;
+
+    if (fport_if->target_scheduler != NULL) {
+        if (0 != scheduler_configure_source(fport_if->target_scheduler, 0.009f)) {
+            return -1;
+        }
+    }
 
     xTaskCreate(fport_task,
         "fport_proc",
-        1024,
+        FPORT_STACK_WORDS,
         fport_if,
         FPORT_TASK_PRIORITY,
         &fport_if->task);
 
-    fport_if->if_ser = if_create(pp_config, PP_SERIAL);
-    if (fport_if->if_ser == NULL) {
-        return -1;
-    }
     IF_SERIAL(fport_if->if_ser)->configure(IF_SERIAL(fport_if->if_ser),
         &(const if_serial_config_t) {
         .baudrate = 115200,
@@ -257,8 +261,6 @@ void fport_task(
     uint32_t notify_value;
     int i;
 
-    scheduler_t *tmp_sched = scheduler_get("temp_sched");
-
     for (;;) {
         xTaskNotifyWait(0x00, UINT32_MAX, &notify_value, FPORT_TIMEOUT);
         if (notify_value & FPORT_NOTIFY_PACKET) {
@@ -277,8 +279,8 @@ void fport_task(
         } else {
             /* Timeout */
         }
-        if (tmp_sched != NULL) {
-            scheduler_trigger(tmp_sched);
+        if (fport_if->target_scheduler != NULL) {
+            scheduler_trigger(fport_if->target_scheduler);
         }
     }
 }

@@ -25,10 +25,12 @@
 #include "semphr.h"
 
 #define SCHEDULER_CLIENTS_PER_POOL    32
-#define SCHEDULER_TASK_BASE_PRIORITY  20
+#define SCHEDULER_TASK_BASE_PRIORITY  10
 #define SCHEDULER_NUM_PRIORITIES      10
 #define SCHEDULER_NOTIFY_EXECUTE      (1 << 0)
 #define SCHEDULER_TIMEOUT             (1000 * portTICK_PERIOD_MS)
+
+#define SCHEDULER_STACK_WORDS         1024
 
 typedef struct scheduler_client_pool_s scheduler_client_pool_t;
 
@@ -86,29 +88,15 @@ void scheduler_init(
 }
 
 scheduler_client_t *scheduler_register_client(
-    const char *name,
+    scheduler_t *sched,
     scheduler_clinet_init_t init,
     scheduler_clinet_run_t run,
     void *storage)
 {
     int i;
-    scheduler_t *sched;
-    scheduler_t *cur_sched;
     scheduler_client_pool_t *pool;
     scheduler_client_pool_t *last_pool;
     if (pdFALSE == xSemaphoreTake(schedulers_mutex, portMAX_DELAY)) {
-        return NULL;
-    }
-
-    /* Fetch scheduler, bail out if none found */
-    sched = NULL;
-    for (cur_sched = schedulers; cur_sched != NULL && sched == NULL; cur_sched = cur_sched->next) {
-        if (strops_word_cmp(cur_sched->name, name) == 0) {
-            sched = cur_sched;
-        }
-    }
-    if (sched == NULL) {
-        xSemaphoreGive(schedulers_mutex);
         return NULL;
     }
 
@@ -198,7 +186,7 @@ scheduler_t *scheduler_define(
     sched->next = NULL;
     if (pdFAIL == xTaskCreate(scheduler_task,
         "scheduler_task",
-        1024,
+        SCHEDULER_STACK_WORDS,
         sched,
         SCHEDULER_TASK_BASE_PRIORITY + priority,
         &sched->task)) {
@@ -211,6 +199,17 @@ scheduler_t *scheduler_define(
 
     xSemaphoreGive(schedulers_mutex);
     return sched;
+}
+
+int scheduler_configure_source(
+    scheduler_t *sched,
+    float period_sec)
+{
+    if (sched->period_sec >= 0.0f) {
+        return -1;
+    }
+    sched->period_sec = period_sec;
+    return 0;
 }
 
 void scheduler_trigger_from_isr(
@@ -240,6 +239,10 @@ int scheduler_init_clients(
     }
 
     for (sched = schedulers; sched != NULL; sched = sched->next) {
+        if (sched->period_sec < 0.0f) {
+            xSemaphoreGive(schedulers_mutex);
+            return -1;
+        }
         cur_client = 0;
         for (pool = sched->clients; pool != NULL; pool = pool->next) {
             for (i = 0; i < SCHEDULER_CLIENTS_PER_POOL; i++) {

@@ -66,7 +66,7 @@ if_header_t *if_create(
         asm ("bkpt 255");
         return NULL;
     }
-    if (decl->decl->type != type) {
+    if (type != PP_NONE && type != decl->decl->type) {
         /* Not the correct type, error */
         /* TODO: error handling */
         asm ("bkpt 255");
