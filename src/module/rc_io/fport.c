@@ -45,7 +45,7 @@
 #define FPORT_CHANNEL_MIN     192
 #define FPORT_CHANNEL_MAX     1792
 
-#define FPORT_STACK_WORDS     512
+#define FPORT_STACK_WORDS     128
 
 typedef struct fport_s fport_t;
 

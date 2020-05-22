@@ -21,4 +21,4 @@ mod servo pwm3 @rx
 per tmsch tim7_ch1 pin_none dma_none
 mod sch_timer tmsch @hs 8000
 
-mod sch_decim @hs @rx 4000 2
+mod sch_decim @hs @rx 2 4000
