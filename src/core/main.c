@@ -45,12 +45,23 @@ static void print_boot_message(
     tfp_printf("\n");
 }
 
+static void dummy_putc(
+    void *storage,
+    char c)
+{
+    (void) storage;
+    (void) c;
+}
+
 static void main_task(
     void *storage);
 
 int main(
     void)
 {
+    /* tfp_printf() shoudn't crash if stdout isn't loaded */
+    init_printf(NULL, dummy_putc);
+
     vPortInitialiseBlocks();
     platform_init();
 

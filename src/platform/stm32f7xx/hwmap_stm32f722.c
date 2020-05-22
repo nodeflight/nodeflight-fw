@@ -176,6 +176,7 @@ PP_INST_DECL(usb_vcp, usb_vcp, NULL,
 #define LL_TIM_CHANNEL_CH4N 0
 
 PP_INST_DECL(timer, tim1_ch1, TIMER_DEF(1, 1, TIM1_UP_TIM10_IRQn),
+    PP_INST_RS(TIMER_ARG_PIN, pin_none, 0),
     PP_INST_RS(TIMER_ARG_PIN, pin_a07, 0x0101),
     PP_INST_RS(TIMER_ARG_PIN, pin_a08, 0x0001),
     PP_INST_RS(TIMER_ARG_PIN, pin_e08, 0x0101),
@@ -186,6 +187,7 @@ PP_INST_DECL(timer, tim1_ch1, TIMER_DEF(1, 1, TIM1_UP_TIM10_IRQn),
     PP_INST_RS(TIMER_ARG_DMA, dma_none, 0)
 );
 PP_INST_DECL(timer, tim1_ch2, TIMER_DEF(1, 2, TIM1_UP_TIM10_IRQn),
+    PP_INST_RS(TIMER_ARG_PIN, pin_none, 0),
     PP_INST_RS(TIMER_ARG_PIN, pin_a09, 0x0001),
     PP_INST_RS(TIMER_ARG_PIN, pin_b00, 0x0101),
     PP_INST_RS(TIMER_ARG_PIN, pin_e10, 0x0101),
@@ -195,6 +197,7 @@ PP_INST_DECL(timer, tim1_ch2, TIMER_DEF(1, 2, TIM1_UP_TIM10_IRQn),
     PP_INST_RS(TIMER_ARG_DMA, dma_none, 0)
 );
 PP_INST_DECL(timer, tim1_ch3, TIMER_DEF(1, 3, TIM1_UP_TIM10_IRQn),
+    PP_INST_RS(TIMER_ARG_PIN, pin_none, 0),
     PP_INST_RS(TIMER_ARG_PIN, pin_a10, 0x0001),
     PP_INST_RS(TIMER_ARG_PIN, pin_b01, 0x0101),
     PP_INST_RS(TIMER_ARG_PIN, pin_e12, 0x0101),
@@ -204,6 +207,7 @@ PP_INST_DECL(timer, tim1_ch3, TIMER_DEF(1, 3, TIM1_UP_TIM10_IRQn),
     PP_INST_RS(TIMER_ARG_DMA, dma_none, 0)
 );
 PP_INST_DECL(timer, tim1_ch4, TIMER_DEF(1, 4, TIM1_UP_TIM10_IRQn),
+    PP_INST_RS(TIMER_ARG_PIN, pin_none, 0),
     PP_INST_RS(TIMER_ARG_PIN, pin_a11, 0x0001),
     PP_INST_RS(TIMER_ARG_PIN, pin_e14, 0x0001),
     PP_INST_RS(TIMER_ARG_DMA, dma_2_4, 6),
@@ -211,6 +215,7 @@ PP_INST_DECL(timer, tim1_ch4, TIMER_DEF(1, 4, TIM1_UP_TIM10_IRQn),
 );
 
 PP_INST_DECL(timer, tim2_ch1, TIMER_DEF(2, 1, TIM2_IRQn),
+    PP_INST_RS(TIMER_ARG_PIN, pin_none, 0),
     PP_INST_RS(TIMER_ARG_PIN, pin_a00, 0x0001),
     PP_INST_RS(TIMER_ARG_PIN, pin_a05, 0x0001),
     PP_INST_RS(TIMER_ARG_PIN, pin_a15, 0x0001),
@@ -219,6 +224,7 @@ PP_INST_DECL(timer, tim2_ch1, TIMER_DEF(2, 1, TIM2_IRQn),
     PP_INST_RS(TIMER_ARG_DMA, dma_none, 0)
 );
 PP_INST_DECL(timer, tim2_ch2, TIMER_DEF(2, 2, TIM2_IRQn),
+    PP_INST_RS(TIMER_ARG_PIN, pin_none, 0),
     PP_INST_RS(TIMER_ARG_PIN, pin_a01, 0x0001),
     PP_INST_RS(TIMER_ARG_PIN, pin_b03, 0x0001),
     PP_INST_RS(TIMER_ARG_PIN, pin_b14, 0x0101),
@@ -226,6 +232,7 @@ PP_INST_DECL(timer, tim2_ch2, TIMER_DEF(2, 2, TIM2_IRQn),
     PP_INST_RS(TIMER_ARG_DMA, dma_none, 0)
 );
 PP_INST_DECL(timer, tim2_ch3, TIMER_DEF(2, 3, TIM2_IRQn),
+    PP_INST_RS(TIMER_ARG_PIN, pin_none, 0),
     PP_INST_RS(TIMER_ARG_PIN, pin_a02, 0x0001),
     PP_INST_RS(TIMER_ARG_PIN, pin_b10, 0x0001),
     PP_INST_RS(TIMER_ARG_PIN, pin_b15, 0x0101),
@@ -233,6 +240,7 @@ PP_INST_DECL(timer, tim2_ch3, TIMER_DEF(2, 3, TIM2_IRQn),
     PP_INST_RS(TIMER_ARG_DMA, dma_none, 0)
 );
 PP_INST_DECL(timer, tim2_ch4, TIMER_DEF(2, 4, TIM2_IRQn),
+    PP_INST_RS(TIMER_ARG_PIN, pin_none, 0),
     PP_INST_RS(TIMER_ARG_PIN, pin_a03, 0x0001),
     PP_INST_RS(TIMER_ARG_PIN, pin_b11, 0x0001),
     PP_INST_RS(TIMER_ARG_DMA, dma_1_6, 3),
@@ -241,6 +249,7 @@ PP_INST_DECL(timer, tim2_ch4, TIMER_DEF(2, 4, TIM2_IRQn),
 );
 
 PP_INST_DECL(timer, tim3_ch1, TIMER_DEF(3, 1, TIM3_IRQn),
+    PP_INST_RS(TIMER_ARG_PIN, pin_none, 0),
     PP_INST_RS(TIMER_ARG_PIN, pin_a06, 0x0002),
     PP_INST_RS(TIMER_ARG_PIN, pin_b04, 0x0002),
     PP_INST_RS(TIMER_ARG_PIN, pin_c06, 0x0002),
@@ -248,6 +257,7 @@ PP_INST_DECL(timer, tim3_ch1, TIMER_DEF(3, 1, TIM3_IRQn),
     PP_INST_RS(TIMER_ARG_DMA, dma_none, 0)
 );
 PP_INST_DECL(timer, tim3_ch2, TIMER_DEF(3, 2, TIM3_IRQn),
+    PP_INST_RS(TIMER_ARG_PIN, pin_none, 0),
     PP_INST_RS(TIMER_ARG_PIN, pin_a07, 0x0002),
     PP_INST_RS(TIMER_ARG_PIN, pin_b05, 0x0002),
     PP_INST_RS(TIMER_ARG_PIN, pin_c07, 0x0002),
@@ -255,12 +265,14 @@ PP_INST_DECL(timer, tim3_ch2, TIMER_DEF(3, 2, TIM3_IRQn),
     PP_INST_RS(TIMER_ARG_DMA, dma_none, 0)
 );
 PP_INST_DECL(timer, tim3_ch3, TIMER_DEF(3, 3, TIM3_IRQn),
+    PP_INST_RS(TIMER_ARG_PIN, pin_none, 0),
     PP_INST_RS(TIMER_ARG_PIN, pin_b00, 0x0002),
     PP_INST_RS(TIMER_ARG_PIN, pin_c08, 0x0002),
     PP_INST_RS(TIMER_ARG_DMA, dma_1_7, 5),
     PP_INST_RS(TIMER_ARG_DMA, dma_none, 0)
 );
 PP_INST_DECL(timer, tim3_ch4, TIMER_DEF(3, 4, TIM3_IRQn),
+    PP_INST_RS(TIMER_ARG_PIN, pin_none, 0),
     PP_INST_RS(TIMER_ARG_PIN, pin_b01, 0x0002),
     PP_INST_RS(TIMER_ARG_PIN, pin_c09, 0x0002),
     PP_INST_RS(TIMER_ARG_DMA, dma_1_2, 5),
@@ -268,26 +280,31 @@ PP_INST_DECL(timer, tim3_ch4, TIMER_DEF(3, 4, TIM3_IRQn),
 );
 
 PP_INST_DECL(timer, tim4_ch1, TIMER_DEF(4, 1, TIM4_IRQn),
+    PP_INST_RS(TIMER_ARG_PIN, pin_none, 0),
     PP_INST_RS(TIMER_ARG_PIN, pin_b06, 0x0002),
     PP_INST_RS(TIMER_ARG_DMA, dma_1_0, 2),
     PP_INST_RS(TIMER_ARG_DMA, dma_none, 0)
 );
 PP_INST_DECL(timer, tim4_ch2, TIMER_DEF(4, 2, TIM4_IRQn),
+    PP_INST_RS(TIMER_ARG_PIN, pin_none, 0),
     PP_INST_RS(TIMER_ARG_PIN, pin_b07, 0x0002),
     PP_INST_RS(TIMER_ARG_DMA, dma_1_2, 2),
     PP_INST_RS(TIMER_ARG_DMA, dma_none, 0)
 );
 PP_INST_DECL(timer, tim4_ch3, TIMER_DEF(4, 3, TIM4_IRQn),
+    PP_INST_RS(TIMER_ARG_PIN, pin_none, 0),
     PP_INST_RS(TIMER_ARG_PIN, pin_b08, 0x0002),
     PP_INST_RS(TIMER_ARG_DMA, dma_1_7, 2),
     PP_INST_RS(TIMER_ARG_DMA, dma_none, 0)
 );
 PP_INST_DECL(timer, tim4_ch4, TIMER_DEF(4, 4, TIM4_IRQn),
+    PP_INST_RS(TIMER_ARG_PIN, pin_none, 0),
     PP_INST_RS(TIMER_ARG_PIN, pin_b09, 0x0002),
     PP_INST_RS(TIMER_ARG_DMA, dma_none, 0)
 );
 
 PP_INST_DECL(timer, tim5_ch1, TIMER_DEF(5, 1, TIM5_IRQn),
+    PP_INST_RS(TIMER_ARG_PIN, pin_none, 0),
     PP_INST_RS(TIMER_ARG_PIN, pin_a00, 0x0002),
     PP_INST_RS(TIMER_ARG_PIN, pin_d12, 0x0002),
     PP_INST_RS(TIMER_ARG_PIN, pin_h10, 0x0002),
@@ -295,6 +312,7 @@ PP_INST_DECL(timer, tim5_ch1, TIMER_DEF(5, 1, TIM5_IRQn),
     PP_INST_RS(TIMER_ARG_DMA, dma_none, 0)
 );
 PP_INST_DECL(timer, tim5_ch2, TIMER_DEF(5, 2, TIM5_IRQn),
+    PP_INST_RS(TIMER_ARG_PIN, pin_none, 0),
     PP_INST_RS(TIMER_ARG_PIN, pin_a01, 0x0002),
     PP_INST_RS(TIMER_ARG_PIN, pin_d13, 0x0002),
     PP_INST_RS(TIMER_ARG_PIN, pin_h11, 0x0002),
@@ -302,6 +320,7 @@ PP_INST_DECL(timer, tim5_ch2, TIMER_DEF(5, 2, TIM5_IRQn),
     PP_INST_RS(TIMER_ARG_DMA, dma_none, 0)
 );
 PP_INST_DECL(timer, tim5_ch3, TIMER_DEF(5, 3, TIM5_IRQn),
+    PP_INST_RS(TIMER_ARG_PIN, pin_none, 0),
     PP_INST_RS(TIMER_ARG_PIN, pin_a02, 0x0002),
     PP_INST_RS(TIMER_ARG_PIN, pin_d14, 0x0002),
     PP_INST_RS(TIMER_ARG_PIN, pin_h12, 0x0002),
@@ -309,6 +328,7 @@ PP_INST_DECL(timer, tim5_ch3, TIMER_DEF(5, 3, TIM5_IRQn),
     PP_INST_RS(TIMER_ARG_DMA, dma_none, 0)
 );
 PP_INST_DECL(timer, tim5_ch4, TIMER_DEF(5, 4, TIM5_IRQn),
+    PP_INST_RS(TIMER_ARG_PIN, pin_none, 0),
     PP_INST_RS(TIMER_ARG_PIN, pin_a03, 0x0002),
     PP_INST_RS(TIMER_ARG_PIN, pin_d15, 0x0002),
     PP_INST_RS(TIMER_ARG_PIN, pin_i00, 0x0002),
@@ -317,8 +337,11 @@ PP_INST_DECL(timer, tim5_ch4, TIMER_DEF(5, 4, TIM5_IRQn),
     PP_INST_RS(TIMER_ARG_DMA, dma_none, 0)
 );
 
-// PP_INST_DECL(timer, tim6_ch1, TIMER_DEF(6, 1, TIM6_DAC_IRQn),
-// );
+PP_INST_DECL(timer, tim6_ch1, TIMER_DEF(6, 1, TIM6_DAC_IRQn),
+    PP_INST_RS(TIMER_ARG_PIN, pin_none, 0),
+    PP_INST_RS(TIMER_ARG_PIN, pin_none, 0),
+    PP_INST_RS(TIMER_ARG_DMA, dma_none, 0)
+);
 // PP_INST_DECL(timer, tim6_ch2, TIMER_DEF(6, 2, TIM6_DAC_IRQn),
 // );
 // PP_INST_DECL(timer, tim6_ch3, TIMER_DEF(6, 3, TIM6_DAC_IRQn),
@@ -326,8 +349,11 @@ PP_INST_DECL(timer, tim5_ch4, TIMER_DEF(5, 4, TIM5_IRQn),
 // PP_INST_DECL(timer, tim6_ch4, TIMER_DEF(6, 4, TIM6_DAC_IRQn),
 // );
 
-// PP_INST_DECL(timer, tim7_ch1, TIMER_DEF(7, 1, TIM7_IRQn),
-// );
+PP_INST_DECL(timer, tim7_ch1, TIMER_DEF(7, 1, TIM7_IRQn),
+    PP_INST_RS(TIMER_ARG_PIN, pin_none, 0),
+    PP_INST_RS(TIMER_ARG_PIN, pin_none, 0),
+    PP_INST_RS(TIMER_ARG_DMA, dma_none, 0)
+);
 // PP_INST_DECL(timer, tim7_ch2, TIMER_DEF(7, 2, TIM7_IRQn),
 // );
 // PP_INST_DECL(timer, tim7_ch3, TIMER_DEF(7, 3, TIM7_IRQn),
@@ -336,6 +362,7 @@ PP_INST_DECL(timer, tim5_ch4, TIMER_DEF(5, 4, TIM5_IRQn),
 // );
 
 PP_INST_DECL(timer, tim8_ch1, TIMER_DEF(8, 1, TIM8_UP_TIM13_IRQn),
+    PP_INST_RS(TIMER_ARG_PIN, pin_none, 0),
     PP_INST_RS(TIMER_ARG_PIN, pin_a05, 0x0103),
     PP_INST_RS(TIMER_ARG_PIN, pin_a07, 0x0103),
     PP_INST_RS(TIMER_ARG_PIN, pin_c06, 0x0003),
@@ -346,6 +373,7 @@ PP_INST_DECL(timer, tim8_ch1, TIMER_DEF(8, 1, TIM8_UP_TIM13_IRQn),
     PP_INST_RS(TIMER_ARG_DMA, dma_none, 0)
 );
 PP_INST_DECL(timer, tim8_ch2, TIMER_DEF(8, 2, TIM8_UP_TIM13_IRQn),
+    PP_INST_RS(TIMER_ARG_PIN, pin_none, 0),
     PP_INST_RS(TIMER_ARG_PIN, pin_b00, 0x0103),
     PP_INST_RS(TIMER_ARG_PIN, pin_b14, 0x0103),
     PP_INST_RS(TIMER_ARG_PIN, pin_c07, 0x0003),
@@ -356,6 +384,7 @@ PP_INST_DECL(timer, tim8_ch2, TIMER_DEF(8, 2, TIM8_UP_TIM13_IRQn),
     PP_INST_RS(TIMER_ARG_DMA, dma_none, 0)
 );
 PP_INST_DECL(timer, tim8_ch3, TIMER_DEF(8, 3, TIM8_UP_TIM13_IRQn),
+    PP_INST_RS(TIMER_ARG_PIN, pin_none, 0),
     PP_INST_RS(TIMER_ARG_PIN, pin_b01, 0x0103),
     PP_INST_RS(TIMER_ARG_PIN, pin_b15, 0x0103),
     PP_INST_RS(TIMER_ARG_PIN, pin_c08, 0x0003),
@@ -366,6 +395,7 @@ PP_INST_DECL(timer, tim8_ch3, TIMER_DEF(8, 3, TIM8_UP_TIM13_IRQn),
     PP_INST_RS(TIMER_ARG_DMA, dma_none, 0)
 );
 PP_INST_DECL(timer, tim8_ch4, TIMER_DEF(8, 4, TIM8_UP_TIM13_IRQn),
+    PP_INST_RS(TIMER_ARG_PIN, pin_none, 0),
     PP_INST_RS(TIMER_ARG_PIN, pin_c09, 0x0003),
     PP_INST_RS(TIMER_ARG_PIN, pin_i02, 0x0003),
     PP_INST_RS(TIMER_ARG_DMA, dma_2_7, 7),
@@ -373,11 +403,13 @@ PP_INST_DECL(timer, tim8_ch4, TIMER_DEF(8, 4, TIM8_UP_TIM13_IRQn),
 );
 
 PP_INST_DECL(timer, tim9_ch1, TIMER_DEF(9, 1, TIM1_BRK_TIM9_IRQn),
+    PP_INST_RS(TIMER_ARG_PIN, pin_none, 0),
     PP_INST_RS(TIMER_ARG_PIN, pin_a02, 0x0003),
     PP_INST_RS(TIMER_ARG_PIN, pin_e05, 0x0003),
     PP_INST_RS(TIMER_ARG_DMA, dma_none, 0)
 );
 PP_INST_DECL(timer, tim9_ch2, TIMER_DEF(9, 2, TIM1_BRK_TIM9_IRQn),
+    PP_INST_RS(TIMER_ARG_PIN, pin_none, 0),
     PP_INST_RS(TIMER_ARG_PIN, pin_a03, 0x0003),
     PP_INST_RS(TIMER_ARG_PIN, pin_e06, 0x0003),
     PP_INST_RS(TIMER_ARG_DMA, dma_none, 0)
@@ -388,6 +420,7 @@ PP_INST_DECL(timer, tim9_ch2, TIMER_DEF(9, 2, TIM1_BRK_TIM9_IRQn),
 // );
 
 PP_INST_DECL(timer, tim10_ch1, TIMER_DEF(10, 1, TIM1_UP_TIM10_IRQn),
+    PP_INST_RS(TIMER_ARG_PIN, pin_none, 0),
     PP_INST_RS(TIMER_ARG_PIN, pin_b08, 0x0003),
     PP_INST_RS(TIMER_ARG_PIN, pin_f06, 0x0003),
     PP_INST_RS(TIMER_ARG_DMA, dma_none, 0)
@@ -400,6 +433,7 @@ PP_INST_DECL(timer, tim10_ch1, TIMER_DEF(10, 1, TIM1_UP_TIM10_IRQn),
 // );
 
 PP_INST_DECL(timer, tim11_ch1, TIMER_DEF(11, 1, TIM1_TRG_COM_TIM11_IRQn),
+    PP_INST_RS(TIMER_ARG_PIN, pin_none, 0),
     PP_INST_RS(TIMER_ARG_PIN, pin_b09, 0x0003),
     PP_INST_RS(TIMER_ARG_PIN, pin_f07, 0x0003),
     PP_INST_RS(TIMER_ARG_DMA, dma_none, 0)
@@ -412,11 +446,13 @@ PP_INST_DECL(timer, tim11_ch1, TIMER_DEF(11, 1, TIM1_TRG_COM_TIM11_IRQn),
 // );
 
 PP_INST_DECL(timer, tim12_ch1, TIMER_DEF(12, 1, TIM8_BRK_TIM12_IRQn),
+    PP_INST_RS(TIMER_ARG_PIN, pin_none, 0),
     PP_INST_RS(TIMER_ARG_PIN, pin_b14, 0x0009),
     PP_INST_RS(TIMER_ARG_PIN, pin_h06, 0x0009),
     PP_INST_RS(TIMER_ARG_DMA, dma_none, 0)
 );
 PP_INST_DECL(timer, tim12_ch2, TIMER_DEF(12, 2, TIM8_BRK_TIM12_IRQn),
+    PP_INST_RS(TIMER_ARG_PIN, pin_none, 0),
     PP_INST_RS(TIMER_ARG_PIN, pin_b15, 0x0009),
     PP_INST_RS(TIMER_ARG_PIN, pin_h09, 0x0009),
     PP_INST_RS(TIMER_ARG_DMA, dma_none, 0)
@@ -427,6 +463,7 @@ PP_INST_DECL(timer, tim12_ch2, TIMER_DEF(12, 2, TIM8_BRK_TIM12_IRQn),
 // );
 
 PP_INST_DECL(timer, tim13_ch1, TIMER_DEF(13, 1, TIM8_UP_TIM13_IRQn),
+    PP_INST_RS(TIMER_ARG_PIN, pin_none, 0),
     PP_INST_RS(TIMER_ARG_PIN, pin_a06, 0x0009),
     PP_INST_RS(TIMER_ARG_PIN, pin_f08, 0x0009),
     PP_INST_RS(TIMER_ARG_DMA, dma_none, 0)
@@ -439,6 +476,7 @@ PP_INST_DECL(timer, tim13_ch1, TIMER_DEF(13, 1, TIM8_UP_TIM13_IRQn),
 // );
 
 PP_INST_DECL(timer, tim14_ch1, TIMER_DEF(14, 1, TIM8_TRG_COM_TIM14_IRQn),
+    PP_INST_RS(TIMER_ARG_PIN, pin_none, 0),
     PP_INST_RS(TIMER_ARG_PIN, pin_a07, 0x0009),
     PP_INST_RS(TIMER_ARG_PIN, pin_f09, 0x0009),
     PP_INST_RS(TIMER_ARG_DMA, dma_none, 0)

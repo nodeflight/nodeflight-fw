@@ -149,30 +149,32 @@ int timer_configure(
         if_pwm->pulses[i] = 0;
     }
 
-    bool chxn = (rscs[TIMER_ARG_PIN].inst->attr & 0x0100) != 0;
+    if (rscs[TIMER_ARG_PIN].decl->ref != GPIO_ID_NONE) {
+        bool chxn = (rscs[TIMER_ARG_PIN].inst->attr & 0x0100) != 0;
 
-    uint32_t channel = chxn ? if_pwm->def.channel_n : if_pwm->def.channel;
+        uint32_t channel = chxn ? if_pwm->def.channel_n : if_pwm->def.channel;
 
-    LL_TIM_OC_Init(if_pwm->def.reg, channel, &(LL_TIM_OC_InitTypeDef) {
-        .OCMode = LL_TIM_OCMODE_PWM1,
-        .CompareValue = 0,
-        .OCState = chxn ? LL_TIM_OCSTATE_DISABLE : LL_TIM_OCSTATE_ENABLE,
-        .OCPolarity = LL_TIM_OCPOLARITY_HIGH,
-        .OCIdleState = LL_TIM_OCIDLESTATE_LOW,
-        .OCNState = chxn ? LL_TIM_OCSTATE_ENABLE : LL_TIM_OCSTATE_DISABLE,
-        .OCNPolarity = LL_TIM_OCPOLARITY_HIGH,
-        .OCNIdleState = LL_TIM_OCIDLESTATE_LOW
-    });
+        LL_TIM_OC_Init(if_pwm->def.reg, channel, &(LL_TIM_OC_InitTypeDef) {
+            .OCMode = LL_TIM_OCMODE_PWM1,
+            .CompareValue = 0,
+            .OCState = chxn ? LL_TIM_OCSTATE_DISABLE : LL_TIM_OCSTATE_ENABLE,
+            .OCPolarity = LL_TIM_OCPOLARITY_HIGH,
+            .OCIdleState = LL_TIM_OCIDLESTATE_LOW,
+            .OCNState = chxn ? LL_TIM_OCSTATE_ENABLE : LL_TIM_OCSTATE_DISABLE,
+            .OCNPolarity = LL_TIM_OCPOLARITY_HIGH,
+            .OCNIdleState = LL_TIM_OCIDLESTATE_LOW
+        });
 
-    gpio_config_by_id(rscs[TIMER_ARG_PIN].decl->ref, &(LL_GPIO_InitTypeDef) {
-        .Mode = LL_GPIO_MODE_ALTERNATE,
-        .Speed = LL_GPIO_SPEED_FREQ_VERY_HIGH,
-        .OutputType = LL_GPIO_OUTPUT_PUSHPULL,
-        .Pull = LL_GPIO_PULL_NO,
-        .Alternate = rscs[TIMER_ARG_PIN].inst->attr & 0x000f
-    });
+        gpio_config_by_id(rscs[TIMER_ARG_PIN].decl->ref, &(LL_GPIO_InitTypeDef) {
+            .Mode = LL_GPIO_MODE_ALTERNATE,
+            .Speed = LL_GPIO_SPEED_FREQ_VERY_HIGH,
+            .OutputType = LL_GPIO_OUTPUT_PUSHPULL,
+            .Pull = LL_GPIO_PULL_NO,
+            .Alternate = rscs[TIMER_ARG_PIN].inst->attr & 0x000f
+        });
+    }
 
-    if (if_pwm->dma != NULL) {
+    if (if_pwm->dma != NULL && rscs[TIMER_ARG_PIN].decl->ref != GPIO_ID_NONE) {
         /* DMA is used */
 
         LL_DMA_Init(if_pwm->dma->reg, if_pwm->dma->stream, &(LL_DMA_InitTypeDef) {

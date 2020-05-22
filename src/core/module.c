@@ -58,7 +58,7 @@ static int md_init_mod(
         }
 
         if (optional && 0 == strops_word_cmp("-", arg_str)) {
-            args[i].iface = NULL; /* Union, all pointers, everything will be NULL */
+            args[i].iface = NULL; /* Union, all optionals are pointers, everything will be NULL */
         } else {
             switch (*argptr) {
             case 'p':
@@ -71,6 +71,23 @@ static int md_init_mod(
             case 's':
                 args[i].sched = scheduler_get(arg_str);
                 if (args[i].sched == NULL) {
+                    return -1;
+                }
+                break;
+
+            case 'c':
+                argptr++;
+                /* Constant, always followed by type char */
+                switch (*argptr) {
+                case 'i':     /* int32_t */
+                    args[i].const_int = strops_word_to_int(arg_str);
+                    break;
+
+                case 'f':     /* float */
+                    args[i].const_float = strops_word_to_float(arg_str);
+                    break;
+
+                default:
                     return -1;
                 }
                 break;

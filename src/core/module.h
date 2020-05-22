@@ -27,6 +27,8 @@ typedef struct md_decl_s md_decl_t;
 union md_arg_u {
     if_header_t *iface;
     scheduler_t *sched;
+    int32_t const_int;
+    float const_float;
 };
 
 struct md_decl_s {
@@ -41,10 +43,14 @@ struct md_decl_s {
 /**
  * Declare a module
  *
- * _args is a string defining the types each arg to the module. One letter per argument:
+ * _args is a string defining the types each arg to the module:
  *
+ *  prefix with '?': Argument is optional. In config, put a '-'
+ * 
  * - 'p' = peripheral
  * - 's' = scheduler
+ * - 'ci' = const int32
+ * - 'cf' = const float
  *
  * @param _name name of the module, and section name. Unique, without quotes
  * @param _args string of argument types, one char per type

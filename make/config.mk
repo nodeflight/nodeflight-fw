@@ -36,7 +36,8 @@ TARGET_nodeflight_SOURCES = \
 	lib/strops.c \
 	module/mgmt/stdout.c \
 	module/rc_io/fport.c \
-	module/rc_io/servo.c
+	module/rc_io/servo.c \
+	module/scheduler/sch_timer.c
 
 TARGET_nodeflight_INCLUDES = .
 
