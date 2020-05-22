@@ -52,6 +52,10 @@ static int md_init_mod(
     while (*argptr != '\0') {
         const char *arg_str = strops_next_word(&config);
 
+        if (*arg_str == '\0') {
+            return -1;
+        }
+
         bool optional = (*argptr == '?');
         if (optional) {
             argptr++;
