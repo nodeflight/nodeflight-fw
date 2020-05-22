@@ -73,7 +73,9 @@ TARGET_lib_SOURCES = \
 # Unit test framework
 
 TARGET_unittest_DEPENDS = lib native
-TARGET_unittest_INCLUDES = .
+TARGET_unittest_INCLUDES = \
+	. \
+	unittest
 TARGET_unittest_SOURCES = \
 	unittest/main.c
 

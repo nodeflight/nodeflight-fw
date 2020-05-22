@@ -16,12 +16,21 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * Mockup for FreeRTOS method that is used within unit testing
+ *
+ * Some library methods uses memory allocation, which needs to be mocked
+ */
+
 #pragma once
 
-#include <stdint.h>
+#include <stdlib.h>
 
-uint32_t heap_get_size(
-    void);
-
-uint32_t heap_get_usage(
-    void);
+/**
+ * Mock method for allocation during unit testing
+ */
+static inline void *pvPortMalloc(
+    size_t size)
+{
+    return malloc(size);
+}
