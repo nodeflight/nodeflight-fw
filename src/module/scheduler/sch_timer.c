@@ -23,7 +23,7 @@
 #include "FreeRTOS.h"
 #include "task.h"
 
-#define SCH_TIMER_PERIOD_TICKS 10000UL
+#define SCH_TIMER_PERIOD_TICKS 1000UL
 
 typedef struct sch_timer_s sch_timer_t;
 
