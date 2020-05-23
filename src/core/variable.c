@@ -93,6 +93,7 @@ static vr_source_t *vr_get_source(
         }
         src->fmt = NULL;
         src->vars = NULL;
+        src->reloc = NULL;
         map_set(vr_sources, name, src);
     }
 

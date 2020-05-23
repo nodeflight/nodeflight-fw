@@ -104,10 +104,7 @@ int servo_init(
     servo->raw_value = (3 * PWM_MS) / 2;
     servo->f_value = NULL;
 
-    vr_request(
-        args[2].name,
-        'f',
-        (void **)&servo->f_value);
+    vr_request(args[2].name, 'f', (void **) &servo->f_value);
 
     sc_register_client(
         args[1].sched,
@@ -150,6 +147,6 @@ void servo_sched_run(
     if (value > 1.0f) {
         value = 1.0f;
     }
-    value = (1.0f + value)/2.0f;
+    value = (1.0f + value) / 2.0f;
     servo->raw_value = PWM_MS + (uint32_t) (value * PWM_MS);
 }
