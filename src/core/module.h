@@ -46,7 +46,7 @@ struct md_decl_s {
  * _args is a string defining the types each arg to the module:
  *
  *  prefix with '?': Argument is optional. In config, put a '-'
- * 
+ *
  * - 'p' = peripheral
  * - 's' = scheduler
  * - 'ci' = const int32

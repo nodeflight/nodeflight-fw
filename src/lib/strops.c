@@ -159,7 +159,6 @@ int32_t strops_word_to_int(
     }
 }
 
-
 float strops_word_to_float(
     const char *word)
 {

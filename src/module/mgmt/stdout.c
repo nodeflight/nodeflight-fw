@@ -81,14 +81,14 @@ int stdout_init(
     if (args[0].iface->peripheral->decl->type != PP_SERIAL) {
         return -1;
     }
-    
+
     stdout_t *out_if;
 
     if (stdout_loaded) {
         /* Only one stdout module may be used at a time */
         return -1;
     }
-    
+
     out_if = pvPortMalloc(sizeof(stdout_t));
     if (out_if == NULL) {
         return -1;

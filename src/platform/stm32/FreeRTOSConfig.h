@@ -78,9 +78,9 @@
 
 /* Interrupt nesting behaviour configuration. */
 /* Task switching at lowest. Nothing latency critical enough for a few microseconds */
-#define configKERNEL_INTERRUPT_PRIORITY         ((0xFFUL) << (8-__NVIC_PRIO_BITS))
-#define configMAX_SYSCALL_INTERRUPT_PRIORITY    ((0x01UL) << (8-__NVIC_PRIO_BITS))
-#define configMAX_API_CALL_INTERRUPT_PRIORITY   ((0x01UL) << (8-__NVIC_PRIO_BITS))
+#define configKERNEL_INTERRUPT_PRIORITY         ((0xFFUL) << (8 - __NVIC_PRIO_BITS))
+#define configMAX_SYSCALL_INTERRUPT_PRIORITY    ((0x01UL) << (8 - __NVIC_PRIO_BITS))
+#define configMAX_API_CALL_INTERRUPT_PRIORITY   ((0x01UL) << (8 - __NVIC_PRIO_BITS))
 
 /* Define to trap errors during development. */
 #define configASSERT(x)                         if ( (x) == 0) asm ("bkpt 255")

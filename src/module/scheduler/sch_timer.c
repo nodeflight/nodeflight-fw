@@ -61,7 +61,6 @@ int sch_timer_init(
 
     sc_configure_source(schtm->scheduler, 1.0f / args[2].const_int);
 
-
     status = schtm->if_timer->configure(schtm->if_timer, &(const if_pwm_cf_t) {
         .clock_hz = SCH_TIMER_PERIOD_TICKS * args[2].const_int,
         .period_ticks = SCH_TIMER_PERIOD_TICKS,
