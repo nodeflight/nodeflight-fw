@@ -54,8 +54,9 @@ struct sc_s {
     float period_sec;
 };
 
-static sc_t *schedulers;
-SemaphoreHandle_t schedulers_mutex;
+static sc_t *sc_schedulers;
+static SemaphoreHandle_t sc_mutex;
+static volatile BaseType_t sc_is_enabled;
 
 static void sc_task(
     void *storage);
@@ -66,25 +67,32 @@ sc_t *sc_get(
     sc_t *cur;
     sc_t *sched;
 
-    if (pdFALSE == xSemaphoreTake(schedulers_mutex, portMAX_DELAY)) {
+    if (pdFALSE == xSemaphoreTake(sc_mutex, portMAX_DELAY)) {
         return NULL;
     }
     sched = NULL;
-    for (cur = schedulers; cur != NULL && sched == NULL; cur = cur->next) {
+    for (cur = sc_schedulers; cur != NULL && sched == NULL; cur = cur->next) {
         if (strops_word_cmp(cur->name, name) == 0) {
             sched = cur;
         }
     }
 
-    xSemaphoreGive(schedulers_mutex);
+    xSemaphoreGive(sc_mutex);
     return sched;
 }
 
 void sc_init(
     void)
 {
-    schedulers = NULL;
-    schedulers_mutex = xSemaphoreCreateMutex();
+    sc_schedulers = NULL;
+    sc_mutex = xSemaphoreCreateMutex();
+    sc_is_enabled = pdFALSE;
+}
+
+void sc_enable(
+    void)
+{
+    sc_is_enabled = pdTRUE;
 }
 
 sc_client_t *sc_register_client(
@@ -96,7 +104,7 @@ sc_client_t *sc_register_client(
     int i;
     sc_client_pool_t *pool;
     sc_client_pool_t *last_pool;
-    if (pdFALSE == xSemaphoreTake(schedulers_mutex, portMAX_DELAY)) {
+    if (pdFALSE == xSemaphoreTake(sc_mutex, portMAX_DELAY)) {
         return NULL;
     }
 
@@ -109,7 +117,7 @@ sc_client_t *sc_register_client(
                 cli->init = init;
                 cli->run = run;
                 cli->storage = storage;
-                xSemaphoreGive(schedulers_mutex);
+                xSemaphoreGive(sc_mutex);
                 return cli;
             }
         }
@@ -119,7 +127,7 @@ sc_client_t *sc_register_client(
     /* No space left, add pool at end */
     pool = pvPortMalloc(sizeof(sc_client_pool_t));
     if (pool == NULL) {
-        xSemaphoreGive(schedulers_mutex);
+        xSemaphoreGive(sc_mutex);
         return NULL;
     }
     for (i = 0; i < SCHEDULER_CLIENTS_PER_POOL; i++) {
@@ -141,7 +149,7 @@ sc_client_t *sc_register_client(
         last_pool->next = pool;
     }
 
-    xSemaphoreGive(schedulers_mutex);
+    xSemaphoreGive(sc_mutex);
     return &pool->clients[0];
 }
 
@@ -156,29 +164,29 @@ sc_t *sc_define(
         return NULL;
     }
 
-    if (pdFALSE == xSemaphoreTake(schedulers_mutex, portMAX_DELAY)) {
+    if (pdFALSE == xSemaphoreTake(sc_mutex, portMAX_DELAY)) {
         return NULL;
     }
 
     sched = NULL;
 
     /* Protect against concurrent double creation */
-    for (cur = schedulers; cur != NULL && sched == NULL; cur = cur->next) {
+    for (cur = sc_schedulers; cur != NULL && sched == NULL; cur = cur->next) {
         if (strops_word_cmp(cur->name, name) == 0) {
-            xSemaphoreGive(schedulers_mutex);
+            xSemaphoreGive(sc_mutex);
             return NULL;
         }
     }
 
     sched = pvPortMalloc(sizeof(sc_t));
     if (sched == NULL) {
-        xSemaphoreGive(schedulers_mutex);
+        xSemaphoreGive(sc_mutex);
         return NULL;
     }
     sched->clients = NULL;
     sched->name = strops_word_dup(name);
     if (sched->name == NULL) {
-        xSemaphoreGive(schedulers_mutex);
+        xSemaphoreGive(sc_mutex);
         return NULL;
     }
     sched->clients_initialized = 0;
@@ -190,14 +198,14 @@ sc_t *sc_define(
         sched,
         SCHEDULER_TASK_BASE_PRIORITY + priority,
         &sched->task)) {
-        xSemaphoreGive(schedulers_mutex);
+        xSemaphoreGive(sc_mutex);
         return NULL;
     }
 
-    sched->next = schedulers;
-    schedulers = sched;
+    sched->next = sc_schedulers;
+    sc_schedulers = sched;
 
-    xSemaphoreGive(schedulers_mutex);
+    xSemaphoreGive(sc_mutex);
     return sched;
 }
 
@@ -234,13 +242,13 @@ int sc_init_clients(
     int cur_client;
     int i;
 
-    if (pdFALSE == xSemaphoreTake(schedulers_mutex, portMAX_DELAY)) {
+    if (pdFALSE == xSemaphoreTake(sc_mutex, portMAX_DELAY)) {
         return -1;
     }
 
-    for (sched = schedulers; sched != NULL; sched = sched->next) {
+    for (sched = sc_schedulers; sched != NULL; sched = sched->next) {
         if (sched->period_sec < 0.0f) {
-            xSemaphoreGive(schedulers_mutex);
+            xSemaphoreGive(sc_mutex);
             return -1;
         }
         cur_client = 0;
@@ -255,7 +263,7 @@ int sc_init_clients(
         }
     }
 
-    xSemaphoreGive(schedulers_mutex);
+    xSemaphoreGive(sc_mutex);
     return 0;
 }
 
@@ -272,7 +280,7 @@ void sc_task(
 
     for (;;) {
         xTaskNotifyWait(0, UINT32_MAX, &notify_value, SCHEDULER_TIMEOUT);
-        if (notify_value & SCHEDULER_NOTIFY_EXECUTE) {
+        if (notify_value & SCHEDULER_NOTIFY_EXECUTE && sc_is_enabled) {
             /*
              * Should not be an issue with races... Any registered client will always be registered, so
              * sched->clients_initialized will only increase. Therefore all clients reached is properly initialized

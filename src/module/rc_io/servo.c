@@ -135,11 +135,7 @@ void servo_sched_run(
     void *storage)
 {
     servo_t *servo = storage;
-    float value = 0.0f;
-
-    if (servo->f_value != NULL) {
-        value = *servo->f_value;
-    }
+    float value = *servo->f_value;
 
     if (value < -1.0f) {
         value = -1.0f;

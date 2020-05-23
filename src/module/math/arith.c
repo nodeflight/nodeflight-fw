@@ -71,9 +71,6 @@ static void arith_sch_run_add(
     void *storage)
 {
     arith_t *arith = storage;
-    if (arith->in[0] == NULL || arith->in[1] == NULL) {
-        return;
-    }
     arith->out = *arith->in[0] + *arith->in[1];
 }
 static int arith_init_add(
@@ -90,9 +87,6 @@ static void arith_sch_run_mul(
     void *storage)
 {
     arith_t *arith = storage;
-    if (arith->in[0] == NULL || arith->in[1] == NULL) {
-        return;
-    }
     arith->out = *arith->in[0] * *arith->in[1];
 }
 static int arith_init_mul(
@@ -109,9 +103,6 @@ static void arith_sch_run_sub(
     void *storage)
 {
     arith_t *arith = storage;
-    if (arith->in[0] == NULL || arith->in[1] == NULL) {
-        return;
-    }
     arith->out = *arith->in[0] - *arith->in[1];
 }
 static int arith_init_sub(
@@ -128,9 +119,6 @@ static void arith_sch_run_div(
     void *storage)
 {
     arith_t *arith = storage;
-    if (arith->in[0] == NULL || arith->in[1] == NULL) {
-        return;
-    }
     arith->out = *arith->in[0] / *arith->in[1];
 }
 static int arith_init_div(
@@ -147,9 +135,6 @@ static void arith_sch_run_neg(
     void *storage)
 {
     arith_t *arith = storage;
-    if (arith->in[0] == NULL) {
-        return;
-    }
     arith->out = -*arith->in[0];
 }
 static int arith_init_neg(

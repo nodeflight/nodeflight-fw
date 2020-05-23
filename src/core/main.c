@@ -89,6 +89,8 @@ static void main_task(
 
     print_boot_message();
 
+    sc_enable();
+
     vTaskSuspend(NULL);
     for (;;) {
     }

@@ -31,6 +31,16 @@ typedef void (*sc_clinet_run_t)(
 void sc_init(
     void);
 
+/**
+ * Enable schedulers
+ *
+ * Before running this function, no schedulers are allowed to run.
+ *
+ * Making sure all pointers are resolved prior to enabling the schedulers, runtime integrity checks can be skipped
+ */
+void sc_enable(
+    void);
+
 sc_t *sc_define(
     const char *name,
     int priority);
