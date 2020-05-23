@@ -53,8 +53,18 @@ static void cf_parse_line(
     } else if (0 == strops_word_cmp("mod", command)) {
         /* Load module */
         const char *name = strops_next_word(&line);
-        if (0 != md_init(name, line)) {
+        const char *mdname = strops_next_word(&line);
+        if (*name == '\0' || *mdname == '\0') {
             /* TODO: Error handling */
+        } else {
+            /* Name is optional */
+            if (strops_word_cmp("-", name) == 0) {
+                name = NULL;
+            }
+            int status = md_init(mdname, name, line);
+            if (status != 0) {
+                /* TODO: Error handling */
+            }
         }
     } else {
         /* TODO: Error handling */

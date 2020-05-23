@@ -33,6 +33,7 @@ struct sch_timer_s {
 };
 
 static int sch_timer_init(
+    const char *name,
     md_arg_t *args);
 
 void sch_timer_trigger(
@@ -42,6 +43,7 @@ void sch_timer_trigger(
 MD_DECL(sch_timer, "psci", sch_timer_init);
 
 int sch_timer_init(
+    const char *name,
     md_arg_t *args)
 {
     sch_timer_t *schtm;

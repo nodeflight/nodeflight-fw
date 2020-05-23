@@ -54,6 +54,7 @@ struct stdout_s {
 };
 
 static int stdout_init(
+    const char *name,
     md_arg_t *args);
 
 MD_DECL(stdout, "p", stdout_init);
@@ -76,6 +77,7 @@ static void stdout_putc(
 }
 
 int stdout_init(
+    const char *name,
     md_arg_t *args)
 {
     if (args[0].iface->peripheral->decl->type != PP_SERIAL) {

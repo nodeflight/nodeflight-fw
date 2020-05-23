@@ -44,6 +44,7 @@ static if_header_t *md_load_interface(
 
 static int md_init_mod(
     const md_decl_t *md,
+    const char *name,
     const char *config)
 {
     md_arg_t args[MD_MAX_ARGS];
@@ -105,17 +106,18 @@ static int md_init_mod(
         i++;
     }
 
-    return md->init(args);
+    return md->init(name, args);
 }
 
 int md_init(
+    const char *mdname,
     const char *name,
     const char *config)
 {
     const md_decl_t *md;
     for (md = __nf_module_start; md < __nf_module_end; md++) {
-        if (strops_word_cmp(md->name, name) == 0) {
-            return md_init_mod(md, config);
+        if (strops_word_cmp(md->name, mdname) == 0) {
+            return md_init_mod(md, name, config);
         }
     }
     return -1;

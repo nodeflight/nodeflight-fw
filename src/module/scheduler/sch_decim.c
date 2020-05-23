@@ -32,6 +32,7 @@ struct sch_decim_s {
 };
 
 static int sch_decim_init(
+    const char *name,
     md_arg_t *args);
 
 static void sch_decim_src_init(
@@ -44,6 +45,7 @@ static void sch_decim_src_run(
 MD_DECL(sch_decim, "sscici", sch_decim_init);
 
 int sch_decim_init(
+    const char *name,
     md_arg_t *args)
 {
     sch_decim_t *decim;

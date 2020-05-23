@@ -44,6 +44,7 @@ struct servo_s {
 };
 
 static int servo_init(
+    const char *name,
     md_arg_t *args);
 
 static void servo_new_values(
@@ -60,6 +61,7 @@ static void servo_sched_run(
 MD_DECL(servo, "ps", servo_init);
 
 int servo_init(
+    const char *name,
     md_arg_t *args)
 {
     if (args[0].iface->peripheral->decl->type != PP_PWM) {

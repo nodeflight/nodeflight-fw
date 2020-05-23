@@ -60,6 +60,7 @@ struct fport_s {
 };
 
 static int fport_init(
+    const char *name,
     md_arg_t *args);
 
 static void fport_task(
@@ -200,6 +201,7 @@ static void fport_rx_done(
 }
 
 int fport_init(
+    const char *name,
     md_arg_t *args)
 {
     fport_t *fport_if;
