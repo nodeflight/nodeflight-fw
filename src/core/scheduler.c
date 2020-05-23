@@ -32,39 +32,39 @@
 
 #define SCHEDULER_STACK_WORDS         1024
 
-typedef struct scheduler_client_pool_s scheduler_client_pool_t;
+typedef struct sc_client_pool_s sc_client_pool_t;
 
-struct scheduler_client_s {
-    scheduler_clinet_init_t init;
-    scheduler_clinet_run_t run;
+struct sc_client_s {
+    sc_clinet_init_t init;
+    sc_clinet_run_t run;
     void *storage;
 };
 
-struct scheduler_client_pool_s {
-    scheduler_client_pool_t *next;
-    scheduler_client_t clients[SCHEDULER_CLIENTS_PER_POOL];
+struct sc_client_pool_s {
+    sc_client_pool_t *next;
+    sc_client_t clients[SCHEDULER_CLIENTS_PER_POOL];
 };
 
-struct scheduler_s {
-    scheduler_t *next;
-    scheduler_client_pool_t *clients;
+struct sc_s {
+    sc_t *next;
+    sc_client_pool_t *clients;
     char *name;
     TaskHandle_t task;
     volatile int clients_initialized;
     float period_sec;
 };
 
-static scheduler_t *schedulers;
+static sc_t *schedulers;
 SemaphoreHandle_t schedulers_mutex;
 
-static void scheduler_task(
+static void sc_task(
     void *storage);
 
-scheduler_t *scheduler_get(
+sc_t *sc_get(
     const char *name)
 {
-    scheduler_t *cur;
-    scheduler_t *sched;
+    sc_t *cur;
+    sc_t *sched;
 
     if (pdFALSE == xSemaphoreTake(schedulers_mutex, portMAX_DELAY)) {
         return NULL;
@@ -80,22 +80,22 @@ scheduler_t *scheduler_get(
     return sched;
 }
 
-void scheduler_init(
+void sc_init(
     void)
 {
     schedulers = NULL;
     schedulers_mutex = xSemaphoreCreateMutex();
 }
 
-scheduler_client_t *scheduler_register_client(
-    scheduler_t *sched,
-    scheduler_clinet_init_t init,
-    scheduler_clinet_run_t run,
+sc_client_t *sc_register_client(
+    sc_t *sched,
+    sc_clinet_init_t init,
+    sc_clinet_run_t run,
     void *storage)
 {
     int i;
-    scheduler_client_pool_t *pool;
-    scheduler_client_pool_t *last_pool;
+    sc_client_pool_t *pool;
+    sc_client_pool_t *last_pool;
     if (pdFALSE == xSemaphoreTake(schedulers_mutex, portMAX_DELAY)) {
         return NULL;
     }
@@ -104,7 +104,7 @@ scheduler_client_t *scheduler_register_client(
     last_pool = NULL;
     for (pool = sched->clients; pool != NULL; pool = pool->next) {
         for (i = 0; i < SCHEDULER_CLIENTS_PER_POOL; i++) {
-            scheduler_client_t *cli = &pool->clients[i];
+            sc_client_t *cli = &pool->clients[i];
             if (cli->init == NULL) {
                 cli->init = init;
                 cli->run = run;
@@ -117,7 +117,7 @@ scheduler_client_t *scheduler_register_client(
     }
 
     /* No space left, add pool at end */
-    pool = pvPortMalloc(sizeof(scheduler_client_pool_t));
+    pool = pvPortMalloc(sizeof(sc_client_pool_t));
     if (pool == NULL) {
         xSemaphoreGive(schedulers_mutex);
         return NULL;
@@ -145,12 +145,12 @@ scheduler_client_t *scheduler_register_client(
     return &pool->clients[0];
 }
 
-scheduler_t *scheduler_define(
+sc_t *sc_define(
     const char *name,
     int priority)
 {
-    scheduler_t *cur;
-    scheduler_t *sched;
+    sc_t *cur;
+    sc_t *sched;
 
     if (priority < 0 || priority >= SCHEDULER_NUM_PRIORITIES) {
         return NULL;
@@ -170,7 +170,7 @@ scheduler_t *scheduler_define(
         }
     }
 
-    sched = pvPortMalloc(sizeof(scheduler_t));
+    sched = pvPortMalloc(sizeof(sc_t));
     if (sched == NULL) {
         xSemaphoreGive(schedulers_mutex);
         return NULL;
@@ -184,8 +184,8 @@ scheduler_t *scheduler_define(
     sched->clients_initialized = 0;
     sched->period_sec = -1.0f;
     sched->next = NULL;
-    if (pdFAIL == xTaskCreate(scheduler_task,
-        "scheduler_task",
+    if (pdFAIL == xTaskCreate(sc_task,
+        "sc_task",
         SCHEDULER_STACK_WORDS,
         sched,
         SCHEDULER_TASK_BASE_PRIORITY + priority,
@@ -201,8 +201,8 @@ scheduler_t *scheduler_define(
     return sched;
 }
 
-int scheduler_configure_source(
-    scheduler_t *sched,
+int sc_configure_source(
+    sc_t *sched,
     float period_sec)
 {
     if (sched->period_sec >= 0.0f) {
@@ -212,25 +212,25 @@ int scheduler_configure_source(
     return 0;
 }
 
-void scheduler_trigger_from_isr(
-    scheduler_t *sched)
+void sc_trigger_from_isr(
+    sc_t *sched)
 {
     BaseType_t should_switch = pdFALSE;
     xTaskNotifyFromISR(sched->task, SCHEDULER_NOTIFY_EXECUTE, eSetBits, &should_switch);
     portYIELD_FROM_ISR(should_switch);
 }
 
-void scheduler_trigger(
-    scheduler_t *sched)
+void sc_trigger(
+    sc_t *sched)
 {
     xTaskNotify(sched->task, SCHEDULER_NOTIFY_EXECUTE, eSetBits);
 }
 
-int scheduler_init_clients(
+int sc_init_clients(
     void)
 {
-    scheduler_t *sched;
-    scheduler_client_pool_t *pool;
+    sc_t *sched;
+    sc_client_pool_t *pool;
     int cur_client;
     int i;
 
@@ -259,12 +259,12 @@ int scheduler_init_clients(
     return 0;
 }
 
-void scheduler_task(
+void sc_task(
     void *storage)
 {
-    scheduler_t *sched = (scheduler_t *) storage;
+    sc_t *sched = (sc_t *) storage;
 
-    scheduler_client_pool_t *pool;
+    sc_client_pool_t *pool;
     int i;
     int clients_left;
 

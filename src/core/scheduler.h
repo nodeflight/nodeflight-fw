@@ -18,41 +18,41 @@
 
 #pragma once
 
-typedef struct scheduler_s scheduler_t;
-typedef struct scheduler_client_s scheduler_client_t;
+typedef struct sc_s sc_t;
+typedef struct sc_client_s sc_client_t;
 
-typedef void (*scheduler_clinet_init_t)(
+typedef void (*sc_clinet_init_t)(
     float period_sec,
     void *storage);
 
-typedef void (*scheduler_clinet_run_t)(
+typedef void (*sc_clinet_run_t)(
     void *storage);
 
-void scheduler_init(
+void sc_init(
     void);
 
-scheduler_t *scheduler_define(
+sc_t *sc_define(
     const char *name,
     int priority);
 
-scheduler_client_t *scheduler_register_client(
-    scheduler_t *sched,
-    scheduler_clinet_init_t init,
-    scheduler_clinet_run_t run,
+sc_client_t *sc_register_client(
+    sc_t *sched,
+    sc_clinet_init_t init,
+    sc_clinet_run_t run,
     void *storage);
 
-scheduler_t *scheduler_get(
+sc_t *sc_get(
     const char *name);
 
-int scheduler_configure_source(
-    scheduler_t *sched,
+int sc_configure_source(
+    sc_t *sched,
     float period_sec);
 
-void scheduler_trigger_from_isr(
-    scheduler_t *scheduler);
+void sc_trigger_from_isr(
+    sc_t *scheduler);
 
-void scheduler_trigger(
-    scheduler_t *scheduler);
+void sc_trigger(
+    sc_t *scheduler);
 
-int scheduler_init_clients(
+int sc_init_clients(
     void);

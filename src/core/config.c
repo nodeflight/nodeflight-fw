@@ -28,10 +28,10 @@
 
 extern const char __l1conf_start[];
 
-static char config_linebuf[LINEBUF_SIZE];
-static map_t *config_per;
+static char cf_linebuf[LINEBUF_SIZE];
+static map_t *cf_peripherals;
 
-static void config_parse_line(
+static void cf_parse_line(
     const char *line)
 {
     const char *command = strops_next_word(&line);
@@ -40,13 +40,13 @@ static void config_parse_line(
     } else if (0 == strops_word_cmp("per", command)) {
         /* Load peripheral definition */
         const char *name = strops_next_word(&line);
-        map_set(config_per, name, strops_line_dup(line));
+        map_set(cf_peripherals, name, strops_line_dup(line));
     } else if (0 == strops_word_cmp("sch", command)) {
         const char *name = strops_next_word(&line);
         const char *prio_str = strops_next_word(&line);
         if (*name != '\0' && *prio_str != '\0') {
             int priority = strops_word_to_int(prio_str);
-            if (NULL == scheduler_define(name, priority)) {
+            if (NULL == sc_define(name, priority)) {
                 /* TODO: Error handling */
             }
         }
@@ -61,22 +61,22 @@ static void config_parse_line(
     }
 }
 
-void config_init(
+void cf_init(
     void)
 {
     const char *cur = __l1conf_start;
 
-    config_per = map_create();
+    cf_peripherals = map_create();
 
     while (*cur != '\0') {
-        if (0 == strops_line_copy(config_linebuf, LINEBUF_SIZE, &cur)) {
-            config_parse_line(config_linebuf);
+        if (0 == strops_line_copy(cf_linebuf, LINEBUF_SIZE, &cur)) {
+            cf_parse_line(cf_linebuf);
         }
     }
 }
 
-const char *config_get_pp_config(
+const char *cf_get_pp_config(
     const char *tag)
 {
-    return map_get(config_per, tag);
+    return map_get(cf_peripherals, tag);
 }

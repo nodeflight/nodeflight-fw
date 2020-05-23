@@ -51,7 +51,7 @@ typedef struct fport_s fport_t;
 
 struct fport_s {
     if_header_t *if_ser;
-    scheduler_t *target_scheduler;
+    sc_t *target_scheduler;
     TaskHandle_t task;
 
     uint16_t channel[16];
@@ -223,7 +223,7 @@ int fport_init(
     fport_if->target_scheduler = args[1].sched;
 
     if (fport_if->target_scheduler != NULL) {
-        if (0 != scheduler_configure_source(fport_if->target_scheduler, 0.009f)) {
+        if (0 != sc_configure_source(fport_if->target_scheduler, 0.009f)) {
             return -1;
         }
     }
@@ -236,7 +236,7 @@ int fport_init(
         &fport_if->task);
 
     IF_SERIAL(fport_if->if_ser)->configure(IF_SERIAL(fport_if->if_ser),
-        &(const if_serial_config_t) {
+        &(const if_serial_cf_t) {
         .baudrate = 115200,
         .tx_buf_size = 16,
         .rx_buf_size = 128,
@@ -280,7 +280,7 @@ void fport_task(
             /* Timeout */
         }
         if (fport_if->target_scheduler != NULL) {
-            scheduler_trigger(fport_if->target_scheduler);
+            sc_trigger(fport_if->target_scheduler);
         }
     }
 }

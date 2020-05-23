@@ -21,13 +21,13 @@
 #include "core/interface.h"
 
 typedef struct if_serial_s if_serial_t;
-typedef struct if_serial_config_s if_serial_config_t;
+typedef struct if_serial_cf_s if_serial_cf_t;
 
 #define IF_SERIAL_INVERTED_TX 0x00000001
 #define IF_SERIAL_INVERTED_RX 0x00000002
 #define IF_SERIAL_HALF_DUPLEX 0x00000004
 
-struct if_serial_config_s {
+struct if_serial_cf_s {
     uint32_t baudrate;
     uint16_t tx_buf_size;
     uint16_t rx_buf_size;
@@ -46,7 +46,7 @@ struct if_serial_s {
 
     int (*configure)(
         if_serial_t *iface,
-        const if_serial_config_t *config);
+        const if_serial_cf_t *config);
 
     int (*tx_write)(
         if_serial_t *iface,
@@ -60,9 +60,9 @@ struct if_serial_s {
 #define IF_SERIAL(_INTERFACE) ((if_serial_t *) (_INTERFACE))
 
 typedef struct if_pwm_s if_pwm_t;
-typedef struct if_pwm_config_s if_pwm_config_t;
+typedef struct if_pwm_cf_s if_pwm_cf_t;
 
-struct if_pwm_config_s {
+struct if_pwm_cf_s {
     /**
      * Clock frequency
      *
@@ -120,7 +120,7 @@ struct if_pwm_s {
      */
     int (*configure)(
         if_pwm_t *iface,
-        const if_pwm_config_t *config);
+        const if_pwm_cf_t *config);
 };
 
 #define IF_PWM(_INTERFACE) ((if_pwm_t *) (_INTERFACE))

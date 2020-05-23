@@ -39,7 +39,7 @@ typedef struct uart_if_s uart_if_t;
 struct uart_if_s {
     if_serial_t header;
     uart_def_t def; /* Keep a copy for quick access. Just a few bytes */
-    if_serial_config_t config;
+    if_serial_cf_t config;
 
     const dma_stream_def_t *tx_dma;
     uint8_t *tx_buf;
@@ -57,7 +57,7 @@ static int uart_init(
 
 static int uart_configure(
     if_serial_t *iface,
-    const if_serial_config_t *config);
+    const if_serial_cf_t *config);
 
 static int uart_tx_write(
     if_serial_t *iface,
@@ -113,7 +113,7 @@ int uart_init(
 
 int uart_configure(
     if_serial_t *iface,
-    const if_serial_config_t *config)
+    const if_serial_cf_t *config)
 {
     uart_if_t *if_uart = (uart_if_t *) iface;
     if_rs_t *rscs = if_uart->header.header.rscs;
@@ -145,7 +145,7 @@ int uart_configure(
         if_uart->tx_buf = pvPortMalloc(config->tx_buf_size);
         if_uart->tx_buf_size = config->tx_buf_size;
 
-        gpio_config_by_id(rscs[UART_ARG_PIN_TX].decl->ref, &(LL_GPIO_InitTypeDef) {
+        gpio_cf_by_id(rscs[UART_ARG_PIN_TX].decl->ref, &(LL_GPIO_InitTypeDef) {
             .Mode = LL_GPIO_MODE_ALTERNATE,
             .Speed = LL_GPIO_SPEED_FREQ_VERY_HIGH,
             .OutputType = LL_GPIO_OUTPUT_PUSHPULL,
@@ -188,7 +188,7 @@ int uart_configure(
         if_uart->rx_buf_pos = 0;
         if_uart->rx_buf_size = config->rx_buf_size;
 
-        gpio_config_by_id(rscs[UART_ARG_PIN_RX].decl->ref, &(LL_GPIO_InitTypeDef) {
+        gpio_cf_by_id(rscs[UART_ARG_PIN_RX].decl->ref, &(LL_GPIO_InitTypeDef) {
             .Mode = LL_GPIO_MODE_ALTERNATE,
             .Speed = LL_GPIO_SPEED_FREQ_VERY_HIGH,
             .OutputType = LL_GPIO_OUTPUT_OPENDRAIN,

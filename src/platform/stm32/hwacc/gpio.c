@@ -59,7 +59,7 @@ static GPIO_TypeDef *const gpio_ports[] = {
 #endif
 };
 
-void gpio_config_by_id(
+void gpio_cf_by_id(
     uint32_t id,
     LL_GPIO_InitTypeDef *init_struct)
 {

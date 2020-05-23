@@ -75,11 +75,11 @@ static void main_task(
     void *storage)
 {
 
-    scheduler_init();
+    sc_init();
 
-    config_init();
+    cf_init();
 
-    if (0 != scheduler_init_clients()) {
+    if (0 != sc_init_clients()) {
         /* TODO: Error handling */
     }
 

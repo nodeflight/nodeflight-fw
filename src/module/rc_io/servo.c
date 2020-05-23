@@ -76,7 +76,7 @@ int servo_init(
 
     servo->if_pwm = IF_PWM(args[0].iface);
 
-    status = servo->if_pwm->configure(servo->if_pwm, &(const if_pwm_config_t) {
+    status = servo->if_pwm->configure(servo->if_pwm, &(const if_pwm_cf_t) {
         .clock_hz = PWM_CLOCK_HZ,
         .period_ticks = (PWM_CLOCK_HZ / PWM_FREQUENCY_HZ),
         .pulses_count = 1,
@@ -89,7 +89,7 @@ int servo_init(
 
     servo->value = 1.5 * PWM_MS;
 
-    scheduler_register_client(args[1].sched, servo_sched_init, servo_sched_run, servo);
+    sc_register_client(args[1].sched, servo_sched_init, servo_sched_run, servo);
 
     return 0;
 }

@@ -25,8 +25,8 @@
 typedef struct sch_decim_s sch_decim_t;
 
 struct sch_decim_s {
-    scheduler_t *src_sched;
-    scheduler_t *tgt_sched;
+    sc_t *src_sched;
+    sc_t *tgt_sched;
     int32_t decimation_factor;
     int32_t current_counter;
 };
@@ -59,9 +59,9 @@ int sch_decim_init(
     decim->current_counter = decim->decimation_factor;
 
     /* TODO: Determine frequency from source */
-    scheduler_configure_source(decim->tgt_sched, 1.0f / args[3].const_int);
+    sc_configure_source(decim->tgt_sched, 1.0f / args[3].const_int);
 
-    scheduler_register_client(decim->src_sched, sch_decim_src_init, sch_decim_src_run, decim);
+    sc_register_client(decim->src_sched, sch_decim_src_init, sch_decim_src_run, decim);
 
     return 0;
 }
@@ -80,6 +80,6 @@ void sch_decim_src_run(
     decim->current_counter--;
     if (decim->current_counter == 0) {
         decim->current_counter = decim->decimation_factor;
-        scheduler_trigger(decim->tgt_sched);
+        sc_trigger(decim->tgt_sched);
     }
 }

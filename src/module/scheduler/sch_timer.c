@@ -29,7 +29,7 @@ typedef struct sch_timer_s sch_timer_t;
 
 struct sch_timer_s {
     if_pwm_t *if_timer;
-    scheduler_t *scheduler;
+    sc_t *scheduler;
 };
 
 static int sch_timer_init(
@@ -59,10 +59,10 @@ int sch_timer_init(
     schtm->if_timer = IF_PWM(args[0].iface);
     schtm->scheduler = args[1].sched;
 
-    scheduler_configure_source(schtm->scheduler, 1.0f / args[2].const_int);
+    sc_configure_source(schtm->scheduler, 1.0f / args[2].const_int);
 
 
-    status = schtm->if_timer->configure(schtm->if_timer, &(const if_pwm_config_t) {
+    status = schtm->if_timer->configure(schtm->if_timer, &(const if_pwm_cf_t) {
         .clock_hz = SCH_TIMER_PERIOD_TICKS * args[2].const_int,
         .period_ticks = SCH_TIMER_PERIOD_TICKS,
         .pulses_count = 1,
@@ -82,5 +82,5 @@ void sch_timer_trigger(
 {
     sch_timer_t *schtm = storage;
     *values = 0;
-    scheduler_trigger_from_isr(schtm->scheduler);
+    sc_trigger_from_isr(schtm->scheduler);
 }

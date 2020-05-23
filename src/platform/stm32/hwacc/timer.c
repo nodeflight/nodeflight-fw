@@ -68,7 +68,7 @@ static int timer_init(
 
 static int timer_configure(
     if_pwm_t *iface,
-    const if_pwm_config_t *config);
+    const if_pwm_cf_t *config);
 
 static void timer_update_values_cb(
     const dma_stream_def_t *def,
@@ -96,7 +96,7 @@ int timer_init(
 
 static void timer_configure_main_block(
     timer_t *timer,
-    const if_pwm_config_t *config)
+    const if_pwm_cf_t *config)
 {
     timer->clock_hz = config->clock_hz;
     timer->period_ticks = config->period_ticks;
@@ -115,7 +115,7 @@ static void timer_configure_main_block(
 
 int timer_configure(
     if_pwm_t *iface,
-    const if_pwm_config_t *config)
+    const if_pwm_cf_t *config)
 {
     timer_if_t *if_pwm = (timer_if_t *) iface;
     if_rs_t *rscs = if_pwm->header.header.rscs;
@@ -165,7 +165,7 @@ int timer_configure(
             .OCNIdleState = LL_TIM_OCIDLESTATE_LOW
         });
 
-        gpio_config_by_id(rscs[TIMER_ARG_PIN].decl->ref, &(LL_GPIO_InitTypeDef) {
+        gpio_cf_by_id(rscs[TIMER_ARG_PIN].decl->ref, &(LL_GPIO_InitTypeDef) {
             .Mode = LL_GPIO_MODE_ALTERNATE,
             .Speed = LL_GPIO_SPEED_FREQ_VERY_HIGH,
             .OutputType = LL_GPIO_OUTPUT_PUSHPULL,

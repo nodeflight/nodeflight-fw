@@ -25,6 +25,6 @@
 #define GPIO_ID(_REF) ((#_REF)[0] - 'a') << 8 | (((#_REF)[1] - '0') * 10 + ((#_REF)[2] - '0'))
 #define GPIO_ID_NONE 0xffffffff
 
-void gpio_config_by_id(
+void gpio_cf_by_id(
     uint32_t id,
     LL_GPIO_InitTypeDef *init_struct);

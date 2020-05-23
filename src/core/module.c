@@ -34,7 +34,7 @@ static if_header_t *md_load_interface(
 {
     const char *pp_config;
 
-    pp_config = config_get_pp_config(tag);
+    pp_config = cf_get_pp_config(tag);
     if (pp_config == NULL) {
         return NULL;
     }
@@ -73,7 +73,7 @@ static int md_init_mod(
                 break;
 
             case 's':
-                args[i].sched = scheduler_get(arg_str);
+                args[i].sched = sc_get(arg_str);
                 if (args[i].sched == NULL) {
                     return -1;
                 }

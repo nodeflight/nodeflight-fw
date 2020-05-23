@@ -103,7 +103,7 @@ int stdout_init(
     out_if->if_stdout = args[0].iface;
 
     IF_SERIAL(out_if->if_stdout)->configure(IF_SERIAL(out_if->if_stdout),
-        &(const if_serial_config_t) {
+        &(const if_serial_cf_t) {
         .baudrate = 115200,
         .tx_buf_size = MAX_LINE_LENGTH,
         .rx_buf_size = 0,
