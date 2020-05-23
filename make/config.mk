@@ -34,7 +34,7 @@ TARGET_nodeflight_DEPENDS = freertos tinyprintf core lib
 TARGET_nodeflight_SOURCES = \
 	core/main.c \
 	lib/strops.c \
-	module/math/arith.c \
+	module/math/arithmetic.c \
 	module/mgmt/stdout.c \
 	module/rc_io/fport.c \
 	module/rc_io/servo.c \

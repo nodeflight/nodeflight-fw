@@ -61,86 +61,35 @@ static int arith_init(
     }
 
     sc_register_client(args[0].sched, arith_sch_init, op, arith);
-    (void)arith_sch_init;
+    (void) arith_sch_init;
     return 0;
 }
 
-/* Op: add */
+/* *INDENT-OFF* */
 
-static void arith_sch_run_add(
-    void *storage)
-{
-    arith_t *arith = storage;
-    arith->out = *arith->in[0] + *arith->in[1];
-}
-static int arith_init_add(
-    const char *name,
-    md_arg_t *args)
-{
-    return arith_init(name, args, arith_sch_run_add, 2);
-}
+/* Op: add */
+static void arith_sch_run_add(void *storage) { arith_t *a = storage; a->out = *a->in[0] + *a->in[1]; }
+static int arith_init_add(const char *name, md_arg_t *args) { return arith_init(name, args, arith_sch_run_add, 2); }
 MD_DECL(add_f, "snn", arith_init_add);
 
-/* Op: multiply */
-
-static void arith_sch_run_mul(
-    void *storage)
-{
-    arith_t *arith = storage;
-    arith->out = *arith->in[0] * *arith->in[1];
-}
-static int arith_init_mul(
-    const char *name,
-    md_arg_t *args)
-{
-    return arith_init(name, args, arith_sch_run_mul, 2);
-}
-MD_DECL(mul_f, "snn", arith_init_mul);
-
-/* Op: subtract */
-
-static void arith_sch_run_sub(
-    void *storage)
-{
-    arith_t *arith = storage;
-    arith->out = *arith->in[0] - *arith->in[1];
-}
-static int arith_init_sub(
-    const char *name,
-    md_arg_t *args)
-{
-    return arith_init(name, args, arith_sch_run_sub, 2);
-}
+/* Op: sub */
+static void arith_sch_run_sub(void *storage) { arith_t *a = storage; a->out = *a->in[0] - *a->in[1]; }
+static int arith_init_sub(const char *name, md_arg_t *args) { return arith_init(name, args, arith_sch_run_sub, 2); }
 MD_DECL(sub_f, "snn", arith_init_sub);
 
-/* Op: divide */
+/* Op: mul */
+static void arith_sch_run_mul(void *storage) { arith_t *a = storage; a->out = *a->in[0] * *a->in[1]; }
+static int arith_init_mul(const char *name, md_arg_t *args) { return arith_init(name, args, arith_sch_run_mul, 2); }
+MD_DECL(mul_f, "snn", arith_init_mul);
 
-static void arith_sch_run_div(
-    void *storage)
-{
-    arith_t *arith = storage;
-    arith->out = *arith->in[0] / *arith->in[1];
-}
-static int arith_init_div(
-    const char *name,
-    md_arg_t *args)
-{
-    return arith_init(name, args, arith_sch_run_div, 2);
-}
+/* Op: div */
+static void arith_sch_run_div(void *storage) { arith_t *a = storage; a->out = *a->in[0] / *a->in[1]; }
+static int arith_init_div(const char *name, md_arg_t *args) { return arith_init(name, args, arith_sch_run_div, 2); }
 MD_DECL(div_f, "snn", arith_init_div);
 
 /* Op negate */
-
-static void arith_sch_run_neg(
-    void *storage)
-{
-    arith_t *arith = storage;
-    arith->out = -*arith->in[0];
-}
-static int arith_init_neg(
-    const char *name,
-    md_arg_t *args)
-{
-    return arith_init(name, args, arith_sch_run_neg, 1);
-}
+static void arith_sch_run_neg(void *storage) { arith_t *a = storage; a->out = -*a->in[0]; }
+static int arith_init_neg(const char *name, md_arg_t *args) { return arith_init(name, args, arith_sch_run_neg, 1); }
 MD_DECL(neg_f, "sn", arith_init_neg);
+
+/* *INDENT_ON* */
