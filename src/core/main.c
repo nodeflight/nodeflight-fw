@@ -80,10 +80,11 @@ static void main_task(
 
     cf_init();
 
-    if (0 != sc_init_clients()) {
+    if (0 != vr_connect()) {
         /* TODO: Error handling */
     }
-    if (0 != vr_connect()) {
+
+    if (0 != sc_init_clients()) {
         /* TODO: Error handling */
     }
 
