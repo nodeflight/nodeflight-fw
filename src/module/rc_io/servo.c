@@ -21,6 +21,7 @@
 #include "core/config.h"
 #include "core/interface_types.h"
 #include "core/scheduler.h"
+#include "core/variable.h"
 
 #include "FreeRTOS.h"
 #include "task.h"
@@ -40,7 +41,11 @@ struct servo_s {
 
     TaskHandle_t task;
 
-    uint32_t value;
+    /* Value for output buffer */
+    uint32_t raw_value;
+
+    /* Source value */
+    float *f_value;
 };
 
 static int servo_init(
@@ -58,7 +63,10 @@ static void servo_sched_init(
 static void servo_sched_run(
     void *storage);
 
-MD_DECL(servo, "ps", servo_init);
+MD_DECL(
+    servo,
+    "psn",
+    servo_init);
 
 int servo_init(
     const char *name,
@@ -71,14 +79,18 @@ int servo_init(
     servo_t *servo;
     int status;
 
-    servo = pvPortMalloc(sizeof(servo_t));
+    servo = pvPortMalloc(
+        sizeof(servo_t));
     if (servo == NULL) {
         return -1;
     }
 
-    servo->if_pwm = IF_PWM(args[0].iface);
+    servo->if_pwm = IF_PWM(
+        args[0].iface);
 
-    status = servo->if_pwm->configure(servo->if_pwm, &(const if_pwm_cf_t) {
+    status = servo->if_pwm->configure(
+        servo->if_pwm,
+        &(const if_pwm_cf_t) {
         .clock_hz = PWM_CLOCK_HZ,
         .period_ticks = (PWM_CLOCK_HZ / PWM_FREQUENCY_HZ),
         .pulses_count = 1,
@@ -89,9 +101,19 @@ int servo_init(
         return -1;
     }
 
-    servo->value = 1.5 * PWM_MS;
+    servo->raw_value = (3 * PWM_MS) / 2;
+    servo->f_value = NULL;
 
-    sc_register_client(args[1].sched, servo_sched_init, servo_sched_run, servo);
+    vr_request(
+        args[2].name,
+        'f',
+        (void **)&servo->f_value);
+
+    sc_register_client(
+        args[1].sched,
+        servo_sched_init,
+        servo_sched_run,
+        servo);
 
     return 0;
 }
@@ -101,7 +123,7 @@ void servo_new_values(
     void *storage)
 {
     servo_t *servo = storage;
-    values[0] = servo->value;
+    values[0] = servo->raw_value;
 }
 
 void servo_sched_init(
@@ -112,20 +134,22 @@ void servo_sched_init(
     (void) servo;
 }
 
-/* Temporary, until link infrastructure exists */
-extern float temp_fport_values[];
-
 void servo_sched_run(
     void *storage)
 {
     servo_t *servo = storage;
-    float value = temp_fport_values[0];
+    float value = 0.0f;
 
-    if (value < 0.0f) {
-        value = 0.0f;
+    if (servo->f_value != NULL) {
+        value = *servo->f_value;
+    }
+
+    if (value < -1.0f) {
+        value = -1.0f;
     }
     if (value > 1.0f) {
         value = 1.0f;
     }
-    servo->value = PWM_MS + (uint32_t) (value * PWM_MS);
+    value = (1.0f + value)/2.0f;
+    servo->raw_value = PWM_MS + (uint32_t) (value * PWM_MS);
 }

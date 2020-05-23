@@ -21,6 +21,7 @@
 #include "core/interface_types.h"
 #include "core/config.h"
 #include "core/scheduler.h"
+#include "core/variable.h"
 #include "FreeRTOS.h"
 #include "task.h"
 
@@ -42,8 +43,8 @@
 
 #define FPORT_NOTIFY_PACKET   (1 << 0)
 
-#define FPORT_CHANNEL_MIN     192
-#define FPORT_CHANNEL_MAX     1792
+#define FPORT_raw_chn_MIN     192
+#define FPORT_raw_chn_MAX     1792
 
 #define FPORT_STACK_WORDS     128
 
@@ -54,9 +55,16 @@ struct fport_s {
     sc_t *target_scheduler;
     TaskHandle_t task;
 
-    uint16_t channel[16];
+    /* Sync from IRQ->thread */
+    uint16_t raw_chn[16];
     uint8_t flags;
     uint8_t rssi;
+
+    /* Output variables */
+    float f_chn[18];
+    float f_rssi;
+    bool failsafe;
+    bool signal_loss;
 };
 
 static int fport_init(
@@ -165,27 +173,27 @@ static void fport_rx_done(
     while ((packet_len = fport_unpack_packet(packet, sizeof(packet), &buf, &len)) > 0) {
         if (packet[0] == 0x00 && packet_len == 25) {
             /* Control frame */
-            fport_if->channel[0] = 0x07ffU & (((uint16_t) packet[1]) >> 0 | ((uint16_t) packet[2]) << 8);
-            fport_if->channel[1] = 0x07ffU & (((uint16_t) packet[2]) >> 3 | ((uint16_t) packet[3]) << 5);
-            fport_if->channel[2] = 0x07ffU
+            fport_if->raw_chn[0] = 0x07ffU & (((uint16_t) packet[1]) >> 0 | ((uint16_t) packet[2]) << 8);
+            fport_if->raw_chn[1] = 0x07ffU & (((uint16_t) packet[2]) >> 3 | ((uint16_t) packet[3]) << 5);
+            fport_if->raw_chn[2] = 0x07ffU
                 & (((uint16_t) packet[3]) >> 6 | ((uint16_t) packet[4]) << 2 | ((uint16_t) packet[5]) << 10);
-            fport_if->channel[3] = 0x07ffU & (((uint16_t) packet[5]) >> 1 | ((uint16_t) packet[6]) << 7);
-            fport_if->channel[4] = 0x07ffU & (((uint16_t) packet[6]) >> 4 | ((uint16_t) packet[7]) << 4);
-            fport_if->channel[5] = 0x07ffU
+            fport_if->raw_chn[3] = 0x07ffU & (((uint16_t) packet[5]) >> 1 | ((uint16_t) packet[6]) << 7);
+            fport_if->raw_chn[4] = 0x07ffU & (((uint16_t) packet[6]) >> 4 | ((uint16_t) packet[7]) << 4);
+            fport_if->raw_chn[5] = 0x07ffU
                 & (((uint16_t) packet[7]) >> 7 | ((uint16_t) packet[8]) << 1 | ((uint16_t) packet[9]) << 9);
-            fport_if->channel[6] = 0x07ffU & (((uint16_t) packet[9]) >> 2 | ((uint16_t) packet[10]) << 6);
-            fport_if->channel[7] = 0x07ffU & (((uint16_t) packet[10]) >> 5 | ((uint16_t) packet[11]) << 3);
+            fport_if->raw_chn[6] = 0x07ffU & (((uint16_t) packet[9]) >> 2 | ((uint16_t) packet[10]) << 6);
+            fport_if->raw_chn[7] = 0x07ffU & (((uint16_t) packet[10]) >> 5 | ((uint16_t) packet[11]) << 3);
 
-            fport_if->channel[8] = 0x07ffU & (((uint16_t) packet[12]) >> 0 | ((uint16_t) packet[13]) << 8);
-            fport_if->channel[9] = 0x07ffU & (((uint16_t) packet[13]) >> 3 | ((uint16_t) packet[14]) << 5);
-            fport_if->channel[10] = 0x07ffU
+            fport_if->raw_chn[8] = 0x07ffU & (((uint16_t) packet[12]) >> 0 | ((uint16_t) packet[13]) << 8);
+            fport_if->raw_chn[9] = 0x07ffU & (((uint16_t) packet[13]) >> 3 | ((uint16_t) packet[14]) << 5);
+            fport_if->raw_chn[10] = 0x07ffU
                 & (((uint16_t) packet[14]) >> 6 | ((uint16_t) packet[15]) << 2 | ((uint16_t) packet[16]) << 10);
-            fport_if->channel[11] = 0x07ffU & (((uint16_t) packet[16]) >> 1 | ((uint16_t) packet[17]) << 7);
-            fport_if->channel[12] = 0x07ffU & (((uint16_t) packet[17]) >> 4 | ((uint16_t) packet[18]) << 4);
-            fport_if->channel[13] = 0x07ffU
+            fport_if->raw_chn[11] = 0x07ffU & (((uint16_t) packet[16]) >> 1 | ((uint16_t) packet[17]) << 7);
+            fport_if->raw_chn[12] = 0x07ffU & (((uint16_t) packet[17]) >> 4 | ((uint16_t) packet[18]) << 4);
+            fport_if->raw_chn[13] = 0x07ffU
                 & (((uint16_t) packet[18]) >> 7 | ((uint16_t) packet[19]) << 1 | ((uint16_t) packet[20]) << 9);
-            fport_if->channel[14] = 0x07ffU & (((uint16_t) packet[20]) >> 2 | ((uint16_t) packet[21]) << 6);
-            fport_if->channel[15] = 0x07ffU & (((uint16_t) packet[21]) >> 5 | ((uint16_t) packet[22]) << 3);
+            fport_if->raw_chn[14] = 0x07ffU & (((uint16_t) packet[20]) >> 2 | ((uint16_t) packet[21]) << 6);
+            fport_if->raw_chn[15] = 0x07ffU & (((uint16_t) packet[21]) >> 5 | ((uint16_t) packet[22]) << 3);
 
             fport_if->flags = packet[23];
             fport_if->rssi = packet[24];
@@ -217,12 +225,20 @@ int fport_init(
     }
 
     for (i = 0; i < 16; i++) {
-        fport_if->channel[i] = 0;
+        fport_if->raw_chn[i] = 0;
     }
     fport_if->rssi = 0;
     fport_if->flags = FPORT_FLAG_FAILSAFE;
     fport_if->if_ser = args[0].iface;
     fport_if->target_scheduler = args[1].sched;
+
+    /* initialize output channels */
+    for (i = 0; i < 18; i++) {
+        fport_if->f_chn[i] = 0.0f;
+    }
+    fport_if->f_rssi = 0.0;
+    fport_if->failsafe = true;
+    fport_if->signal_loss = true;
 
     if (fport_if->target_scheduler != NULL) {
         if (0 != sc_configure_source(fport_if->target_scheduler, 0.009f)) {
@@ -251,10 +267,16 @@ int fport_init(
         .storage = fport_if
     });
 
+    vr_register(name, "ffffffffffffffffffffbb",
+        &fport_if->f_chn[0], &fport_if->f_chn[1], &fport_if->f_chn[2], &fport_if->f_chn[3],
+        &fport_if->f_chn[4], &fport_if->f_chn[5], &fport_if->f_chn[6], &fport_if->f_chn[7],
+        &fport_if->f_chn[8], &fport_if->f_chn[9], &fport_if->f_chn[10], &fport_if->f_chn[11],
+        &fport_if->f_chn[12], &fport_if->f_chn[13], &fport_if->f_chn[14], &fport_if->f_chn[15],
+        &fport_if->f_chn[16], &fport_if->f_chn[17], &fport_if->f_rssi,
+        &fport_if->failsafe, &fport_if->signal_loss);
+
     return 0;
 }
-
-float temp_fport_values[16];
 
 void fport_task(
     void *storage)
@@ -268,18 +290,30 @@ void fport_task(
         if (notify_value & FPORT_NOTIFY_PACKET) {
             if (fport_if->flags & FPORT_FLAG_FAILSAFE) {
                 /* Failsafe */
+                fport_if->failsafe = true;
+                fport_if->signal_loss = true;
             } else if (fport_if->flags & FPORT_FLAG_FRAME_LOST) {
                 /* Frame lost */
+                fport_if->signal_loss = true;
             } else {
                 /* Successful RX */
                 for (i = 0; i < 16; i++) {
-                    temp_fport_values[i] =
-                        (float) (fport_if->channel[i] - FPORT_CHANNEL_MIN)
-                        / (FPORT_CHANNEL_MAX - FPORT_CHANNEL_MIN);
+                    /* Map to range 0.0f to 1.0f */
+                    float val = (float) (fport_if->raw_chn[i] - FPORT_raw_chn_MIN)
+                        / (FPORT_raw_chn_MAX - FPORT_raw_chn_MIN);
+                    /* Extend to range -1.0f to 1.0f */
+                    fport_if->f_chn[i] = val * 2.0f - 1.0f;
                 }
+                fport_if->f_chn[17] = (fport_if->flags & FPORT_FLAG_CH17) ? 1.0f : -1.0f;
+                fport_if->f_chn[18] = (fport_if->flags & FPORT_FLAG_CH18) ? 1.0f : -1.0f;
+                fport_if->f_rssi = (float) fport_if->rssi;
+                fport_if->failsafe = false;
+                fport_if->signal_loss = false;
             }
         } else {
             /* Timeout */
+            fport_if->failsafe = true;
+            fport_if->signal_loss = true;
         }
         if (fport_if->target_scheduler != NULL) {
             sc_trigger(fport_if->target_scheduler);

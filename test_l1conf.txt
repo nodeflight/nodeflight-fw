@@ -4,19 +4,19 @@ mod - stdout uart_st
 sch @hs 4
 sch @rx 3
 
+per pwm2 tim3_ch3 pin_b00 dma_none
+#per pwm2 tim3_ch3 pin_c08 dma_none
+mod - servo pwm2 @rx rc_rx.1
+
 per uart_fport uart2 pin_none pin_d06 dma_none dma_1_5
 mod rc_rx fport uart_fport -
 
 per pwm1 tim2_ch1 pin_a00 dma_none
-mod - servo pwm1 @rx
-
-per pwm2 tim3_ch3 pin_b00 dma_none
-#per pwm2 tim3_ch3 pin_c08 dma_none
-mod - servo pwm2 @rx
+mod - servo pwm1 @rx rc_rx.0
 
 per pwm3 tim3_ch4 pin_b01 dma_none
 #per pwm3 tim3_ch4 pin_c09 dma_none
-mod - servo pwm3 @rx
+mod - servo pwm3 @rx rc_rx.2
 
 per tmsch tim7_ch1 pin_none dma_none
 mod - sch_timer tmsch @hs 8000

@@ -80,6 +80,10 @@ static int md_init_mod(
                 }
                 break;
 
+            case 'n':
+                args[i].name = arg_str;
+                break;
+
             case 'c':
                 argptr++;
                 /* Constant, always followed by type char */

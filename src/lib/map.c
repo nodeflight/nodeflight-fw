@@ -103,3 +103,39 @@ void *map_get(
     }
     return NULL;
 }
+
+void map_iter_start(
+    map_iter_t *iter,
+    const map_t *map)
+{
+    iter->map = map;
+    iter->next_index = 0;
+}
+
+bool map_iter_next(
+    map_iter_t *iter,
+    const char **name,
+    void **value)
+{
+    if (iter->map == NULL) {
+        /* No more pages available, end of iteration */
+        return false;
+    }
+    if (iter->map->elems[iter->next_index].tag == NULL) {
+        /* End of iteration */
+        return false;
+    }
+
+    /* Store values */
+    *name = iter->map->elems[iter->next_index].tag;
+    *value = iter->map->elems[iter->next_index].ptr;
+
+    /* Step forward */
+    iter->next_index++;
+    if (iter->next_index >= MAP_ELEMS_PER_CHUNK) {
+        /* Next chunk */
+        iter->next_index = 0;
+        iter->map = iter->map->next;
+    }
+    return true;
+}

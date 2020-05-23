@@ -18,6 +18,8 @@
 
 #pragma once
 
+#include <stdbool.h>
+
 /**
  * Maps objects to tags
  *
@@ -29,6 +31,17 @@
  */
 
 typedef struct map_s map_t;
+
+/**
+ * Iterator to traverse the map
+ */
+typedef struct map_iter_s map_iter_t;
+
+/* Not to be accessed directly */
+struct map_iter_s {
+    const map_t *map;
+    int next_index;
+};
 
 /**
  * Create a new map
@@ -65,3 +78,28 @@ int map_set(
 void *map_get(
     const map_t *map,
     const char *tag);
+
+/**
+ * Start iteration
+ *
+ * @param iter pointer to iterator element to initialzie
+ * @param map map to iterate over
+ */
+void map_iter_start(
+    map_iter_t *iter,
+    const map_t *map);
+
+/**
+ * Get next element
+ *
+ * First call will return the first elements
+ *
+ * @param iter Iterator object
+ * @param name where to store the name pointer
+ * @param value pointer to store the pointer to the element
+ * @return true if element found, false if end of map
+ */
+bool map_iter_next(
+    map_iter_t *iter,
+    const char **name,
+    void **value);

@@ -23,6 +23,7 @@
 #include "core/resource.h"
 #include "core/peripheral.h"
 #include "core/scheduler.h"
+#include "core/variable.h"
 
 #include "integration/heap.h"
 
@@ -74,12 +75,15 @@ int main(
 static void main_task(
     void *storage)
 {
-
+    vr_init();
     sc_init();
 
     cf_init();
 
     if (0 != sc_init_clients()) {
+        /* TODO: Error handling */
+    }
+    if (0 != vr_connect()) {
         /* TODO: Error handling */
     }
 
