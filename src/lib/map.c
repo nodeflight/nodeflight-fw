@@ -62,13 +62,13 @@ int map_set(
         for (i = 0; i < MAP_ELEMS_PER_CHUNK; i++) {
             if (map->elems[i].tag == NULL) {
                 /* New element */
-                map->elems[i].tag = strops_word_dup(tag);
+                map->elems[i].tag = strops_dup(tag);
                 map->elems[i].ptr = new_value;
                 if (map->elems[i].tag == NULL) {
                     return -1;
                 }
                 return 0;
-            } else if (0 == strops_word_cmp(map->elems[i].tag, tag)) {
+            } else if (0 == strops_cmp(map->elems[i].tag, tag)) {
                 /* Replace old */
                 map->elems[i].ptr = new_value;
                 return 0;
@@ -94,7 +94,7 @@ void *map_get(
             if (map->elems[i].tag == NULL) {
                 /* End of list */
                 return NULL;
-            } else if (0 == strops_word_cmp(map->elems[i].tag, tag)) {
+            } else if (0 == strops_cmp(map->elems[i].tag, tag)) {
                 /* Correct value */
                 return map->elems[i].ptr;
             }

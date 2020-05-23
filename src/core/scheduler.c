@@ -72,7 +72,7 @@ sc_t *sc_get(
     }
     sched = NULL;
     for (cur = sc_schedulers; cur != NULL && sched == NULL; cur = cur->next) {
-        if (strops_word_cmp(cur->name, name) == 0) {
+        if (strops_cmp(cur->name, name) == 0) {
             sched = cur;
         }
     }
@@ -172,7 +172,7 @@ sc_t *sc_define(
 
     /* Protect against concurrent double creation */
     for (cur = sc_schedulers; cur != NULL && sched == NULL; cur = cur->next) {
-        if (strops_word_cmp(cur->name, name) == 0) {
+        if (strops_cmp(cur->name, name) == 0) {
             xSemaphoreGive(sc_mutex);
             return NULL;
         }
@@ -184,7 +184,7 @@ sc_t *sc_define(
         return NULL;
     }
     sched->clients = NULL;
-    sched->name = strops_word_dup(name);
+    sched->name = strops_dup(name);
     if (sched->name == NULL) {
         xSemaphoreGive(sc_mutex);
         return NULL;

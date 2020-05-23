@@ -71,7 +71,7 @@ const rs_decl_t *rs_get_by_tag(
 {
     const rs_decl_t *rsc;
     for (rsc = __nf_resource_start; rsc < __nf_resource_end; rsc++) {
-        if (0 == strops_word_cmp(rsc->name, tag)) {
+        if (0 == strops_cmp(rsc->name, tag)) {
             return rsc;
         }
     }

@@ -78,14 +78,25 @@ static void main_task(
     vr_init();
     sc_init();
 
-    cf_init();
+    if (0 != cf_init()) {
+        tfp_printf("Error: processing config\n");
+        vTaskSuspend(NULL);
+        for (;;) {
+        }
+    }
 
     if (0 != vr_connect()) {
-        /* TODO: Error handling */
+        tfp_printf("Error: connecting variables\n");
+        vTaskSuspend(NULL);
+        for (;;) {
+        }
     }
 
     if (0 != sc_init_clients()) {
-        /* TODO: Error handling */
+        tfp_printf("Error: initializing scheduler clients\n");
+        vTaskSuspend(NULL);
+        for (;;) {
+        }
     }
 
     print_boot_message();

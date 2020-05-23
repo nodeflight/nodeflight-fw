@@ -18,8 +18,8 @@
 
 #pragma once
 
-void cf_init(
+int cf_init(
     void);
 
-const char *cf_get_pp_config(
+char *const *cf_get_pp_config(
     const char *tag);

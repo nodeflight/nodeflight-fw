@@ -52,8 +52,7 @@ struct uart_if_s {
 };
 
 static int uart_init(
-    if_header_t *iface,
-    const char *config);
+    if_header_t *iface);
 
 static int uart_configure(
     if_serial_t *iface,
@@ -86,8 +85,7 @@ static void uart_tx_tc_callback(
 }
 
 int uart_init(
-    if_header_t *iface,
-    const char *config)
+    if_header_t *iface)
 {
     uart_if_t *if_uart = (uart_if_t *) iface;
 

@@ -25,14 +25,12 @@ struct usb_vcp_if_s {
 };
 
 static int usb_vcp_init(
-    if_header_t *iface,
-    const char *config);
+    if_header_t *iface);
 
 PP_TYPE_DECL(usb_vcp, PP_SERIAL, 0, usb_vcp_init, sizeof(usb_vcp_if_t));
 
 static int usb_vcp_init(
-    if_header_t *iface,
-    const char *config)
+    if_header_t *iface)
 {
     /* TODO: Implement... */
     return -1;

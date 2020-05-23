@@ -63,8 +63,7 @@ static timer_t timers[TIMER_MAX_COUNT] = {
 };
 
 static int timer_init(
-    if_header_t *iface,
-    const char *config);
+    if_header_t *iface);
 
 static int timer_configure(
     if_pwm_t *iface,
@@ -82,8 +81,7 @@ PP_TYPE_DECL(
     sizeof(timer_if_t));
 
 int timer_init(
-    if_header_t *iface,
-    const char *config)
+    if_header_t *iface)
 {
     timer_if_t *if_pwm = (timer_if_t *) iface;
 

@@ -32,68 +32,64 @@ const extern md_decl_t __nf_module_end[];
 static if_header_t *md_load_interface(
     const char *tag)
 {
-    const char *pp_config;
-
-    pp_config = cf_get_pp_config(tag);
-    if (pp_config == NULL) {
+    char *const *pp_argv = cf_get_pp_config(tag);
+    if (pp_argv == NULL) {
         return NULL;
     }
+    int pp_argc = strops_get_argc(pp_argv);
 
-    return if_create(pp_config, PP_NONE);
+    return if_create(pp_argc, pp_argv, PP_NONE);
 }
 
 static int md_init_mod(
     const md_decl_t *md,
     const char *name,
-    const char *config)
+    int argc,
+    char **argv)
 {
     md_arg_t args[MD_MAX_ARGS];
-    const char *argptr = &md->args[0];
-    int i = 0;
-    while (*argptr != '\0') {
-        const char *arg_str = strops_next_word(&config);
+    const char *argstrptr = &md->args[0];
 
-        if (*arg_str == '\0') {
-            return -1;
-        }
+    int curarg = 0;
 
-        bool optional = (*argptr == '?');
+    while (*argstrptr != '\0' && curarg < argc) {
+        bool optional = (*argstrptr == '?');
         if (optional) {
-            argptr++;
+            argstrptr++;
         }
 
-        if (optional && 0 == strops_word_cmp("-", arg_str)) {
-            args[i].iface = NULL; /* Union, all optionals are pointers, everything will be NULL */
+        if (optional && 0 == strops_cmp("-", argv[curarg])) {
+            args[curarg].iface = NULL; /* Union, all optionals are pointers, everything will be NULL */
         } else {
-            switch (*argptr) {
+            switch (*argstrptr) {
             case 'p':
-                args[i].iface = md_load_interface(arg_str);
-                if (args[i].iface == NULL) {
+                args[curarg].iface = md_load_interface(argv[curarg]);
+                if (args[curarg].iface == NULL) {
                     return -1;
                 }
                 break;
 
             case 's':
-                args[i].sched = sc_get(arg_str);
-                if (args[i].sched == NULL) {
+                args[curarg].sched = sc_get(argv[curarg]);
+                if (args[curarg].sched == NULL) {
                     return -1;
                 }
                 break;
 
             case 'n':
-                args[i].name = arg_str;
+                args[curarg].name = argv[curarg];
                 break;
 
             case 'c':
-                argptr++;
+                argstrptr++;
                 /* Constant, always followed by type char */
-                switch (*argptr) {
+                switch (*argstrptr) {
                 case 'i':     /* int32_t */
-                    args[i].const_int = strops_word_to_int(arg_str);
+                    args[curarg].const_int = strops_word_to_int(argv[curarg]);
                     break;
 
                 case 'f':     /* float */
-                    args[i].const_float = strops_word_to_float(arg_str);
+                    args[curarg].const_float = strops_word_to_float(argv[curarg]);
                     break;
 
                 default:
@@ -106,8 +102,12 @@ static int md_init_mod(
             }
         }
 
-        argptr++;
-        i++;
+        argstrptr++;
+        curarg++;
+    }
+
+    if (curarg != argc) {
+        return -1;
     }
 
     return md->init(name, args);
@@ -116,12 +116,13 @@ static int md_init_mod(
 int md_init(
     const char *mdname,
     const char *name,
-    const char *config)
+    int argc,
+    char **argv)
 {
     const md_decl_t *md;
     for (md = __nf_module_start; md < __nf_module_end; md++) {
-        if (strops_word_cmp(md->name, mdname) == 0) {
-            return md_init_mod(md, name, config);
+        if (strops_cmp(md->name, mdname) == 0) {
+            return md_init_mod(md, name, argc, argv);
         }
     }
     return -1;

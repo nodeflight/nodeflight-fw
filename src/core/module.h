@@ -69,4 +69,5 @@ struct md_decl_s {
 int md_init(
     const char *mdname,
     const char *name,
-    const char *config);
+    int argc,
+    char **argv);

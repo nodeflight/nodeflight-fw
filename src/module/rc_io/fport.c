@@ -30,7 +30,6 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <stdbool.h>
-#include <string.h>
 
 #define FPORT_FLAG_FAILSAFE   0x08
 #define FPORT_FLAG_FRAME_LOST 0x04

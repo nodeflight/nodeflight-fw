@@ -48,8 +48,7 @@ struct pp_decl_s {
     pp_type_t type;
     uint16_t num_rscs;
     int (*init)(
-        if_header_t *iface,
-        const char *config);
+        if_header_t *iface);
     int storage_size;
 };
 

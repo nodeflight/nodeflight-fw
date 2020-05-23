@@ -42,7 +42,7 @@ const pp_inst_decl_t *pp_get_by_tag(
 {
     const pp_inst_decl_t *cur;
     for (cur = __nf_peripheral_start; cur < __nf_peripheral_end; cur++) {
-        if (0 == strops_word_cmp(cur->tag, tag)) {
+        if (0 == strops_cmp(cur->tag, tag)) {
             return cur;
         }
     }
@@ -56,7 +56,7 @@ const pp_inst_rs_t *pp_get_rs_by_tag(
 {
     const pp_inst_rs_t *rsc;
     for (rsc = peripheral->rscs; rsc->tag != NULL; rsc++) {
-        if (rsc->arg_nr == arg_nr && 0 == strops_word_cmp(rsc->tag, tag)) {
+        if (rsc->arg_nr == arg_nr && 0 == strops_cmp(rsc->tag, tag)) {
             return rsc;
         }
     }

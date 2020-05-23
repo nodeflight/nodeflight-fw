@@ -22,43 +22,27 @@
 #include "FreeRTOS.h"
 
 /* TODO: unit test */
-int strops_word_cmp(
-    const char *word,
-    const char *line)
+int strops_cmp(
+    const char *stra,
+    const char *strb)
 {
-    while (*word != '\0' && *line != '\0' && *line != ' ') {
-        if (*word < *line) {
+    while (*stra != '\0' && *strb != '\0') {
+        if (*stra < *strb) {
             return -1;
         }
-        if (*word > *line) {
+        if (*stra > *strb) {
             return 1;
         }
-        word++;
-        line++;
+        stra++;
+        strb++;
     }
-    if (*word == '\0' && (*line != '\0' && *line != ' ')) {
+    if (*stra == '\0' && *strb != '\0') {
         return -1;
     }
-    if (*word != '\0' && (*line == '\0' || *line == ' ')) {
+    if (*stra != '\0' && *strb == '\0') {
         return 1;
     }
     return 0;
-}
-
-/* TODO: unit test */
-const char *strops_next_word(
-    const char **ptr)
-{
-    const char *start = *ptr;
-    while (**ptr != ' ' && **ptr != '\0') {
-        (*ptr)++;
-    }
-
-    while (**ptr == ' ') {
-        (*ptr)++;
-    }
-
-    return start;
 }
 
 /* TODO: unit test */
@@ -92,7 +76,7 @@ int strops_line_copy(
     return status;
 }
 
-char *strops_word_dup(
+char *strops_dup(
     const char *source)
 {
     int len;
@@ -100,29 +84,7 @@ char *strops_word_dup(
     char *dest;
 
     len = 0;
-    while (source[len] != '\0' && source[len] != '\n' && source[len] != ' ') {
-        len++;
-    }
-    dest = pvPortMalloc(len + 1);
-    if (dest == NULL) {
-        return NULL;
-    }
-    for (i = 0; i < len; i++) {
-        dest[i] = source[i];
-    }
-    dest[len] = '\0';
-    return dest;
-}
-
-char *strops_line_dup(
-    const char *source)
-{
-    int len;
-    int i;
-    char *dest;
-
-    len = 0;
-    while (source[len] != '\0' && source[len] != '\n') {
+    while (source[len] != '\0') {
         len++;
     }
     dest = pvPortMalloc(len + 1);
@@ -190,4 +152,108 @@ float strops_word_to_float(
     } else {
         return res;
     }
+}
+
+char **strops_argv_dup(
+    char *const *argv)
+{
+    const char *cur_char;
+    int argc = 0;
+    int buflen = 0;
+
+    /* Calculate memory usage */
+    argc = 0;
+    buflen = 0;
+    while (argv[argc] != NULL) {
+        for (cur_char = argv[argc]; *cur_char != '\0'; cur_char++) {
+            buflen++;
+        }
+        buflen++; /* null byte */
+        argc++;
+    }
+
+    /* Allocate */
+    char **out_argv;
+    char *out_buf;
+
+    out_argv = pvPortMalloc(sizeof(char *) * (argc + 1));
+    out_buf = pvPortMalloc(sizeof(char) * buflen);
+
+    /* Copy */
+    argc = 0;
+    buflen = 0;
+    while (argv[argc] != NULL) {
+        out_argv[argc] = &out_buf[buflen];
+        for (cur_char = argv[argc]; *cur_char != '\0'; cur_char++) {
+            out_buf[buflen++] = *cur_char;
+        }
+        out_buf[buflen++] = '\0';
+        argc++;
+    }
+    out_argv[argc] = NULL;
+
+    return out_argv;
+}
+
+int strops_get_argc(
+    char *const *argv)
+{
+    int argc = 0;
+    while (argv[argc] != NULL) {
+        argc++;
+    }
+    return argc;
+}
+
+int strops_split_argv(
+    char *src,
+    char **argv)
+{
+    char *in_ptr = src;
+    char *out_ptr = src;
+    int argc = 0;
+
+    while (*in_ptr != '\n' && *in_ptr != '\0') {
+        /* Locate start of argument */
+        while (*in_ptr == ' ') {
+            in_ptr++;
+        }
+
+        /* Exit if end of string */
+        if (*in_ptr == '\n' || *in_ptr == '\0') {
+            break;
+        }
+
+        /* Is the argument quoted? */
+        if (*in_ptr == '"') {
+            /* Quoted string */
+            in_ptr++;
+
+            /* Copy and unescape argument content */
+            argv[argc++] = out_ptr;
+            while (*in_ptr != '"' && *in_ptr != '\0') {
+                /* TODO: unescape */
+                *(out_ptr++) = *(in_ptr++);
+            }
+            if (*in_ptr != '\0') {
+                in_ptr++;
+            }
+            *(out_ptr)++ = '\0';
+        } else {
+            /* Not quited string */
+
+            /* Copy argument content */
+            argv[argc++] = out_ptr;
+            while (*in_ptr != ' ' && *in_ptr != '\n' && *in_ptr != '\0') {
+                *(out_ptr++) = *(in_ptr++);
+            }
+            if (*in_ptr != '\0') {
+                /* Make sure to skip null-byte written by out_ptr on next line, if overlaps */
+                in_ptr++;
+            }
+            *(out_ptr)++ = '\0';
+        }
+    }
+    argv[argc] = NULL;
+    return argc;
 }

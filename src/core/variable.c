@@ -209,7 +209,7 @@ int vr_request(
 {
     /* Split name and index */
     /* TODO: Don't duplicate name... not really necessary... */
-    char *name_w = strops_word_dup(name);
+    char *name_w = strops_dup(name);
     char *dot = NULL;
     int i;
     for (i = 0; name_w[i] != '\0'; i++) {

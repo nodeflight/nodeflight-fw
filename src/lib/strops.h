@@ -20,22 +20,16 @@
 
 #include <stdint.h>
 
-int strops_word_cmp(
+int strops_cmp(
     const char *word,
     const char *line);
-
-const char *strops_next_word(
-    const char **ptr);
 
 int strops_line_copy(
     char *dst,
     int dst_len,
     const char **ptr);
 
-char *strops_word_dup(
-    const char *source);
-
-char *strops_line_dup(
+char *strops_dup(
     const char *source);
 
 int32_t strops_word_to_int(
@@ -43,3 +37,14 @@ int32_t strops_word_to_int(
 
 float strops_word_to_float(
     const char *line);
+
+char **strops_argv_dup(
+    char *const *argv);
+
+int strops_get_argc(
+    char *const *argv);
+
+/* TODO: limit argv length */
+int strops_split_argv(
+    char *src,
+    char **argv);

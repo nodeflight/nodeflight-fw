@@ -20,12 +20,18 @@
 #include "lib/strops.h"
 #include "FreeRTOS.h"
 
-if_rs_t *if_rs_allocate(
+static if_rs_t *if_rs_allocate(
     const pp_inst_decl_t *peripheral,
-    const char **argp)
+    int argc,
+    char *const *argv)
 {
     int rsc_count = peripheral->decl->num_rscs;
     int i;
+
+    if(rsc_count != argc) {
+        return NULL;
+    }
+
     if_rs_t *rscs = pvPortMalloc(sizeof(if_rs_t) * rsc_count);
     if (rscs == NULL) {
         return NULL;
@@ -33,10 +39,9 @@ if_rs_t *if_rs_allocate(
 
     /* Fetch resources */
     for (i = 0; i < rsc_count; i++) {
-        const char *arg = strops_next_word(argp);
         if_rs_t *rsc = &rscs[i];
-        rsc->decl = rs_get_by_tag(arg);
-        rsc->inst = pp_get_rs_by_tag(peripheral, i, arg);
+        rsc->decl = rs_get_by_tag(argv[i]);
+        rsc->inst = pp_get_rs_by_tag(peripheral, i, argv[i]);
         if (rsc->decl == NULL || rsc->inst == NULL) {
             return NULL;
         }
@@ -55,12 +60,14 @@ if_rs_t *if_rs_allocate(
 }
 
 if_header_t *if_create(
-    const char *config,
+    int argc,
+    char *const *argv,
     pp_type_t type)
 {
-    const char *cur_conf = config;
-
-    const pp_inst_decl_t *decl = pp_get_by_tag(strops_next_word(&cur_conf));
+    if (argc < 1) {
+        return NULL;
+    }
+    const pp_inst_decl_t *decl = pp_get_by_tag(argv[0]);
     if (decl == NULL) {
         /* TODO: error handling */
         asm ("bkpt 255");
@@ -80,13 +87,13 @@ if_header_t *if_create(
         return NULL;
     }
     iface->peripheral = decl;
-    iface->rscs = if_rs_allocate(decl, &cur_conf);
+    iface->rscs = if_rs_allocate(decl, argc - 1, &argv[1]);
     if (iface->rscs == NULL) {
         /* TODO: error handling */
         asm ("bkpt 255");
         return NULL;
     }
-    if (decl->decl->init(iface, cur_conf) < 0) {
+    if (decl->decl->init(iface) < 0) {
         /* TODO: error handling */
         asm ("bkpt 255");
         return NULL;
