@@ -61,7 +61,6 @@ static int arith_init(
     }
 
     sc_register_client(args[0].sched, arith_sch_init, op, arith);
-    (void) arith_sch_init;
     return 0;
 }
 
