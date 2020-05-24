@@ -18,13 +18,28 @@
 
 #pragma once
 
+#include <stdbool.h>
+
 #include "core/resource.h"
+#include "core/interface.h"
 
 #include "stm32.h"
 
 #define GPIO_ID(_REF) ((#_REF)[0] - 'a') << 8 | (((#_REF)[1] - '0') * 10 + ((#_REF)[2] - '0'))
 #define GPIO_ID_NONE 0xffffffff
 
-void gpio_cf_by_id(
+void gpio_configure_alternative(
+    const if_rs_t *rs);
+
+void gpio_configure_out(
+    uint32_t id);
+
+void gpio_configure_in(
+    uint32_t id);
+
+void gpio_set_value(
     uint32_t id,
-    LL_GPIO_InitTypeDef *init_struct);
+    bool value);
+
+bool gpio_get(
+    uint32_t id);

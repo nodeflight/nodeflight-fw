@@ -163,13 +163,7 @@ int timer_configure(
             .OCNIdleState = LL_TIM_OCIDLESTATE_LOW
         });
 
-        gpio_cf_by_id(rscs[TIMER_ARG_PIN].decl->ref, &(LL_GPIO_InitTypeDef) {
-            .Mode = LL_GPIO_MODE_ALTERNATE,
-            .Speed = LL_GPIO_SPEED_FREQ_VERY_HIGH,
-            .OutputType = LL_GPIO_OUTPUT_PUSHPULL,
-            .Pull = LL_GPIO_PULL_NO,
-            .Alternate = rscs[TIMER_ARG_PIN].inst->attr & 0x000f
-        });
+        gpio_configure_alternative(&rscs[TIMER_ARG_PIN]);
     }
 
     if (if_pwm->dma != NULL && rscs[TIMER_ARG_PIN].decl->ref != GPIO_ID_NONE) {

@@ -59,10 +59,60 @@ static GPIO_TypeDef *const gpio_ports[] = {
 #endif
 };
 
-void gpio_cf_by_id(
-    uint32_t id,
-    LL_GPIO_InitTypeDef *init_struct)
+void gpio_configure_alternative(
+    const if_rs_t *rs)
 {
-    init_struct->Pin = 1 << (id & 0x000000ff);
-    LL_GPIO_Init(gpio_ports[(id & 0x0000ff00) >> 8], init_struct);
+    LL_GPIO_Init(gpio_ports[(rs->decl->ref & 0x0000ff00)>>8], &(LL_GPIO_InitTypeDef) {
+        .Pin = 1 << (rs->decl->ref & 0x000000ff),
+        .Mode = LL_GPIO_MODE_ALTERNATE,
+        .Speed = LL_GPIO_SPEED_FREQ_VERY_HIGH,
+        .OutputType = LL_GPIO_OUTPUT_PUSHPULL,
+        .Pull = LL_GPIO_PULL_NO,
+        .Alternate = rs->inst->attr & 0x0f
+    });
+}
+
+void gpio_configure_out(
+    uint32_t id)
+{
+    LL_GPIO_Init(gpio_ports[(id & 0x0000ff00)>>8], &(LL_GPIO_InitTypeDef) {
+        .Pin = 1 << (id & 0x000000ff),
+        .Mode = LL_GPIO_MODE_OUTPUT,
+        .Speed = LL_GPIO_SPEED_FREQ_VERY_HIGH,
+        .OutputType = LL_GPIO_OUTPUT_PUSHPULL,
+        .Pull = LL_GPIO_PULL_NO,
+        .Alternate = 0
+    });
+}
+
+void gpio_configure_in(
+    uint32_t id)
+{
+    LL_GPIO_Init(gpio_ports[(id & 0x0000ff00)>>8], &(LL_GPIO_InitTypeDef) {
+        .Pin = 1 << (id & 0x000000ff),
+        .Mode = LL_GPIO_MODE_INPUT,
+        .Speed = LL_GPIO_SPEED_FREQ_VERY_HIGH,
+        .OutputType = LL_GPIO_OUTPUT_PUSHPULL,
+        .Pull = LL_GPIO_PULL_NO,
+        .Alternate = 0
+    });
+}
+
+void gpio_set_value(
+    uint32_t id,
+    bool value)
+{
+    uint32_t pin_mask = 1 << (id & 0x000000ff);
+    GPIO_TypeDef *reg = gpio_ports[(id & 0x0000ff00) >> 8];
+    if (value) {
+        LL_GPIO_SetOutputPin(reg, pin_mask);
+    } else {
+        LL_GPIO_ResetOutputPin(reg, pin_mask);
+    }
+}
+
+bool gpio_get(
+    uint32_t id)
+{
+    return 0 != (LL_GPIO_ReadInputPort(gpio_ports[(id & 0x0000ff00) >> 8]) & (1 << (id & 0x000000ff)));
 }

@@ -143,13 +143,8 @@ int uart_configure(
         if_uart->tx_buf = pvPortMalloc(config->tx_buf_size);
         if_uart->tx_buf_size = config->tx_buf_size;
 
-        gpio_cf_by_id(rscs[UART_ARG_PIN_TX].decl->ref, &(LL_GPIO_InitTypeDef) {
-            .Mode = LL_GPIO_MODE_ALTERNATE,
-            .Speed = LL_GPIO_SPEED_FREQ_VERY_HIGH,
-            .OutputType = LL_GPIO_OUTPUT_PUSHPULL,
-            .Pull = LL_GPIO_PULL_NO,
-            .Alternate = rscs[UART_ARG_PIN_TX].inst->attr
-        });
+        gpio_configure_alternative(&rscs[UART_ARG_PIN_TX]);
+        
         LL_USART_SetTXPinLevel(if_uart->def.reg,
             (config->flags & IF_SERIAL_INVERTED_TX)
             ? LL_USART_TXPIN_LEVEL_INVERTED
@@ -186,13 +181,8 @@ int uart_configure(
         if_uart->rx_buf_pos = 0;
         if_uart->rx_buf_size = config->rx_buf_size;
 
-        gpio_cf_by_id(rscs[UART_ARG_PIN_RX].decl->ref, &(LL_GPIO_InitTypeDef) {
-            .Mode = LL_GPIO_MODE_ALTERNATE,
-            .Speed = LL_GPIO_SPEED_FREQ_VERY_HIGH,
-            .OutputType = LL_GPIO_OUTPUT_OPENDRAIN,
-            .Pull = LL_GPIO_PULL_NO,
-            .Alternate = rscs[UART_ARG_PIN_RX].inst->attr
-        });
+        gpio_configure_alternative(&rscs[UART_ARG_PIN_RX]);
+        
         LL_USART_SetRXPinLevel(if_uart->def.reg,
             (config->flags & IF_SERIAL_INVERTED_RX)
             ? LL_USART_RXPIN_LEVEL_INVERTED
