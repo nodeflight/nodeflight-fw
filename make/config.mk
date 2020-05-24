@@ -36,6 +36,7 @@ TARGET_nodeflight_SOURCES = \
 	lib/strops.c \
 	module/math/arithmetic.c \
 	module/math/calculus.c \
+	module/mgmt/nfcp.c \
 	module/mgmt/stdout.c \
 	module/rc_io/fport.c \
 	module/rc_io/servo.c \

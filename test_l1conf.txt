@@ -1,5 +1,14 @@
+# 1. debug output
+
 per uart_st uart3 pin_d08 pin_none dma_1_3 dma_none
 mod - stdout uart_st
+
+# 2. management
+
+per usb usb_vcp
+mod - nfcp usb
+
+# 3. Control IO
 
 sch @hs 4
 sch @rx 3

@@ -27,6 +27,7 @@
 #include "stm32f7xx_ll_gpio.h"
 #include "stm32f7xx_ll_tim.h"
 #include "stm32f7xx_ll_usart.h"
+#include "stm32f7xx_ll_usb.h"
 #include "stm32f7xx_ll_utils.h"
 
 /* Maximum number of resources available, sets limit of allocated arrays for storage */
