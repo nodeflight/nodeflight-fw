@@ -41,5 +41,5 @@ void gpio_set_value(
     uint32_t id,
     bool value);
 
-bool gpio_get(
+bool gpio_get_value(
     uint32_t id);

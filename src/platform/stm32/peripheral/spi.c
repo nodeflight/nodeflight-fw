@@ -101,7 +101,7 @@ static uint32_t spi_calc_baud_rate(
     uint32_t current_baudrate = SystemCoreClock;
     int idx = 0;
     current_baudrate >>= 1;
-    while(current_baudrate > baudrate_hz && idx < 7) {
+    while (current_baudrate > baudrate_hz && idx < 7) {
         idx++;
         current_baudrate >>= 1;
     }

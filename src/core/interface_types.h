@@ -19,6 +19,50 @@
 #pragma once
 
 #include "core/interface.h"
+#include <stdbool.h>
+
+typedef struct if_gpio_s if_gpio_t;
+typedef struct if_gpio_cf_s if_gpio_cf_t;
+
+typedef enum if_gpio_dir_s {
+    GPIO_DIR_IN = 0,
+    GPIO_DIR_OUT
+} if_gpio_dir_t;
+
+typedef enum if_gpio_pull_s {
+    GPIO_PULL_NONE = 0,
+    GPIO_PULL_UP,
+    GPIO_PULL_DOWN
+} if_gpio_pull_t;
+
+struct if_gpio_cf_s {
+    /**
+     * GPIO pin direction
+     */
+    if_gpio_dir_t dir;
+
+    /**
+     * GPIO pin pull resistor
+     */
+    if_gpio_pull_t pull;
+};
+
+struct if_gpio_s {
+    if_header_t header;
+
+    int (*configure)(
+        if_gpio_t *iface,
+        const if_gpio_cf_t *config);
+
+    void (*set_value)(
+        if_gpio_t *iface,
+        bool value);
+
+    bool (*get_value)(
+        if_gpio_t *iface);
+};
+
+#define IF_GPIO(_INTERFACE) ((if_gpio_t *) (_INTERFACE))
 
 typedef struct if_serial_s if_serial_t;
 typedef struct if_serial_cf_s if_serial_cf_t;
@@ -141,14 +185,14 @@ struct if_spi_cf_s {
      *
      * The baudrate will be determined by the current clock setup and hardware abilities, but will never exceed
      * specified baud rate
-     * 
+     *
      * Unit in Hertz
      */
     uint32_t max_baud_rate;
 
     /**
      * SPI mode
-     * 
+     *
      * Sampling can either be done on leading or trailing edge of clock. Clock can either be active high or low.
      */
     if_spi_mode_t mode;

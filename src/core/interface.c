@@ -28,7 +28,7 @@ static if_rs_t *if_rs_allocate(
     int rsc_count = peripheral->decl->num_rscs;
     int i;
 
-    if(rsc_count != argc) {
+    if (rsc_count != argc) {
         return NULL;
     }
 

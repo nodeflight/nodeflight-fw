@@ -37,6 +37,7 @@ typedef struct sdcard_spi_s sdcard_spi_t;
 
 struct sdcard_spi_s {
     if_spi_t *if_spi;
+    if_gpio_t *if_cs;
 
     TaskHandle_t task;
 };
@@ -48,13 +49,16 @@ static int sdcard_spi_init(
 static void sdcard_spi_task(
     void *storage);
 
-MD_DECL(sdcard_spi, "p", sdcard_spi_init);
+MD_DECL(sdcard_spi, "pp", sdcard_spi_init);
 
 int sdcard_spi_init(
     const char *name,
     md_arg_t *args)
 {
     if (args[0].iface->peripheral->decl->type != PP_SPI) {
+        return -1;
+    }
+    if (args[1].iface->peripheral->decl->type != PP_GPIO) {
         return -1;
     }
 
@@ -66,11 +70,17 @@ int sdcard_spi_init(
     }
 
     sdc->if_spi = IF_SPI(args[0].iface);
-
     sdc->if_spi->configure(sdc->if_spi, &(if_spi_cf_t) {
         .max_baud_rate = 3400000,
         .mode = SPI_MODE_LEADING_HIGH
     });
+
+    sdc->if_cs = IF_GPIO(args[1].iface);
+    sdc->if_cs->configure(sdc->if_cs, &(if_gpio_cf_t) {
+        .dir = GPIO_DIR_OUT,
+        .pull = GPIO_PULL_NONE
+    });
+    sdc->if_cs->set_value(sdc->if_cs, true);
 
     xTaskCreate(sdcard_spi_task, "sdcard_spi", 1024, sdc, SDCARD_SPI_TASK_PRIORITY, &sdc->task);
     return 0;
@@ -89,7 +99,9 @@ void sdcard_spi_task(
     for (;;) {
         vTaskDelay(pdMS_TO_TICKS(250));
 
+        sdc->if_cs->set_value(sdc->if_cs, false);
         sdc->if_spi->transfer(sdc->if_spi, tx_buf, rx_buf, 8);
+        sdc->if_cs->set_value(sdc->if_cs, true);
 
         tfp_printf("tfr: %02x %02x %02x %02x %02x %02x %02x %02x\n",
             rx_buf[0], rx_buf[1], rx_buf[2], rx_buf[3],

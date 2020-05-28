@@ -16,22 +16,16 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#pragma once
+#include <stdint.h>
+#include "stm32.h"
 
-/* Just to be able to include the correct HAL drivers independent of platform */
+#include "platform/stm32/resource/gpio.h"
 
-#include "stm32f7xx.h"
-#include "stm32f7xx_ll_dma.h"
-#include "stm32f7xx_ll_pwr.h"
-#include "stm32f7xx_ll_rcc.h"
-#include "stm32f7xx_ll_gpio.h"
-#include "stm32f7xx_ll_spi.h"
-#include "stm32f7xx_ll_tim.h"
-#include "stm32f7xx_ll_usart.h"
-#include "stm32f7xx_ll_usb.h"
-#include "stm32f7xx_ll_utils.h"
+typedef struct gpio_def_s gpio_def_t;
 
-/* Maximum number of resources available, sets limit of allocated arrays for storage */
-#define UART_MAX_COUNT 8
-#define TIMER_MAX_COUNT 14
-#define SPI_MAX_COUNT 5
+PP_TYPE_EXTERN(gpio);
+
+enum {
+    GPIO_ARG_PIN = 0,
+    GPIO_NUM_ARGS
+};

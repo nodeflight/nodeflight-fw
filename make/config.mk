@@ -133,6 +133,7 @@ TARGET_stm32_INCLUDES = \
 	vendor/stm32/cmsis_core/Core/Include
 
 TARGET_stm32_SOURCES = \
+	platform/stm32/peripheral/gpio.c \
 	platform/stm32/peripheral/spi.c \
 	platform/stm32/peripheral/timer.c \
 	platform/stm32/peripheral/uart.c \

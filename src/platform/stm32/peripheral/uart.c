@@ -144,7 +144,7 @@ int uart_configure(
         if_uart->tx_buf_size = config->tx_buf_size;
 
         gpio_configure_alternative(&rscs[UART_ARG_PIN_TX]);
-        
+
         LL_USART_SetTXPinLevel(if_uart->def.reg,
             (config->flags & IF_SERIAL_INVERTED_TX)
             ? LL_USART_TXPIN_LEVEL_INVERTED
@@ -182,7 +182,7 @@ int uart_configure(
         if_uart->rx_buf_size = config->rx_buf_size;
 
         gpio_configure_alternative(&rscs[UART_ARG_PIN_RX]);
-        
+
         LL_USART_SetRXPinLevel(if_uart->def.reg,
             (config->flags & IF_SERIAL_INVERTED_RX)
             ? LL_USART_RXPIN_LEVEL_INVERTED

@@ -19,6 +19,7 @@
 #include "core/peripheral.h"
 #include "core/resource.h"
 
+#include "platform/stm32/peripheral/gpio.h"
 #include "platform/stm32/peripheral/spi.h"
 #include "platform/stm32/peripheral/uart.h"
 #include "platform/stm32/peripheral/usb_vcp.h"
@@ -27,6 +28,159 @@
 #include "stm32.h"
 
 #include <stddef.h>
+
+PP_INST_DECL(gpio, gpio_a00, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_a00, 0));
+PP_INST_DECL(gpio, gpio_a01, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_a01, 0));
+PP_INST_DECL(gpio, gpio_a02, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_a02, 0));
+PP_INST_DECL(gpio, gpio_a03, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_a03, 0));
+PP_INST_DECL(gpio, gpio_a04, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_a04, 0));
+PP_INST_DECL(gpio, gpio_a05, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_a05, 0));
+PP_INST_DECL(gpio, gpio_a06, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_a06, 0));
+PP_INST_DECL(gpio, gpio_a07, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_a07, 0));
+PP_INST_DECL(gpio, gpio_a08, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_a08, 0));
+PP_INST_DECL(gpio, gpio_a09, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_a09, 0));
+PP_INST_DECL(gpio, gpio_a10, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_a10, 0));
+PP_INST_DECL(gpio, gpio_a11, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_a11, 0));
+PP_INST_DECL(gpio, gpio_a12, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_a12, 0));
+PP_INST_DECL(gpio, gpio_a13, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_a13, 0));
+PP_INST_DECL(gpio, gpio_a14, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_a14, 0));
+PP_INST_DECL(gpio, gpio_a15, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_a15, 0));
+
+PP_INST_DECL(gpio, gpio_b00, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_b00, 0));
+PP_INST_DECL(gpio, gpio_b01, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_b01, 0));
+PP_INST_DECL(gpio, gpio_b02, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_b02, 0));
+PP_INST_DECL(gpio, gpio_b03, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_b03, 0));
+PP_INST_DECL(gpio, gpio_b04, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_b04, 0));
+PP_INST_DECL(gpio, gpio_b05, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_b05, 0));
+PP_INST_DECL(gpio, gpio_b06, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_b06, 0));
+PP_INST_DECL(gpio, gpio_b07, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_b07, 0));
+PP_INST_DECL(gpio, gpio_b08, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_b08, 0));
+PP_INST_DECL(gpio, gpio_b09, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_b09, 0));
+PP_INST_DECL(gpio, gpio_b10, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_b10, 0));
+PP_INST_DECL(gpio, gpio_b11, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_b11, 0));
+PP_INST_DECL(gpio, gpio_b12, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_b12, 0));
+PP_INST_DECL(gpio, gpio_b13, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_b13, 0));
+PP_INST_DECL(gpio, gpio_b14, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_b14, 0));
+PP_INST_DECL(gpio, gpio_b15, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_b15, 0));
+
+PP_INST_DECL(gpio, gpio_c00, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_c00, 0));
+PP_INST_DECL(gpio, gpio_c01, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_c01, 0));
+PP_INST_DECL(gpio, gpio_c02, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_c02, 0));
+PP_INST_DECL(gpio, gpio_c03, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_c03, 0));
+PP_INST_DECL(gpio, gpio_c04, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_c04, 0));
+PP_INST_DECL(gpio, gpio_c05, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_c05, 0));
+PP_INST_DECL(gpio, gpio_c06, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_c06, 0));
+PP_INST_DECL(gpio, gpio_c07, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_c07, 0));
+PP_INST_DECL(gpio, gpio_c08, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_c08, 0));
+PP_INST_DECL(gpio, gpio_c09, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_c09, 0));
+PP_INST_DECL(gpio, gpio_c10, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_c10, 0));
+PP_INST_DECL(gpio, gpio_c11, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_c11, 0));
+PP_INST_DECL(gpio, gpio_c12, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_c12, 0));
+PP_INST_DECL(gpio, gpio_c13, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_c13, 0));
+PP_INST_DECL(gpio, gpio_c14, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_c14, 0));
+PP_INST_DECL(gpio, gpio_c15, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_c15, 0));
+
+PP_INST_DECL(gpio, gpio_d00, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_d00, 0));
+PP_INST_DECL(gpio, gpio_d01, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_d01, 0));
+PP_INST_DECL(gpio, gpio_d02, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_d02, 0));
+PP_INST_DECL(gpio, gpio_d03, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_d03, 0));
+PP_INST_DECL(gpio, gpio_d04, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_d04, 0));
+PP_INST_DECL(gpio, gpio_d05, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_d05, 0));
+PP_INST_DECL(gpio, gpio_d06, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_d06, 0));
+PP_INST_DECL(gpio, gpio_d07, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_d07, 0));
+PP_INST_DECL(gpio, gpio_d08, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_d08, 0));
+PP_INST_DECL(gpio, gpio_d09, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_d09, 0));
+PP_INST_DECL(gpio, gpio_d10, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_d10, 0));
+PP_INST_DECL(gpio, gpio_d11, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_d11, 0));
+PP_INST_DECL(gpio, gpio_d12, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_d12, 0));
+PP_INST_DECL(gpio, gpio_d13, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_d13, 0));
+PP_INST_DECL(gpio, gpio_d14, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_d14, 0));
+PP_INST_DECL(gpio, gpio_d15, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_d15, 0));
+
+PP_INST_DECL(gpio, gpio_e00, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_e00, 0));
+PP_INST_DECL(gpio, gpio_e01, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_e01, 0));
+PP_INST_DECL(gpio, gpio_e02, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_e02, 0));
+PP_INST_DECL(gpio, gpio_e03, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_e03, 0));
+PP_INST_DECL(gpio, gpio_e04, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_e04, 0));
+PP_INST_DECL(gpio, gpio_e05, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_e05, 0));
+PP_INST_DECL(gpio, gpio_e06, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_e06, 0));
+PP_INST_DECL(gpio, gpio_e07, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_e07, 0));
+PP_INST_DECL(gpio, gpio_e08, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_e08, 0));
+PP_INST_DECL(gpio, gpio_e09, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_e09, 0));
+PP_INST_DECL(gpio, gpio_e10, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_e10, 0));
+PP_INST_DECL(gpio, gpio_e11, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_e11, 0));
+PP_INST_DECL(gpio, gpio_e12, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_e12, 0));
+PP_INST_DECL(gpio, gpio_e13, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_e13, 0));
+PP_INST_DECL(gpio, gpio_e14, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_e14, 0));
+PP_INST_DECL(gpio, gpio_e15, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_e15, 0));
+
+PP_INST_DECL(gpio, gpio_f00, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_f00, 0));
+PP_INST_DECL(gpio, gpio_f01, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_f01, 0));
+PP_INST_DECL(gpio, gpio_f02, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_f02, 0));
+PP_INST_DECL(gpio, gpio_f03, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_f03, 0));
+PP_INST_DECL(gpio, gpio_f04, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_f04, 0));
+PP_INST_DECL(gpio, gpio_f05, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_f05, 0));
+PP_INST_DECL(gpio, gpio_f06, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_f06, 0));
+PP_INST_DECL(gpio, gpio_f07, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_f07, 0));
+PP_INST_DECL(gpio, gpio_f08, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_f08, 0));
+PP_INST_DECL(gpio, gpio_f09, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_f09, 0));
+PP_INST_DECL(gpio, gpio_f10, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_f10, 0));
+PP_INST_DECL(gpio, gpio_f11, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_f11, 0));
+PP_INST_DECL(gpio, gpio_f12, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_f12, 0));
+PP_INST_DECL(gpio, gpio_f13, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_f13, 0));
+PP_INST_DECL(gpio, gpio_f14, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_f14, 0));
+PP_INST_DECL(gpio, gpio_f15, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_f15, 0));
+
+PP_INST_DECL(gpio, gpio_g00, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_g00, 0));
+PP_INST_DECL(gpio, gpio_g01, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_g01, 0));
+PP_INST_DECL(gpio, gpio_g02, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_g02, 0));
+PP_INST_DECL(gpio, gpio_g03, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_g03, 0));
+PP_INST_DECL(gpio, gpio_g04, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_g04, 0));
+PP_INST_DECL(gpio, gpio_g05, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_g05, 0));
+PP_INST_DECL(gpio, gpio_g06, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_g06, 0));
+PP_INST_DECL(gpio, gpio_g07, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_g07, 0));
+PP_INST_DECL(gpio, gpio_g08, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_g08, 0));
+PP_INST_DECL(gpio, gpio_g09, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_g09, 0));
+PP_INST_DECL(gpio, gpio_g10, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_g10, 0));
+PP_INST_DECL(gpio, gpio_g11, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_g11, 0));
+PP_INST_DECL(gpio, gpio_g12, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_g12, 0));
+PP_INST_DECL(gpio, gpio_g13, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_g13, 0));
+PP_INST_DECL(gpio, gpio_g14, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_g14, 0));
+PP_INST_DECL(gpio, gpio_g15, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_g15, 0));
+
+PP_INST_DECL(gpio, gpio_h00, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_h00, 0));
+PP_INST_DECL(gpio, gpio_h01, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_h01, 0));
+PP_INST_DECL(gpio, gpio_h02, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_h02, 0));
+PP_INST_DECL(gpio, gpio_h03, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_h03, 0));
+PP_INST_DECL(gpio, gpio_h04, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_h04, 0));
+PP_INST_DECL(gpio, gpio_h05, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_h05, 0));
+PP_INST_DECL(gpio, gpio_h06, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_h06, 0));
+PP_INST_DECL(gpio, gpio_h07, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_h07, 0));
+PP_INST_DECL(gpio, gpio_h08, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_h08, 0));
+PP_INST_DECL(gpio, gpio_h09, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_h09, 0));
+PP_INST_DECL(gpio, gpio_h10, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_h10, 0));
+PP_INST_DECL(gpio, gpio_h11, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_h11, 0));
+PP_INST_DECL(gpio, gpio_h12, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_h12, 0));
+PP_INST_DECL(gpio, gpio_h13, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_h13, 0));
+PP_INST_DECL(gpio, gpio_h14, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_h14, 0));
+PP_INST_DECL(gpio, gpio_h15, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_h15, 0));
+
+PP_INST_DECL(gpio, gpio_i00, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_i00, 0));
+PP_INST_DECL(gpio, gpio_i01, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_i01, 0));
+PP_INST_DECL(gpio, gpio_i02, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_i02, 0));
+PP_INST_DECL(gpio, gpio_i03, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_i03, 0));
+PP_INST_DECL(gpio, gpio_i04, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_i04, 0));
+PP_INST_DECL(gpio, gpio_i05, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_i05, 0));
+PP_INST_DECL(gpio, gpio_i06, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_i06, 0));
+PP_INST_DECL(gpio, gpio_i07, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_i07, 0));
+PP_INST_DECL(gpio, gpio_i08, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_i08, 0));
+PP_INST_DECL(gpio, gpio_i09, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_i09, 0));
+PP_INST_DECL(gpio, gpio_i10, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_i10, 0));
+PP_INST_DECL(gpio, gpio_i11, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_i11, 0));
+PP_INST_DECL(gpio, gpio_i12, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_i12, 0));
+PP_INST_DECL(gpio, gpio_i13, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_i13, 0));
+PP_INST_DECL(gpio, gpio_i14, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_i14, 0));
+PP_INST_DECL(gpio, gpio_i15, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_i15, 0));
 
 PP_INST_DECL(uart, uart1, UART_DEF(USART1, 0),
     PP_INST_RS(UART_ARG_PIN_TX, pin_none, 0),

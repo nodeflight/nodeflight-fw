@@ -62,7 +62,7 @@ static GPIO_TypeDef *const gpio_ports[] = {
 void gpio_configure_alternative(
     const if_rs_t *rs)
 {
-    LL_GPIO_Init(gpio_ports[(rs->decl->ref & 0x0000ff00)>>8], &(LL_GPIO_InitTypeDef) {
+    LL_GPIO_Init(gpio_ports[(rs->decl->ref & 0x0000ff00) >> 8], &(LL_GPIO_InitTypeDef) {
         .Pin = 1 << (rs->decl->ref & 0x000000ff),
         .Mode = LL_GPIO_MODE_ALTERNATE,
         .Speed = LL_GPIO_SPEED_FREQ_VERY_HIGH,
@@ -75,7 +75,7 @@ void gpio_configure_alternative(
 void gpio_configure_out(
     uint32_t id)
 {
-    LL_GPIO_Init(gpio_ports[(id & 0x0000ff00)>>8], &(LL_GPIO_InitTypeDef) {
+    LL_GPIO_Init(gpio_ports[(id & 0x0000ff00) >> 8], &(LL_GPIO_InitTypeDef) {
         .Pin = 1 << (id & 0x000000ff),
         .Mode = LL_GPIO_MODE_OUTPUT,
         .Speed = LL_GPIO_SPEED_FREQ_VERY_HIGH,
@@ -88,7 +88,7 @@ void gpio_configure_out(
 void gpio_configure_in(
     uint32_t id)
 {
-    LL_GPIO_Init(gpio_ports[(id & 0x0000ff00)>>8], &(LL_GPIO_InitTypeDef) {
+    LL_GPIO_Init(gpio_ports[(id & 0x0000ff00) >> 8], &(LL_GPIO_InitTypeDef) {
         .Pin = 1 << (id & 0x000000ff),
         .Mode = LL_GPIO_MODE_INPUT,
         .Speed = LL_GPIO_SPEED_FREQ_VERY_HIGH,
@@ -111,7 +111,7 @@ void gpio_set_value(
     }
 }
 
-bool gpio_get(
+bool gpio_get_value(
     uint32_t id)
 {
     return 0 != (LL_GPIO_ReadInputPort(gpio_ports[(id & 0x0000ff00) >> 8]) & (1 << (id & 0x000000ff)));
