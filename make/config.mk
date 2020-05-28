@@ -37,6 +37,7 @@ TARGET_nodeflight_SOURCES = \
 	module/math/arithmetic.c \
 	module/math/calculus.c \
 	module/mgmt/nfcp.c \
+	module/mgmt/sdcard_spi.c \
 	module/mgmt/stdout.c \
 	module/rc_io/fport.c \
 	module/rc_io/servo.c \
@@ -134,6 +135,7 @@ TARGET_stm32_INCLUDES = \
 TARGET_stm32_SOURCES = \
 	platform/stm32/hwacc/dma.c \
 	platform/stm32/hwacc/gpio.c \
+	platform/stm32/hwacc/spi.c \
 	platform/stm32/hwacc/timer.c \
 	platform/stm32/hwacc/uart.c \
 	platform/stm32/hwacc/usb_vcp.c \
@@ -215,6 +217,7 @@ TARGET_stm32f7xx_SOURCES = \
 	vendor/stm32/stm32f7xx_hal_driver/Src/stm32f7xx_ll_dma.c \
 	vendor/stm32/stm32f7xx_hal_driver/Src/stm32f7xx_ll_gpio.c \
 	vendor/stm32/stm32f7xx_hal_driver/Src/stm32f7xx_ll_rcc.c \
+	vendor/stm32/stm32f7xx_hal_driver/Src/stm32f7xx_ll_spi.c \
 	vendor/stm32/stm32f7xx_hal_driver/Src/stm32f7xx_ll_tim.c \
 	vendor/stm32/stm32f7xx_hal_driver/Src/stm32f7xx_ll_usart.c \
 	vendor/stm32/stm32f7xx_hal_driver/Src/stm32f7xx_ll_utils.c \

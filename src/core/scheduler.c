@@ -25,8 +25,8 @@
 #include "semphr.h"
 
 #define SCHEDULER_CLIENTS_PER_POOL    32
-#define SCHEDULER_TASK_BASE_PRIORITY  10
-#define SCHEDULER_NUM_PRIORITIES      10
+#define SCHEDULER_TASK_BASE_PRIORITY  8
+#define SCHEDULER_NUM_PRIORITIES      8
 #define SCHEDULER_NOTIFY_EXECUTE      (1 << 0)
 #define SCHEDULER_TIMEOUT             (1000 * portTICK_PERIOD_MS)
 
@@ -279,7 +279,7 @@ void sc_task(
     uint32_t notify_value;
 
     for (;;) {
-        xTaskNotifyWait(0, UINT32_MAX, &notify_value, SCHEDULER_TIMEOUT);
+        xTaskNotifyWait(0, 0x00ffffff, &notify_value, SCHEDULER_TIMEOUT);
         if (notify_value & SCHEDULER_NOTIFY_EXECUTE && sc_is_enabled) {
             /*
              * Should not be an issue with races... Any registered client will always be registered, so

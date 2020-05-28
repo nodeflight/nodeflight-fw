@@ -36,7 +36,7 @@
 #define FPORT_FLAG_CH18       0x02
 #define FPORT_FLAG_CH17       0x04
 
-#define FPORT_TASK_PRIORITY   15
+#define FPORT_TASK_PRIORITY   7
 
 #define FPORT_TIMEOUT         (50 * portTICK_PERIOD_MS)
 

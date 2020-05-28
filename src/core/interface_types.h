@@ -124,3 +124,54 @@ struct if_pwm_s {
 };
 
 #define IF_PWM(_INTERFACE) ((if_pwm_t *) (_INTERFACE))
+
+typedef struct if_spi_s if_spi_t;
+typedef struct if_spi_cf_s if_spi_cf_t;
+
+typedef enum if_spi_mode_s {
+    SPI_MODE_LEADING_HIGH = 0,
+    SPI_MODE_LEADING_LOW,
+    SPI_MODE_TRAILING_HIGH,
+    SPI_MODE_TRAILING_LOW
+} if_spi_mode_t;
+
+struct if_spi_cf_s {
+    /**
+     * Maximum allowed baud rate
+     *
+     * The baudrate will be determined by the current clock setup and hardware abilities, but will never exceed
+     * specified baud rate
+     * 
+     * Unit in Hertz
+     */
+    uint32_t max_baud_rate;
+
+    /**
+     * SPI mode
+     * 
+     * Sampling can either be done on leading or trailing edge of clock. Clock can either be active high or low.
+     */
+    if_spi_mode_t mode;
+};
+
+struct if_spi_s {
+    if_header_t header;
+
+    /**
+     * Configure SPI output
+     */
+    int (*configure)(
+        if_spi_t *iface,
+        const if_spi_cf_t *config);
+
+    /**
+     * Transfer single byte syncrhonously
+     */
+    void (*transfer)(
+        if_spi_t *iface,
+        uint8_t *tx_buf,
+        uint8_t *rx_buf,
+        int length);
+};
+
+#define IF_SPI(_INTERFACE) ((if_spi_t *) (_INTERFACE))

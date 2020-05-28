@@ -19,6 +19,7 @@
 #include "core/peripheral.h"
 #include "core/resource.h"
 
+#include "platform/stm32/hwacc/spi.h"
 #include "platform/stm32/hwacc/uart.h"
 #include "platform/stm32/hwacc/usb_vcp.h"
 #include "platform/stm32/hwacc/timer.h"
@@ -487,3 +488,104 @@ PP_INST_DECL(timer, tim14_ch1, TIMER_DEF(14, 1, TIM8_TRG_COM_TIM14_IRQn),
 // );
 // PP_INST_DECL(timer, tim14_ch4, TIMER_DEF(14, 4, TIM8_TRG_COM_TIM14_IRQn),
 // );
+
+PP_INST_DECL(spi, spi1, SPI_DEF(1),
+    PP_INST_RS(SPI_ARG_PIN_SCK, pin_a05, 5),
+    PP_INST_RS(SPI_ARG_PIN_SCK, pin_b03, 5),
+
+    PP_INST_RS(SPI_ARG_PIN_MOSI, pin_a07, 5),
+    PP_INST_RS(SPI_ARG_PIN_MOSI, pin_b05, 5),
+
+    PP_INST_RS(SPI_ARG_PIN_MISO, pin_a06, 5),
+    PP_INST_RS(SPI_ARG_PIN_MISO, pin_b04, 5),
+
+    PP_INST_RS(SPI_ARG_DMA_TX, dma_2_3, 3),
+    PP_INST_RS(SPI_ARG_DMA_TX, dma_2_5, 3),
+    PP_INST_RS(SPI_ARG_DMA_TX, dma_none, 0),
+
+    PP_INST_RS(SPI_ARG_DMA_RX, dma_2_0, 3),
+    PP_INST_RS(SPI_ARG_DMA_RX, dma_2_2, 3),
+    PP_INST_RS(SPI_ARG_DMA_RX, dma_none, 0)
+);
+
+PP_INST_DECL(spi, spi2, SPI_DEF(2),
+    PP_INST_RS(SPI_ARG_PIN_SCK, pin_a09, 5),
+    PP_INST_RS(SPI_ARG_PIN_SCK, pin_b10, 5),
+    PP_INST_RS(SPI_ARG_PIN_SCK, pin_b13, 5),
+    PP_INST_RS(SPI_ARG_PIN_SCK, pin_d03, 5),
+    PP_INST_RS(SPI_ARG_PIN_SCK, pin_d03, 5),
+    PP_INST_RS(SPI_ARG_PIN_SCK, pin_i01, 5),
+
+    PP_INST_RS(SPI_ARG_PIN_MOSI, pin_b15, 5),
+    PP_INST_RS(SPI_ARG_PIN_MOSI, pin_c01, 5),
+    PP_INST_RS(SPI_ARG_PIN_MOSI, pin_i03, 5),
+
+    PP_INST_RS(SPI_ARG_PIN_MISO, pin_b14, 5),
+    PP_INST_RS(SPI_ARG_PIN_MISO, pin_c02, 5),
+    PP_INST_RS(SPI_ARG_PIN_MISO, pin_i02, 5),
+
+    PP_INST_RS(SPI_ARG_DMA_TX, dma_1_4, 0),
+    PP_INST_RS(SPI_ARG_DMA_TX, dma_none, 0),
+
+    PP_INST_RS(SPI_ARG_DMA_RX, dma_1_3, 0),
+    PP_INST_RS(SPI_ARG_DMA_RX, dma_none, 0)
+);
+
+PP_INST_DECL(spi, spi3, SPI_DEF(3),
+    PP_INST_RS(SPI_ARG_PIN_SCK, pin_b03, 6),
+    PP_INST_RS(SPI_ARG_PIN_SCK, pin_c10, 6),
+
+    PP_INST_RS(SPI_ARG_PIN_MOSI, pin_b05, 6),
+    PP_INST_RS(SPI_ARG_PIN_MOSI, pin_b02, 7),
+    PP_INST_RS(SPI_ARG_PIN_MOSI, pin_c12, 6),
+    PP_INST_RS(SPI_ARG_PIN_MOSI, pin_d06, 5),
+
+    PP_INST_RS(SPI_ARG_PIN_MISO, pin_b04, 6),
+    PP_INST_RS(SPI_ARG_PIN_MISO, pin_c11, 6),
+
+    PP_INST_RS(SPI_ARG_DMA_TX, dma_1_5, 0),
+    PP_INST_RS(SPI_ARG_DMA_TX, dma_1_7, 0),
+    PP_INST_RS(SPI_ARG_DMA_TX, dma_none, 0),
+
+    PP_INST_RS(SPI_ARG_DMA_RX, dma_1_0, 0),
+    PP_INST_RS(SPI_ARG_DMA_RX, dma_1_2, 0),
+    PP_INST_RS(SPI_ARG_DMA_RX, dma_none, 0)
+);
+
+PP_INST_DECL(spi, spi4, SPI_DEF(4),
+    PP_INST_RS(SPI_ARG_PIN_SCK, pin_e02, 5),
+    PP_INST_RS(SPI_ARG_PIN_SCK, pin_e12, 5),
+
+    PP_INST_RS(SPI_ARG_PIN_MOSI, pin_e06, 5),
+    PP_INST_RS(SPI_ARG_PIN_MOSI, pin_e14, 5),
+
+    PP_INST_RS(SPI_ARG_PIN_MISO, pin_e05, 5),
+    PP_INST_RS(SPI_ARG_PIN_MISO, pin_e13, 5),
+
+    PP_INST_RS(SPI_ARG_DMA_TX, dma_2_1, 4),
+    PP_INST_RS(SPI_ARG_DMA_TX, dma_2_4, 5),
+    PP_INST_RS(SPI_ARG_DMA_TX, dma_none, 0),
+
+    PP_INST_RS(SPI_ARG_DMA_RX, dma_2_0, 4),
+    PP_INST_RS(SPI_ARG_DMA_RX, dma_2_3, 5),
+    PP_INST_RS(SPI_ARG_DMA_RX, dma_none, 0)
+);
+
+PP_INST_DECL(spi, spi5, SPI_DEF(5),
+    PP_INST_RS(SPI_ARG_PIN_SCK, pin_f07, 5),
+    PP_INST_RS(SPI_ARG_PIN_SCK, pin_h06, 5),
+
+    PP_INST_RS(SPI_ARG_PIN_MOSI, pin_f09, 5),
+    PP_INST_RS(SPI_ARG_PIN_MOSI, pin_f11, 5),
+
+    PP_INST_RS(SPI_ARG_PIN_MISO, pin_f08, 5),
+    PP_INST_RS(SPI_ARG_PIN_MISO, pin_h07, 5),
+
+    PP_INST_RS(SPI_ARG_DMA_TX, dma_2_4, 2),
+    PP_INST_RS(SPI_ARG_DMA_TX, dma_2_6, 7),
+    PP_INST_RS(SPI_ARG_DMA_TX, dma_none, 0),
+
+    PP_INST_RS(SPI_ARG_DMA_RX, dma_2_3, 2),
+    PP_INST_RS(SPI_ARG_DMA_RX, dma_2_5, 7),
+    PP_INST_RS(SPI_ARG_DMA_RX, dma_none, 0)
+);

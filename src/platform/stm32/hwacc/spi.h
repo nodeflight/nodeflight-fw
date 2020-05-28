@@ -18,20 +18,31 @@
 
 #pragma once
 
-/* Just to be able to include the correct HAL drivers independent of platform */
+#include <stdint.h>
+#include "stm32.h"
 
-#include "stm32f7xx.h"
-#include "stm32f7xx_ll_dma.h"
-#include "stm32f7xx_ll_pwr.h"
-#include "stm32f7xx_ll_rcc.h"
-#include "stm32f7xx_ll_gpio.h"
-#include "stm32f7xx_ll_spi.h"
-#include "stm32f7xx_ll_tim.h"
-#include "stm32f7xx_ll_usart.h"
-#include "stm32f7xx_ll_usb.h"
-#include "stm32f7xx_ll_utils.h"
+typedef struct spi_def_s spi_def_t;
 
-/* Maximum number of resources available, sets limit of allocated arrays for storage */
-#define UART_MAX_COUNT 8
-#define TIMER_MAX_COUNT 14
-#define SPI_MAX_COUNT 5
+PP_TYPE_EXTERN(spi);
+
+struct spi_def_s {
+    SPI_TypeDef *reg;
+    uint16_t id;
+    int16_t IRQn;
+};
+
+#define SPI_DEF(_ID) \
+    (void *) &(const spi_def_t) { \
+        .reg = SPI ## _ID, \
+        .id = _ID - 1, \
+        .IRQn = SPI ## _ID ## _IRQn \
+    }
+
+enum {
+    SPI_ARG_PIN_SCK = 0,
+    SPI_ARG_PIN_MOSI,
+    SPI_ARG_PIN_MISO,
+    SPI_ARG_DMA_TX,
+    SPI_ARG_DMA_RX,
+    SPI_NUM_ARGS
+};

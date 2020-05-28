@@ -66,7 +66,7 @@ int main(
     vPortInitialiseBlocks();
     platform_init();
 
-    xTaskCreate(main_task, "main", 1024, NULL, 0, NULL);
+    xTaskCreate(main_task, "main", 1024, NULL, 1, NULL);
 
     vTaskStartScheduler();
     return 0;

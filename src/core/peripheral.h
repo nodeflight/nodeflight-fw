@@ -38,7 +38,8 @@ typedef struct pp_inst_rs_s pp_inst_rs_t;
 typedef enum pp_type_s {
     PP_NONE = 0,
     PP_SERIAL,
-    PP_PWM
+    PP_PWM,
+    PP_SPI
 } pp_type_t;
 
 #include "core/interface.h"
