@@ -18,7 +18,7 @@
 
 #pragma once
 
-#include "platform/stm32/hwacc/dma.h"
+#include "platform/stm32/resource/dma.h"
 
 #include "stm32.h"
 

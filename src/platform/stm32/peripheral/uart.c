@@ -22,9 +22,9 @@
 #include "core/resource.h"
 #include "core/interface.h"
 #include "core/interface_types.h"
-#include "platform/stm32/hwacc/uart.h"
-#include "platform/stm32/hwacc/gpio.h"
-#include "platform/stm32/hwacc/dma.h"
+#include "platform/stm32/peripheral/uart.h"
+#include "platform/stm32/resource/gpio.h"
+#include "platform/stm32/resource/dma.h"
 
 #include "FreeRTOS.h"
 

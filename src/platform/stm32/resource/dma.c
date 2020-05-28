@@ -17,7 +17,7 @@
  */
 
 #include "stm32.h"
-#include "hwacc/dma.h"
+#include "platform/stm32/resource/dma.h"
 
 #include <stddef.h>
 

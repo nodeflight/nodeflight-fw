@@ -19,7 +19,7 @@
 #include "stm32.h"
 #include "FreeRTOS.h"
 
-#include "platform/stm32/hwacc/gpio.h"
+#include "platform/stm32/resource/gpio.h"
 
 #include "platform/platform.h"
 

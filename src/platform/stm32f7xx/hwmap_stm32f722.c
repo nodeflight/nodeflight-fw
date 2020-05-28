@@ -19,10 +19,10 @@
 #include "core/peripheral.h"
 #include "core/resource.h"
 
-#include "platform/stm32/hwacc/spi.h"
-#include "platform/stm32/hwacc/uart.h"
-#include "platform/stm32/hwacc/usb_vcp.h"
-#include "platform/stm32/hwacc/timer.h"
+#include "platform/stm32/peripheral/spi.h"
+#include "platform/stm32/peripheral/uart.h"
+#include "platform/stm32/peripheral/usb_vcp.h"
+#include "platform/stm32/peripheral/timer.h"
 
 #include "stm32.h"
 

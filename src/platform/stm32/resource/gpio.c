@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "platform/stm32/hwacc/gpio.h"
+#include "platform/stm32/resource/gpio.h"
 #include "core/resource.h"
 
 #include "stm32.h"

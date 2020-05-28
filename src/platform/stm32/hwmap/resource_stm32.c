@@ -18,8 +18,8 @@
 
 #include "core/resource.h"
 
-#include "platform/stm32/hwacc/gpio.h"
-#include "platform/stm32/hwacc/dma.h"
+#include "platform/stm32/resource/gpio.h"
+#include "platform/stm32/resource/dma.h"
 
 #include "stm32.h"
 

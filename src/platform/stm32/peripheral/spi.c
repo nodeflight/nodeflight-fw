@@ -19,9 +19,9 @@
 #include "core/peripheral.h"
 #include "core/interface.h"
 #include "core/interface_types.h"
-#include "platform/stm32/hwacc/spi.h"
-#include "platform/stm32/hwacc/gpio.h"
-#include "platform/stm32/hwacc/dma.h"
+#include "platform/stm32/peripheral/spi.h"
+#include "platform/stm32/resource/gpio.h"
+#include "platform/stm32/resource/dma.h"
 
 #include "stm32.h"
 

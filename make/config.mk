@@ -133,12 +133,12 @@ TARGET_stm32_INCLUDES = \
 	vendor/stm32/cmsis_core/Core/Include
 
 TARGET_stm32_SOURCES = \
-	platform/stm32/hwacc/dma.c \
-	platform/stm32/hwacc/gpio.c \
-	platform/stm32/hwacc/spi.c \
-	platform/stm32/hwacc/timer.c \
-	platform/stm32/hwacc/uart.c \
-	platform/stm32/hwacc/usb_vcp.c \
+	platform/stm32/peripheral/spi.c \
+	platform/stm32/peripheral/timer.c \
+	platform/stm32/peripheral/uart.c \
+	platform/stm32/peripheral/usb_vcp.c \
+	platform/stm32/resource/dma.c \
+	platform/stm32/resource/gpio.c \
 	platform/stm32/hwmap/resource_stm32.c \
 	platform/stm32/fault_irq.c
 

@@ -20,9 +20,9 @@
 #include "core/peripheral.h"
 #include "core/resource.h"
 #include "core/interface_types.h"
-#include "platform/stm32/hwacc/dma.h"
-#include "platform/stm32/hwacc/timer.h"
-#include "platform/stm32/hwacc/gpio.h"
+#include "platform/stm32/resource/dma.h"
+#include "platform/stm32/peripheral/timer.h"
+#include "platform/stm32/resource/gpio.h"
 
 #include "FreeRTOS.h"
 
