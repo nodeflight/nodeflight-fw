@@ -113,6 +113,8 @@ int spi_configure(
     spi_if_t *spi = (spi_if_t *) iface;
     if_rs_t *rscs = spi->header.header.rscs;
 
+    LL_SPI_Disable(spi->def.reg);
+
     /* TODO: Enable transfer via DMA */
 
     LL_SPI_InitTypeDef spi_conf = {

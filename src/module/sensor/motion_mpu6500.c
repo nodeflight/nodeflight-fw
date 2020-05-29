@@ -31,7 +31,8 @@
 #include <math.h>
 
 /* Specificataions from datasheet */
-#define MPU6500_SPI_FREQ_HZ          2000000UL /* Overdrive, max 1MHz */
+#define MPU6500_SPI_FREQ_STARTUP_HZ  1000000UL
+#define MPU6500_SPI_FREQ_RUNNING_HZ  5000000UL
 #define MPU6500_SPI_MODE             SPI_MODE_TRAILING_HIGH
 
 /* mpu6500 configuration */
@@ -94,7 +95,7 @@ int mpu6500_init(
     mpu->sched = args[3].sched;
 
     status = mpu->spi->configure(mpu->spi, &(const if_spi_cf_t) {
-        .max_baud_rate = MPU6500_SPI_FREQ_HZ,
+        .max_baud_rate = MPU6500_SPI_FREQ_STARTUP_HZ,
         .mode = MPU6500_SPI_MODE
     });
     if (status != 0) {
@@ -215,6 +216,15 @@ void mpu6500_task(
     mpu6500_write_reg(mpu, 55, 0xb0);
     /* INT_ENABLE: RAW_RDY_EN=1 */
     mpu6500_write_reg(mpu, 56, 0x01);
+
+
+    /*
+     * Reconfigure driver for higher speed
+     */
+    mpu->spi->configure(mpu->spi, &(const if_spi_cf_t) {
+        .max_baud_rate = MPU6500_SPI_FREQ_RUNNING_HZ,
+        .mode = MPU6500_SPI_MODE
+    });
 
     for (;;) {
         /* TODO: interrupt on signal */

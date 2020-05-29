@@ -45,7 +45,6 @@ PP_INST_DECL(gpio, gpio_a12, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_a12, 0));
 PP_INST_DECL(gpio, gpio_a13, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_a13, 0));
 PP_INST_DECL(gpio, gpio_a14, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_a14, 0));
 PP_INST_DECL(gpio, gpio_a15, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_a15, 0));
-
 PP_INST_DECL(gpio, gpio_b00, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_b00, 0));
 PP_INST_DECL(gpio, gpio_b01, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_b01, 0));
 PP_INST_DECL(gpio, gpio_b02, NULL, PP_INST_RS(GPIO_ARG_PIN, pin_b02, 0));
