@@ -8,13 +8,13 @@ mod - stdout uart_st
 per usb usb_vcp
 mod - nfcp usb
 
-per spi_sd_cs gpio_a15 pin_a15
-per spi_sd spi1 pin_a05 pin_a07 pin_a06 dma_none dma_none
+per sdcard_cs gpio_a15 pin_a15
+per sdcard_spi spi1 pin_a05 pin_a07 pin_a06 dma_none dma_none
 
 per spi_test_cs gpio_a04 pin_a04
 per spi_test spi1 pin_b03 pin_b05 pin_b04 dma_none dma_none
 
-#mod - sdcard_spi spi_test spi_test_cs
+mod - sdcard sdcard_spi sdcard_cs
 
 # Schedulers
 

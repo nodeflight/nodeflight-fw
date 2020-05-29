@@ -37,7 +37,7 @@ TARGET_nodeflight_SOURCES = \
 	module/math/arithmetic.c \
 	module/math/calculus.c \
 	module/mgmt/nfcp.c \
-	module/mgmt/sdcard_spi.c \
+	module/mgmt/sdcard.c \
 	module/mgmt/stdout.c \
 	module/rc_io/fport.c \
 	module/rc_io/servo.c \
