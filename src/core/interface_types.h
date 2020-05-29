@@ -35,6 +35,13 @@ typedef enum if_gpio_pull_s {
     GPIO_PULL_DOWN
 } if_gpio_pull_t;
 
+typedef enum if_gpio_edge_s {
+    GPIO_EDGE_NONE = 0,
+    GPIO_EDGE_RISING,
+    GPIO_EDGE_FALLING,
+    GPIO_EDGE_BOTH
+} if_gpio_edge_t;
+
 struct if_gpio_cf_s {
     /**
      * GPIO pin direction
@@ -45,6 +52,22 @@ struct if_gpio_cf_s {
      * GPIO pin pull resistor
      */
     if_gpio_pull_t pull;
+
+    /**
+     * Pin change interrupt config
+     */
+    if_gpio_edge_t edge;
+
+    /**
+     * Pin change interrupt routine
+     */
+    void (*edge_callback)(
+        void *storage);
+
+    /**
+     * Pin change interrupt storage
+     */
+    void *edge_storage;
 };
 
 struct if_gpio_s {

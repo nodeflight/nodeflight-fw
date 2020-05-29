@@ -25,8 +25,6 @@
 #include "FreeRTOS.h"
 #include "task.h"
 
-#include "vendor/tinyprintf/tinyprintf.h"
-
 #include <stddef.h>
 #include <math.h>
 
@@ -41,6 +39,9 @@
 /* Implementation specific parameter */
 #define MPU6500_TASK_PRIORITY        7
 #define MPU6500_TASK_STACK_WORDS     256
+
+#define MPU6500_NOTIFY_INT           0x00000001
+#define MPU6500_NOTIFY_TIMEOUT       pdMS_TO_TICKS(2)
 
 typedef struct mpu6500_s mpu6500_t;
 
@@ -63,6 +64,9 @@ static int mpu6500_init(
     md_arg_t *args);
 
 static void mpu6500_task(
+    void *storage);
+
+static void mpu6500_wakeup(
     void *storage);
 
 MD_DECL(motion_mpu6500, "ppps", mpu6500_init);
@@ -111,14 +115,6 @@ int mpu6500_init(
     }
     mpu->pin_cs->set_value(mpu->pin_cs, true);
 
-    status = mpu->pin_int->configure(mpu->pin_int, &(const if_gpio_cf_t) {
-        .dir = GPIO_DIR_IN,
-        .pull = GPIO_PULL_NONE
-    });
-    if (status != 0) {
-        return -1;
-    }
-
     if (0 != sc_configure_source(mpu->sched, 1.0f / MPU6500_SAMPLE_RATE)) {
         return -1;
     }
@@ -136,7 +132,28 @@ int mpu6500_init(
         mpu,
         MPU6500_TASK_PRIORITY,
         &mpu->task);
+
+    /* Configure interrupt pin after task is started, to reduce risk of early interrupt triggers */
+    status = mpu->pin_int->configure(mpu->pin_int, &(const if_gpio_cf_t) {
+        .dir = GPIO_DIR_IN,
+        .pull = GPIO_PULL_NONE,
+        .edge = GPIO_EDGE_FALLING,
+        .edge_callback = mpu6500_wakeup,
+        .edge_storage = mpu
+    });
+    if (status != 0) {
+        return -1;
+    }
     return 0;
+}
+
+static void mpu6500_wakeup(
+    void *storage)
+{
+    mpu6500_t *mpu = storage;
+    BaseType_t should_switch = pdFALSE;
+    xTaskNotifyFromISR(mpu->task, MPU6500_NOTIFY_INT, eSetBits, &should_switch);
+    portYIELD_FROM_ISR(should_switch);
 }
 
 static void mpu6500_write_reg(
@@ -150,20 +167,9 @@ static void mpu6500_write_reg(
     mpu->pin_cs->set_value(mpu->pin_cs, true);
 }
 
-void mpu6500_task(
-    void *storage)
+static void mpu6500_startup(
+    mpu6500_t *mpu)
 {
-    mpu6500_t *mpu = storage;
-    uint8_t tx_buf[16];
-    uint8_t rx_buf[16];
-    volatile float tmp_f;
-    int16_t tmp_i16;
-    int i;
-
-    for (i = 0; i < 16; i++) {
-        tx_buf[i] = 0;
-    }
-
     /* Power on */
 
     /* If the board has diffent power rails, give the system some margin to power up */
@@ -216,7 +222,24 @@ void mpu6500_task(
     mpu6500_write_reg(mpu, 55, 0xb0);
     /* INT_ENABLE: RAW_RDY_EN=1 */
     mpu6500_write_reg(mpu, 56, 0x01);
+}
 
+void mpu6500_task(
+    void *storage)
+{
+    mpu6500_t *mpu = storage;
+    uint8_t tx_buf[16];
+    uint8_t rx_buf[16];
+    volatile float tmp_f;
+    uint32_t notify_value;
+    int16_t tmp_i16;
+    int i;
+
+    for (i = 0; i < 16; i++) {
+        tx_buf[i] = 0;
+    }
+
+    mpu6500_startup(mpu);
 
     /*
      * Reconfigure driver for higher speed
@@ -227,8 +250,11 @@ void mpu6500_task(
     });
 
     for (;;) {
-        /* TODO: interrupt on signal */
-        while (mpu->pin_int->get_value(mpu->pin_int)) {
+        xTaskNotifyWait(0x00, UINT32_MAX, &notify_value, MPU6500_NOTIFY_TIMEOUT);
+
+        /* Abort request if interrupt hasn't triggered (active low). failsafe */
+        if (!(notify_value & MPU6500_NOTIFY_INT) && mpu->pin_int->get_value(mpu->pin_int)) {
+            continue;
         }
         /*
          * Read all values:
