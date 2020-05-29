@@ -667,11 +667,11 @@ PP_INST_DECL(spi, spi2, SPI_DEF(2),
     PP_INST_RS(SPI_ARG_PIN_SCK, pin_b10, 5),
     PP_INST_RS(SPI_ARG_PIN_SCK, pin_b13, 5),
     PP_INST_RS(SPI_ARG_PIN_SCK, pin_d03, 5),
-    PP_INST_RS(SPI_ARG_PIN_SCK, pin_d03, 5),
     PP_INST_RS(SPI_ARG_PIN_SCK, pin_i01, 5),
 
     PP_INST_RS(SPI_ARG_PIN_MOSI, pin_b15, 5),
     PP_INST_RS(SPI_ARG_PIN_MOSI, pin_c01, 5),
+    PP_INST_RS(SPI_ARG_PIN_MOSI, pin_c03, 5),
     PP_INST_RS(SPI_ARG_PIN_MOSI, pin_i03, 5),
 
     PP_INST_RS(SPI_ARG_PIN_MISO, pin_b14, 5),

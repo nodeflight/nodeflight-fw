@@ -14,16 +14,21 @@ per spi_sd spi1 pin_a05 pin_a07 pin_a06 dma_none dma_none
 per spi_test_cs gpio_a04 pin_a04
 per spi_test spi1 pin_b03 pin_b05 pin_b04 dma_none dma_none
 
-mod - sdcard_spi spi_test spi_test_cs
+#mod - sdcard_spi spi_test spi_test_cs
 
-# Clocking
+# Schedulers
 
-sch @hs 4
-sch @ls 3
+sch @gyro 4
+sch @pid 3
 
-per tmsch tim7_ch1 pin_none dma_none
-mod - sch_timer tmsch @hs 8000
-mod - sch_decim @hs @ls 2 4000
+mod - sch_decim @gyro @pid 2 4000
+
+# Motion
+
+per motion_cs gpio_d04 pin_d04
+per motion_int gpio_c00 pin_c00
+per motion_spi spi2 pin_d03 pin_c03 pin_c02 dma_none dma_none
+mod motion motion_mpu6500 motion_spi motion_cs motion_int @gyro
 
 # IO definitions
 
@@ -37,10 +42,10 @@ per pwm3 tim3_ch4 pin_b01 dma_none
 
 mod rc_rx fport uart_fport -
 
-mod sig1 int_f @ls rc_rx.0
-mod sig2 mul_f @ls rc_rx.1 rc_rx.2 
-mod sig3 neg_f @ls rc_rx.0
+mod sig1 int_f @pid rc_rx.0
+mod sig2 mul_f @pid rc_rx.1 rc_rx.2 
+mod sig3 neg_f @pid rc_rx.0
 
-mod - servo pwm1 @ls sig1.0
-mod - servo pwm2 @ls sig2.0
-mod - servo pwm3 @ls sig3.0
+mod - servo pwm1 @gyro motion.3
+mod - servo pwm2 @gyro motion.4
+mod - servo pwm3 @gyro motion.5

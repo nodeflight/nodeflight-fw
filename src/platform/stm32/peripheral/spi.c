@@ -79,8 +79,6 @@ int spi_init(
     spi->header.configure = spi_configure;
     spi->header.transfer = spi_transfer;
 
-    spi_interfaces[spi->def.id] = spi;
-
     return 0;
 }
 
@@ -151,6 +149,7 @@ int spi_configure(
         break;
     }
 
+    spi_interfaces[spi->def.id] = spi;
     LL_SPI_Init(spi->def.reg, &spi_conf);
     /* Receive in 8 bit blocks */
     LL_SPI_SetRxFIFOThreshold(spi->def.reg, LL_SPI_RX_FIFO_TH_QUARTER);

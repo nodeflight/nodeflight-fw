@@ -42,7 +42,8 @@ TARGET_nodeflight_SOURCES = \
 	module/rc_io/fport.c \
 	module/rc_io/servo.c \
 	module/scheduler/sch_decim.c \
-	module/scheduler/sch_timer.c
+	module/scheduler/sch_timer.c \
+	module/sensor/motion_mpu6500.c
 
 TARGET_nodeflight_INCLUDES = .
 
