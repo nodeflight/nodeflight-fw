@@ -32,7 +32,7 @@
 
 /* Specificataions from datasheet */
 #define MPU6500_SPI_FREQ_STARTUP_HZ  1000000UL
-#define MPU6500_SPI_FREQ_RUNNING_HZ  5000000UL
+#define MPU6500_SPI_FREQ_RUNNING_HZ  20000000UL
 #define MPU6500_SPI_MODE             SPI_MODE_TRAILING_HIGH
 
 /* mpu6500 configuration */
