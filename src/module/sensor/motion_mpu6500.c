@@ -37,7 +37,7 @@
 #define MPU6500_SAMPLE_RATE          8000
 
 /* Implementation specific parameter */
-#define MPU6500_TASK_PRIORITY        7
+#define MPU6500_TASK_PRIORITY        15
 #define MPU6500_TASK_STACK_WORDS     256
 
 #define MPU6500_NOTIFY_INT           0x00000001

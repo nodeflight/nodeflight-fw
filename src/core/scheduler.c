@@ -30,7 +30,7 @@
 #define SCHEDULER_NOTIFY_EXECUTE      (1 << 0)
 #define SCHEDULER_TIMEOUT             (1000 * portTICK_PERIOD_MS)
 
-#define SCHEDULER_STACK_WORDS         1024
+#define SCHEDULER_STACK_WORDS         256
 
 typedef struct sc_client_pool_s sc_client_pool_t;
 

@@ -32,6 +32,17 @@
 
 #include "vendor/tinyprintf/tinyprintf.h"
 
+#if configUSE_TRACE_FACILITY
+static const char *task_state_name[] = {
+    [eRunning] = "running",
+    [eReady] = "ready",
+    [eBlocked] = "blocked",
+    [eSuspended] = "suspended",
+    [eDeleted] = "deleted",
+    [eInvalid] = "invalid"
+};
+#endif
+
 static void print_boot_message(
     void)
 {
@@ -75,6 +86,7 @@ int main(
 static void main_task(
     void *storage)
 {
+
     vr_init();
     sc_init();
 
@@ -103,7 +115,32 @@ static void main_task(
 
     sc_enable();
 
-    vTaskSuspend(NULL);
-    for (;;) {
+#if configUSE_TRACE_FACILITY
+    {
+        TaskStatus_t tasks[32];
+        UBaseType_t num_tasks;
+        uint32_t runtime;
+        UBaseType_t i;
+
+        vTaskDelay(pdMS_TO_TICKS(1000));
+        for (;;) {
+            num_tasks = uxTaskGetSystemState(tasks, 32, &runtime);
+            tfp_printf("\nnum_tasks = %lu  runtime = %lu\n", num_tasks, runtime);
+            for (i = 0; i < num_tasks; i++) {
+                TaskStatus_t *t = &tasks[i];
+                tfp_printf("task[%2lu]: %-20s %9s prio=%2lu (%2lu), stack left=%4u\n",
+                    t->xTaskNumber,
+                    t->pcTaskName,
+                    task_state_name[t->eCurrentState],
+                    t->uxCurrentPriority,
+                    t->uxBasePriority,
+                    t->usStackHighWaterMark
+                );
+            }
+
+            vTaskDelay(pdMS_TO_TICKS(10000));
+        }
     }
+#endif
+    vTaskSuspend(NULL);
 }
