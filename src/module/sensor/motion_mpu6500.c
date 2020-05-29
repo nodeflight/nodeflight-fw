@@ -28,6 +28,8 @@
 #include <stddef.h>
 #include <math.h>
 
+#include "vendor/tinyprintf/tinyprintf.h"
+
 /* Specificataions from datasheet */
 #define MPU6500_SPI_FREQ_STARTUP_HZ  1000000UL
 #define MPU6500_SPI_FREQ_RUNNING_HZ  5000000UL
@@ -125,9 +127,13 @@ int mpu6500_init(
         &mpu->out_temp
     );
 
+    /* Generate traceable name for debug/stats */
+    char taskname[configMAX_TASK_NAME_LEN];
+    tfp_snprintf(taskname, configMAX_TASK_NAME_LEN, "md mpu6500 %s", name == NULL ? "-" : name);
+
     xTaskCreate(
         mpu6500_task,
-        "motion_mpu6500",
+        taskname,
         MPU6500_TASK_STACK_WORDS,
         mpu,
         MPU6500_TASK_PRIORITY,

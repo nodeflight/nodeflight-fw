@@ -24,6 +24,8 @@
 #include "task.h"
 #include "semphr.h"
 
+#include "vendor/tinyprintf/tinyprintf.h"
+
 #define SCHEDULER_CLIENTS_PER_POOL    32
 #define SCHEDULER_TASK_BASE_PRIORITY  8
 #define SCHEDULER_NUM_PRIORITIES      8
@@ -192,8 +194,13 @@ sc_t *sc_define(
     sched->clients_initialized = 0;
     sched->period_sec = -1.0f;
     sched->next = NULL;
+
+    /* Generate traceable name for debug/stats */
+    char taskname[configMAX_TASK_NAME_LEN];
+    tfp_snprintf(taskname, configMAX_TASK_NAME_LEN, "sc %s", name == NULL ? "-" : name);
+
     if (pdFAIL == xTaskCreate(sc_task,
-        "sc_task",
+        taskname,
         SCHEDULER_STACK_WORDS,
         sched,
         SCHEDULER_TASK_BASE_PRIORITY + priority,

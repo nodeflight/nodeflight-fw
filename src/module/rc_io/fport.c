@@ -245,8 +245,12 @@ int fport_init(
         }
     }
 
+    /* Generate traceable name for debug/stats */
+    char taskname[configMAX_TASK_NAME_LEN];
+    tfp_snprintf(taskname, configMAX_TASK_NAME_LEN, "md fport %s", name == NULL ? "-" : name);
+
     xTaskCreate(fport_task,
-        "fport_proc",
+        taskname,
         FPORT_STACK_WORDS,
         fport_if,
         FPORT_TASK_PRIORITY,
