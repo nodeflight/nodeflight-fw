@@ -223,8 +223,11 @@ static void spi_irqhandler(
         if (spi->rx_left == 0) {
             LL_SPI_DisableIT_RXNE(reg);
         } else {
-            *spi->rx_ptr = LL_SPI_ReceiveData8(reg);
-            spi->rx_ptr++;
+            uint8_t rx_data = LL_SPI_ReceiveData8(reg);
+            if (spi->rx_ptr != NULL) {
+                *spi->rx_ptr = rx_data;
+                spi->rx_ptr++;
+            }
             spi->rx_left--;
         }
     }
@@ -232,8 +235,12 @@ static void spi_irqhandler(
         if (spi->tx_left == 0) {
             LL_SPI_DisableIT_TXE(reg);
         } else {
-            LL_SPI_TransmitData8(reg, *spi->tx_ptr);
-            spi->tx_ptr++;
+            if (spi->tx_ptr != NULL) {
+                LL_SPI_TransmitData8(reg, *spi->tx_ptr);
+                spi->tx_ptr++;
+            } else {
+                LL_SPI_TransmitData8(reg, 0xff);
+            }
             spi->tx_left--;
         }
     }
