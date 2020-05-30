@@ -354,10 +354,38 @@ static void sdcard_disconnect(
     }
 }
 
+static int sdcard_dump_block(
+    sdcard_t *sdc,
+    uint32_t block_num)
+{
+    uint8_t block[512];
+    int i;
+
+    if (0 != sdcard_read_block(sdc, 17, block_num, 0xfe, block, 512)) {
+        return -1;
+    }
+
+    tfp_printf("Block %lu:\n", block_num);
+    for (i = 0; i < 512; i += 16) {
+        uint32_t offset = i + 512 * block_num;
+        tfp_printf("  %08lx: %02x %02x %02x %02x  %02x %02x %02x %02x    %02x %02x %02x %02x  %02x %02x %02x %02x\n",
+            offset,
+            block[i + 0], block[i + 1], block[i + 2], block[i + 3],
+            block[i + 4], block[i + 5], block[i + 6], block[i + 7],
+            block[i + 8], block[i + 9], block[i + 10], block[i + 11],
+            block[i + 12], block[i + 13], block[i + 14], block[i + 15]
+        );
+    }
+    tfp_printf("\n");
+
+    return 0;
+}
+
 void sdcard_task(
     void *storage)
 {
     sdcard_t *sdc = (sdcard_t *) storage;
+    int i;
     int status;
 
     for (;;) {
@@ -382,7 +410,7 @@ void sdcard_task(
             sdcard_disconnect(sdc);
             continue;
         }
-        
+
         /* Only allow CSD version 2, which is SDHC/SDXC cards */
         if ((sdc->reg_csd[0] & 0xc0) != 0x40) {
             tfp_printf("sdcard:! invalid CSD version %u\n", sdc->reg_csd[0] >> 6);
@@ -461,6 +489,12 @@ void sdcard_task(
             sdc->reg_cid[15]);
 
         tfp_printf("\n");
+
+        for (i = 0; i < 3; i++) {
+            if (0 != sdcard_dump_block(sdc, i + 43000)) {
+                tfp_printf("sdcard:! Failed reading card\n");
+            }
+        }
 
         while (sdc->card_available) {
             vTaskDelay(pdMS_TO_TICKS(250));
