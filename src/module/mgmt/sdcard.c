@@ -49,6 +49,7 @@ struct sdcard_s {
     bool card_available;
     uint32_t reg_ocr;
     uint8_t reg_csd[16];
+    uint8_t reg_cid[16];
 };
 
 static int sdcard_init(
@@ -113,8 +114,8 @@ static uint8_t sdcard_crc7(
             crc <<= 1;
         }
     }
-    /* Compensate for loop shifting after xor instead of xor if shift out */
-    return crc >> 1;
+    /* crc7 seems to always be stored in msb 7bits with 1 at lsb */
+    return crc | 1;
 }
 
 static uint16_t sdcard_crc16(
@@ -173,7 +174,7 @@ static int sdcard_send_command(
     buf[3] = (arg >> 8) & 0xff;
     buf[4] = (arg >> 0) & 0xff;
 
-    buf[5] = (sdcard_crc7(buf, 5) << 1) | 1; /* CRC + end bit */
+    buf[5] = sdcard_crc7(buf, 5); /* CRC + end bit */
 
     sdc->if_spi->transfer(sdc->if_spi, buf, NULL, 6);
 
@@ -220,7 +221,7 @@ static uint8_t sdcard_read_r3(
     return r1;
 }
 
-int sdcard_init_card(
+static int sdcard_init_card(
     sdcard_t *sdc)
 {
     uint8_t r1;
@@ -292,8 +293,13 @@ error:
     return -1;
 }
 
-static int sdcard_read_card_info(
-    sdcard_t *sdc)
+static int sdcard_read_block(
+    sdcard_t *sdc,
+    uint8_t command,
+    uint32_t arg,
+    uint8_t data_token,
+    uint8_t *dst,
+    int size)
 {
     uint8_t crc[2];
     uint8_t r1;
@@ -303,35 +309,25 @@ static int sdcard_read_card_info(
         return -1;
     }
 
-    /* Only allow high capacity cards (SDHC/SDXC), for now */
-    if ((sdc->reg_ocr & 0x40000000) == 0) {
-        return -1;
-    }
-
     sdc->if_cs->set_value(sdc->if_cs, false);
 
     /* CMD=9 (SEND_CSD) */
-    if (0 != sdcard_send_command(sdc, 9, 0)) {
+    if (0 != sdcard_send_command(sdc, command, arg)) {
         goto error;
     }
     r1 = sdcard_read_r1(sdc);
     if (r1 != 0x00) {
         goto error;
     }
-    /* DATA_TOKEN_CMD9 = 0xfe */
-    if (sdcard_wait_token(sdc) != 0xfe) {
+
+    if (sdcard_wait_token(sdc) != data_token) {
         goto error;
     }
-    sdc->if_spi->transfer(sdc->if_spi, NULL, sdc->reg_csd, 16);
+    sdc->if_spi->transfer(sdc->if_spi, NULL, dst, size);
     sdc->if_spi->transfer(sdc->if_spi, NULL, crc, 2);
 
-    exp_crc = sdcard_crc16(sdc->reg_csd, 16);
+    exp_crc = sdcard_crc16(dst, size);
     if (crc[0] != (exp_crc >> 8) || crc[1] != (exp_crc & 0xff)) {
-        goto error;
-    }
-
-    /* Only allow CSD version 2, which is SDHC/SDXC cards */
-    if ((sdc->reg_csd[0] & 0xc0) != 0x40) {
         goto error;
     }
 
@@ -353,6 +349,9 @@ static void sdcard_disconnect(
     for (i = 0; i < 16; i++) {
         sdc->reg_csd[i] = 0;
     }
+    for (i = 0; i < 16; i++) {
+        sdc->reg_cid[i] = 0;
+    }
 }
 
 void sdcard_task(
@@ -361,19 +360,61 @@ void sdcard_task(
     sdcard_t *sdc = (sdcard_t *) storage;
     int status;
 
-    /* Just to make sure to start after system start, and power rails are loaded */
-    vTaskDelay(pdMS_TO_TICKS(250));
-
     for (;;) {
+        /* Just to make sure to start after system start, and power rails are loaded */
+        vTaskDelay(pdMS_TO_TICKS(250));
+
         do {
-            tfp_printf("sdcard: starting\n");
             status = sdcard_init_card(sdc);
         } while(status != 0);
-        tfp_printf("sdcard: started\n");
 
-        if (sdcard_read_card_info(sdc) != 0) {
+        /* Read CSD */
+        if (sdcard_read_block(sdc, 9, 0, 0xfe, sdc->reg_csd, 16) != 0) {
+            tfp_printf("sdcard:! can't read CSD\n");
             sdcard_disconnect(sdc);
+            continue;
         }
+
+#if 1
+        /* Only allow high capacity cards (SDHC/SDXC), for now */
+        if ((sdc->reg_ocr & 0x40000000) == 0) {
+            tfp_printf("sdcard:! OCR missing high capacity bit\n");
+            sdcard_disconnect(sdc);
+            continue;
+        }
+        
+        /* Only allow CSD version 2, which is SDHC/SDXC cards */
+        if ((sdc->reg_csd[0] & 0xc0) != 0x40) {
+            tfp_printf("sdcard:! invalid CSD version %u\n", sdc->reg_csd[0] >> 6);
+            sdcard_disconnect(sdc);
+            continue;
+        }
+#endif
+
+        /* Read CID */
+        if (sdcard_read_block(sdc, 10, 0, 0xfe, sdc->reg_cid, 16) != 0) {
+            tfp_printf("sdcard:! can't read CID\n");
+            sdcard_disconnect(sdc);
+            continue;
+        }
+
+        /* Verify CID */
+        if (sdcard_crc7(sdc->reg_cid, 15) != sdc->reg_cid[15]) {
+            tfp_printf("sdcard:! invalid CID CRC\n");
+            sdcard_disconnect(sdc);
+            continue;
+        }
+
+        tfp_printf("product name: %c%c %c%c%c%c%c\n",
+            sdc->reg_cid[1],
+            sdc->reg_cid[2],
+            sdc->reg_cid[3],
+            sdc->reg_cid[4],
+            sdc->reg_cid[5],
+            sdc->reg_cid[6],
+            sdc->reg_cid[7]);
+
+        tfp_printf("\n");
 
         tfp_printf("csd  0: %02x %02x %02x %02x\n",
             sdc->reg_csd[0],
@@ -395,6 +436,31 @@ void sdcard_task(
             sdc->reg_csd[13],
             sdc->reg_csd[14],
             sdc->reg_csd[15]);
+
+        tfp_printf("\n");
+
+        tfp_printf("cid  0: %02x %02x %02x %02x\n",
+            sdc->reg_cid[0],
+            sdc->reg_cid[1],
+            sdc->reg_cid[2],
+            sdc->reg_cid[3]);
+        tfp_printf("cid  4: %02x %02x %02x %02x\n",
+            sdc->reg_cid[4],
+            sdc->reg_cid[5],
+            sdc->reg_cid[6],
+            sdc->reg_cid[7]);
+        tfp_printf("cid  8: %02x %02x %02x %02x\n",
+            sdc->reg_cid[8],
+            sdc->reg_cid[9],
+            sdc->reg_cid[10],
+            sdc->reg_cid[11]);
+        tfp_printf("cid 12: %02x %02x %02x %02x\n",
+            sdc->reg_cid[12],
+            sdc->reg_cid[13],
+            sdc->reg_cid[14],
+            sdc->reg_cid[15]);
+
+        tfp_printf("\n");
 
         while (sdc->card_available) {
             vTaskDelay(pdMS_TO_TICKS(250));
