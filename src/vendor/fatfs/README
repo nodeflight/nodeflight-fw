@@ -1,0 +1,9 @@
+Note about integration:
+
+Necessary files from FatFs from ChaN for integration in nodeflight.
+Since some files needs to be modified for integration, the library is not included in its entirety.
+
+Note: Files are converted to match unix line breaks from the repo.
+
+More information about original library:
+http://elm-chan.org/fsw/ff/00index_e.html

@@ -30,7 +30,7 @@ TARGET_stm32f745_SOURCES = \
 #######################################################################
 # Common configuration
 
-TARGET_nodeflight_DEPENDS = freertos tinyprintf core lib
+TARGET_nodeflight_DEPENDS = freertos tinyprintf core lib fatfs
 TARGET_nodeflight_SOURCES = \
 	core/main.c \
 	lib/strops.c \
@@ -63,6 +63,16 @@ TARGET_tinyprintf_CFLAGS = \
 	-DTINYPRINTF_DEFINE_TFP_PRINTF=1 \
 	-DTINYPRINTF_OVERRIDE_LIBC=0 \
 	-TINYPRINTF_DEFINE_TFP_SPRINTF=1
+
+TARGET_fatfs_INCLUDES = \
+	integration/fatfs \
+	vendor/fatfs
+
+TARGET_fatfs_SOURCES = \
+	integration/fatfs/diskio.c \
+	integration/fatfs/ffsystem.c \
+	vendor/fatfs/ff.c \
+	vendor/fatfs/ffunicode.c
 
 TARGET_core_SOURCES = \
 	core/config.c \
