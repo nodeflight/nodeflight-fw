@@ -27,6 +27,7 @@
 #include "platform/stm32/resource/dma.h"
 
 #include "FreeRTOS.h"
+#include "task.h"
 
 #include <stddef.h>
 #include <string.h>
@@ -47,8 +48,12 @@ struct uart_if_s {
 
     const dma_stream_def_t *rx_dma;
     uint8_t *rx_buf;
-    uint16_t rx_buf_pos;
     uint16_t rx_buf_size;
+
+    volatile uint16_t rx_buf_head;
+    uint16_t rx_buf_tail;
+
+    TaskHandle_t current_task;
 };
 
 static int uart_init(
@@ -65,6 +70,11 @@ static int uart_tx_write(
 
 static void uart_tx_wait_done(
     if_serial_t *iface);
+
+static int uart_rx_read(
+    if_serial_t *iface,
+    uint8_t *dst,
+    int dst_size);
 
 static uart_if_t *uart_ifs[UART_MAX_COUNT] = {
     0
@@ -92,6 +102,7 @@ int uart_init(
     if_uart->header.configure = uart_configure;
     if_uart->header.tx_write = uart_tx_write;
     if_uart->header.tx_wait_done = uart_tx_wait_done;
+    if_uart->header.rx_read = uart_rx_read;
 
     if_uart->def = *((const uart_def_t *) if_uart->header.header.peripheral->storage);
 
@@ -105,7 +116,6 @@ int uart_init(
     }
 
     uart_ifs[if_uart->def.id] = if_uart;
-
     return 0;
 }
 
@@ -178,7 +188,8 @@ int uart_configure(
     if (rx_en) {
         if_uart->rx_dma = dma_get(rscs[UART_ARG_DMA_RX].decl->ref);
         if_uart->rx_buf = pvPortMalloc(config->rx_buf_size);
-        if_uart->rx_buf_pos = 0;
+        if_uart->rx_buf_head = 0;
+        if_uart->rx_buf_tail = 0;
         if_uart->rx_buf_size = config->rx_buf_size;
 
         gpio_configure_alternative(&rscs[UART_ARG_PIN_RX]);
@@ -192,7 +203,6 @@ int uart_configure(
         NVIC_ClearPendingIRQ(irqn);
         NVIC_EnableIRQ(irqn);
         NVIC_SetPriority(irqn, UART_RX_CHAR_IRQ_PRIORITY);
-        LL_USART_EnableIT_IDLE(if_uart->def.reg);
         LL_USART_EnableIT_RXNE(if_uart->def.reg);
     }
 
@@ -238,20 +248,48 @@ void uart_tx_wait_done(
     }
 }
 
+int uart_rx_read(
+    if_serial_t *iface,
+    uint8_t *dst,
+    int dst_size)
+{
+    uart_if_t *if_uart = (uart_if_t *) iface;
+    uint32_t notify_value;
+    int out_size;
+    if_uart->current_task = xTaskGetCurrentTaskHandle();
+    while (if_uart->rx_buf_head == if_uart->rx_buf_tail) {
+        xTaskNotifyWait(0, 0xff000000, &notify_value, (1000 * portTICK_PERIOD_MS));
+        if(!(notify_value & 0x01000000)) {
+            return -1;
+        }
+    }
+    out_size = 0;
+    while(if_uart->rx_buf_tail != if_uart->rx_buf_head && out_size < dst_size) {
+        dst[out_size++] = if_uart->rx_buf[if_uart->rx_buf_tail];
+        if_uart->rx_buf_tail = (if_uart->rx_buf_tail + 1) % if_uart->rx_buf_size;
+    }
+    return out_size;
+}
+
+static void uart_notify(
+    uart_if_t *if_uart)
+{
+    if (if_uart->current_task != NULL) {
+        BaseType_t should_switch = pdFALSE;
+        xTaskNotifyFromISR(if_uart->current_task, 0x01000000, eSetBits, &should_switch);
+        portYIELD_FROM_ISR(should_switch);
+    }
+}
+
 static void uart_irqhandler(
     uart_if_t *if_uart)
 {
     uint32_t isr = if_uart->def.reg->ISR;
     if_uart->def.reg->ICR = isr;
     if (isr & USART_ISR_RXNE) {
-        /* Can't be full, since it would be cleared upon previous byte then... */
-        if_uart->rx_buf[if_uart->rx_buf_pos++] = LL_USART_ReceiveData8(if_uart->def.reg);
-    }
-    if (isr & USART_ISR_IDLE || if_uart->rx_buf_pos == if_uart->rx_buf_size) {
-        if (if_uart->config.rx_done != NULL) {
-            if_uart->config.rx_done(if_uart->rx_buf, if_uart->rx_buf_pos, if_uart->config.storage);
-        }
-        if_uart->rx_buf_pos = 0;
+        if_uart->rx_buf[if_uart->rx_buf_head] = LL_USART_ReceiveData8(if_uart->def.reg);
+        if_uart->rx_buf_head = (if_uart->rx_buf_head + 1) % if_uart->rx_buf_size;
+        uart_notify(if_uart);
     }
 }
 

@@ -100,11 +100,6 @@ struct if_serial_cf_s {
     uint16_t rx_buf_size;
     uint32_t flags;
 
-    void (*rx_done)(
-        const uint8_t *buf,
-        uint16_t len,
-        void *storage);
-
     void *storage;
 };
 
@@ -122,6 +117,11 @@ struct if_serial_s {
 
     void (*tx_wait_done)(
         if_serial_t *iface);
+
+    int (*rx_read)(
+        if_serial_t *iface,
+        uint8_t *dst,
+        int dst_size);
 };
 
 #define IF_SERIAL(_INTERFACE) ((if_serial_t *) (_INTERFACE))
