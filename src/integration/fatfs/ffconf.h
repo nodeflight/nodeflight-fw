@@ -67,7 +67,7 @@
 /* System Configurations */
 
 #define FF_FS_TINY              0
-#define FF_FS_EXFAT             0
+#define FF_FS_EXFAT             1
 
 #define FF_FS_NORTC             1
 #define FF_NORTC_MON            1
