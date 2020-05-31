@@ -19,7 +19,7 @@
 #pragma once
 
 int cf_init(
-    void);
+    const char *path);
 
 char *const *cf_get_pp_config(
     const char *tag);

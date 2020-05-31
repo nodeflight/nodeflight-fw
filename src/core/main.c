@@ -20,6 +20,7 @@
 
 #include "platform/platform.h"
 
+#include "core/disk_int.h"
 #include "core/resource.h"
 #include "core/peripheral.h"
 #include "core/scheduler.h"
@@ -33,6 +34,8 @@
 #include "vendor/tinyprintf/tinyprintf.h"
 
 #include "ff.h"
+
+#include <string.h>
 
 FATFS fs_ext;
 
@@ -94,15 +97,14 @@ static void main_task(
     vr_init();
     sc_init();
 
-    if (0 != cf_init()) {
+    disk_int_init();
+
+    if (0 != cf_init("/int/boot.cfg")) {
         tfp_printf("Error: processing config\n");
         vTaskSuspend(NULL);
         for (;;) {
         }
     }
-
-    /* TODO: generalize */
-    f_mount(&fs_ext, "/ext1", 1);
 
     if (0 != vr_connect()) {
         tfp_printf("Error: connecting variables\n");

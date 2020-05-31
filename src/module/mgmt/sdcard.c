@@ -21,10 +21,10 @@
 #include "core/interface_types.h"
 #include "core/config.h"
 #include "core/disk_access.h"
+#include "lib/strops.h"
 #include "FreeRTOS.h"
 #include "task.h"
 #include "queue.h"
-
 
 #include <stdint.h>
 #include <stddef.h>
@@ -188,6 +188,10 @@ int sdcard_init(
     if (args[1].iface->peripheral->decl->type != PP_GPIO) {
         return -1;
     }
+    if(name == NULL) {
+        /* SD card needs a name/mount point */
+        return -1;
+    }
 
     sdcard_t *sdc;
     disk_access_t *dacc;
@@ -221,6 +225,7 @@ int sdcard_init(
     if (dacc == NULL) {
         return -1;
     }
+    dacc->name = strops_dup(name);
     dacc->initialize = sdcard_dacc_initialize;
     dacc->status = sdcard_dacc_status;
     dacc->read = sdcard_dacc_read;
@@ -228,8 +233,7 @@ int sdcard_init(
     dacc->ioctl = sdcard_dacc_ioctl;
     dacc->storage = sdc;
 
-    /* TODO: Proper disk enumeration? */
-    if (0 != disk_access_register(1, dacc)) {
+    if (0 != disk_access_register(dacc)) {
         return -1;
     }
 

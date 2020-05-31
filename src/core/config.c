@@ -22,12 +22,12 @@
 #include "lib/strops.h"
 #include "lib/map.h"
 
+#include "ff.h"
+
 #include "vendor/tinyprintf/tinyprintf.h"
 
 #define LINEBUF_SIZE 256
 #define LINEBUF_NUM_ARGS 32
-
-extern const char __l1conf_start[];
 
 static char cf_linebuf[LINEBUF_SIZE];
 static map_t *cf_peripherals;
@@ -63,6 +63,8 @@ static int cf_process_line(
             /* TODO: Error handling */
             return -1;
         }
+    } else if (0 == strops_cmp("inc", argv[0])) {
+        /* Ignore for now, enqueue file name later */
     } else {
         /* TODO: Error handling */
         return -1;
@@ -71,22 +73,28 @@ static int cf_process_line(
 }
 
 int cf_init(
-    void)
+    const char *path)
 {
-    const char *cur = __l1conf_start;
+    FIL f;
+    FRESULT res;
 
     cf_peripherals = map_create();
 
-    while (*cur != '\0') {
-        if (0 == strops_line_copy(cf_linebuf, LINEBUF_SIZE, &cur)) {
-            char *argv[LINEBUF_NUM_ARGS];
-            int argc = strops_split_argv(cf_linebuf, argv);
-            if (cf_process_line(argc, argv) < 0) {
-                /* TODO: Error handling */
-                return -1;
-            }
+    res = f_open(&f, path, FA_READ);
+    if (res != FR_OK) {
+        return -1;
+    }
+
+    /* Read every line and display it */
+    while (f_gets(cf_linebuf, sizeof(cf_linebuf), &f)) {
+        char *argv[LINEBUF_NUM_ARGS];
+        int argc = strops_split_argv(cf_linebuf, argv);
+        if (cf_process_line(argc, argv) < 0) {
+            f_close(&f);
+            return -1;
         }
     }
+    f_close(&f);
 
     return 0;
 }

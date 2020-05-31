@@ -51,7 +51,9 @@
 
 #define FF_VOLUMES              4
 #define FF_STR_VOLUME_ID        2
-#define FF_VOLUME_STRS          "int", "ext1", "ext2", "ext3"
+
+/* Volume names are dynamically allocated */
+/* #define FF_VOLUME_STRS          "int", "ext1", "ext2", "ext3" */
 
 /* Partitions/sectors */
 

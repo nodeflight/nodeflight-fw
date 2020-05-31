@@ -18,44 +18,10 @@
 
 #pragma once
 
-#include <stdint.h>
-
-typedef struct disk_access_s disk_access_t;
-
-#include "ff.h"
-#include "diskio.h"
-
-struct disk_access_s {
-    const char *name;
-
-    DSTATUS (*initialize)(
-        void *storage);
-
-    DSTATUS (*status)(
-        void *storage);
-
-    DRESULT (*read)(
-        void *storage,
-        BYTE *buff,
-        LBA_t sector,
-        UINT count);
-
-    DRESULT (*write) (
-        void *storage,
-        const BYTE *buff,
-        LBA_t sector,
-        UINT count);
-
-    DRESULT (*ioctl) (
-        void *storage,
-        BYTE cmd,
-        void *buff);
-
-    void *storage;
-};
-
-void disk_access_init(
+/**
+ * Init and register /int file system
+ * 
+ * @return 0 on success, negative on error
+ */
+int disk_int_init(
     void);
-
-int disk_access_register(
-    disk_access_t *dacc);

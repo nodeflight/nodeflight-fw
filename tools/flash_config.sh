@@ -1,15 +1,10 @@
 #!/bin/bash -e
 
-# Test program to flash layer1 config to stm32f722
+# Test program to flash internal file system
 
 if [ "$1" == "" ]; then
-	echo "Usage: $0 <config text file>"
+	echo "Usage: $0 <fat disk image>"
 	exit 1
 fi
 
-TEMPFILE=$(mktemp -t nf_l1_conf_)
-cat "$1" > $TEMPFILE
-dd if=/dev/zero bs=1 count=1 >> $TEMPFILE
-xxd $TEMPFILE
-st-flash --reset write $TEMPFILE 0x08060000
-rm $TEMPFILE
+st-flash --reset write $1 0x08060000

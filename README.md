@@ -47,7 +47,7 @@ st-flash --reset --format ihex write build/nodeflight-stm32f722.hex
 
 Loading a layer1 config: (currently hardcoded for stm32f722ze memory map, for layer1 config, see below)
 ```
-./tools/flash_config.sh test_l1conf.txt
+./tools/flash_config.sh config_int.dmg
 ```
 
 ## Building blocks
@@ -82,7 +82,8 @@ The configuration is stored as text, and is intended to be updated without updat
 
 Each line contains an instruction:
 - `per <tag> <configuration>` - peripheral, defines a template for the peripheral configuration.
-- `mod <type> <configuration>` - Load a module
+- `mod <name> <type> <configuration>` - Load a module. Modules names are optional, and can be skipped by `-`
+- `inc <file>` - Add file to a configuration read queue. Files are loaded one at a time, and is read in order.
 
 Example:
 
@@ -97,45 +98,73 @@ Note that the `per` line just creates the template for the interface, but doesn'
 
 ## Configuration storage
 
-Configuration is layered, where each layer is loaded in sequence. A previous layer may enable access to lower layers.
+Configuration is stored in files in a mapped file system. While configuration loads, more file systems may be mounted and gives access to more configuration.
 
-Functionality placed in different layers are not enforced. The layered structure is just a recommendation and best practice.
+On the internal storage, extra configuration files may be provided to load on board sensors for easy use.
 
-For smaller embedded control systems, it may for example be suitable to put all configuration in layer 1, where no sd card is available.
+For smaller systems, without access to SD card, it is possible to store all configuration in the on-board file system
 
-### Layer 1 - onboard flash
+## Boot sequence
 
-Stored in a flash page a string
+1. NodeFlight mounts internal flash storage as `/int`
+2. The configuration `/int/boot.cfg` is loaded
+3. `/int/boot.cfg` Configure and mount an external storage, preferably as `/ext`
+4. `/int/boot.cfg` adds an external configuration file as config source, preferrably `/ext/boot.cfg`
+5. `/ext/boot.cfg` includes application specific configration files needed
 
-Intended to store `per` lines for on board interfaces, and create instances necessary for accessing layer 2, for example SD card drivers.
+## Best practice
 
-Example (may not be supported yet):
-```
-per spi_mpu6000 spi4 pin_e02 pin_e05 pin_e06 pin_e04 pin_e01
-per spi_sdcard spi1 pin_a05 pin_a06 pin_a07 pin_a04 pin_d08
-mod sdcard spi_sdcard
-mod config_file layer2.txt
-```
+On board flash is not intended to be updated by the end user, but by the board developer. A common practice between board manufacturers and application developers needs to be established.
 
-### Layer 2 - user config loader
+Therefore, the following convention is used for configuration files:
 
-Stored preferably on an SD card, but can vary dependent on board.
-
-Stores user interface configuration and hardware mapping. modules for I/O are instanced.
-
-Intended to load application/regulator configuration
+### `/int/boot.cfg`
+Bare minimum for configuration of external flash and load `/ext/boot.cfg`. May also start of necessary interfaces for system functionality, for example fan control, or possibly debug IO in a development environment.
 
 Example:
 ```
-mod gyro_mpu6000 spi_mpu6000 ...
-mod config_file layer3.txt
+# Setup SD card interface
+
+per sdcard_cs gpio_a15 pin_a15
+per sdcard_spi spi1 pin_a05 pin_a07 pin_a06 dma_none dma_none
+
+mod ext sdcard sdcard_spi sdcard_cs
+
+# Load external configuration
+
+inc /ext/boot.cfg
 ```
 
-### Layer 3 - control logic
+### `/int/defaults.cfg`
+Include `per` lines mapping peripherals to pins, without instancing. Should be possible to include to simplify loading of modules, without significant overhead, and without occupying resources, even though multiple `per` lines may use the same. No `mod` lines is allowed.
 
-Calculation blocks, which interfaces the I/O blocks provided by layer 2, or each other.
+Those lines acts as defaults, and can be overridden by application configuration.
 
-No hardware dependent interfaces should be placed in layer 3, to enable re-use between different boards.
+Example:
+```
+# mpu6500 interface
+per mpu6500_cs gpio_d04 pin_d04
+per mpu6500_int gpio_c00 pin_c00
+per mpu6500_spi spi2 pin_d03 pin_c03 pin_c02 dma_none dma_none
+
+# uart2 full duplex
+per uart2_full uart2 pin_d05 pin_d06 dma_1_6 dma_1_5
+
+# uart2 half duplex
+per uart2_half uart2 pin_none pin_d06 dma_1_6 dma_1_5
+```
+
+### `/ext/boot.cfg`
+Loader for application configuration. Intended to load necessary configuration, to opt-in or opt-out of using the defaults. To load files containing glue to connect hardware to control logic, and load control logic models. Intended to only contain `inc` statements.
+
+Example:
+```
+inc /int/defaults.cfg
+inc /ext/control-loop.cfg
+inc /ext/sensors.cfg
+inc /ext/telemetry.cfg
+inc /ext/glue.cfg
+```
 
 # To be designed
 

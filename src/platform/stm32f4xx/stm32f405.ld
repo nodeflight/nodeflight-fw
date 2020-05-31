@@ -19,5 +19,6 @@ _Min_Heap_Size = 8K;     /* required amount of heap  */
 _Min_Stack_Size = 0x400; /* required amount of stack */
 
 PROVIDE_HIDDEN(__l1conf_start = ORIGIN(FLASH_L1CONF));
+PROVIDE_HIDDEN(__l1conf_end = ORIGIN(FLASH_L1CONF) + LENGTH(FLASH_L1CONF));
 
 INCLUDE "stm32.ld"

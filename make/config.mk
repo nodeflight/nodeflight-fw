@@ -69,7 +69,6 @@ TARGET_fatfs_INCLUDES = \
 	vendor/fatfs
 
 TARGET_fatfs_SOURCES = \
-	integration/fatfs/diskio.c \
 	integration/fatfs/ffsystem.c \
 	vendor/fatfs/ff.c \
 	vendor/fatfs/ffunicode.c
@@ -77,6 +76,7 @@ TARGET_fatfs_SOURCES = \
 TARGET_core_SOURCES = \
 	core/config.c \
 	core/disk_access.c \
+	core/disk_int.c \
 	core/module.c \
 	core/interface.c \
 	core/peripheral.c \
