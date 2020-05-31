@@ -21,29 +21,77 @@
 #include "task.h"
 #include "semphr.h"
 
+#include <stdbool.h>
+
+#define DEBUG 0
+
+#if DEBUG
+#include "vendor/tinyprintf/tinyprintf.h"
+#define PRINTF(...) tfp_printf(__VA_ARGS__)
+#else
+#define PRINTF(...) do {} while(0)
+#endif
+
+static SemaphoreHandle_t fs_mutexes[FF_VOLUMES];
+static bool fs_mutex_used[FF_VOLUMES];
+static int fs_mutexes_allocated = 0;
+
 int ff_cre_syncobj (
     BYTE vol,
     FF_SYNC_t *sobj)
 {
-    *sobj = xSemaphoreCreateMutex();
-    return (int) (*sobj != NULL);
+    /* Reuse perviously allocated sempahore if possible */
+    int i;
+    SemaphoreHandle_t selected = NULL;
+
+    for (i = 0; i < fs_mutexes_allocated && selected == NULL; i++) {
+        if (!fs_mutex_used[i]) {
+            fs_mutex_used[i] = true;
+            selected = fs_mutexes[i];
+        }
+    }
+
+    if (selected == NULL && fs_mutexes_allocated < FF_VOLUMES) {
+        fs_mutexes[fs_mutexes_allocated] = xSemaphoreCreateMutex();
+        if (fs_mutexes[fs_mutexes_allocated] != NULL) {
+            fs_mutex_used[fs_mutexes_allocated] = true;
+            selected = fs_mutexes[fs_mutexes_allocated];
+            fs_mutexes_allocated++;
+        }
+    }
+
+    *sobj = selected;
+
+    PRINTF("ff_cre_syncobj() = %p\n", (void *) selected);
+    return (int) (selected != NULL);
 }
 
 int ff_del_syncobj (
     FF_SYNC_t sobj)
 {
-    vSemaphoreDelete(sobj);
-    return 1;
+    int i;
+    PRINTF("ff_del_syncobj(%p)", (void *) sobj);
+
+    /* Can't free, mark as unused and available for reuse */
+    for (i = 0; i < fs_mutexes_allocated; i++) {
+        if (fs_mutexes[i] == sobj) {
+            fs_mutex_used[i] = false;
+            return 1;
+        }
+    }
+    return 0;
 }
 
 int ff_req_grant (
     FF_SYNC_t sobj)
 {
+    PRINTF("ff_req_grant(%p)\n", (void *) sobj);
     return (int) (xSemaphoreTake(sobj, FF_FS_TIMEOUT) == pdTRUE);
 }
 
 void ff_rel_grant (
     FF_SYNC_t sobj)
 {
+    PRINTF("ff_rel_grant(%p)\n", (void *) sobj);
     xSemaphoreGive(sobj);
 }

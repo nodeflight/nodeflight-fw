@@ -19,15 +19,36 @@
 #include "ff.h"
 #include "diskio.h"
 
-DSTATUS disk_status (
-    BYTE pdrv)
-{
-    return STA_NOINIT;
-}
+#include "core/disk_access.h"
+
+#define DEBUG 0
+
+#if DEBUG
+#include "vendor/tinyprintf/tinyprintf.h"
+#define PRINTF(...) tfp_printf(__VA_ARGS__)
+#else
+#define PRINTF(...) do {} while(0)
+#endif
 
 DSTATUS disk_initialize (
     BYTE pdrv)
 {
+    PRINTF("disk_initialize(%u)\n", pdrv);
+    disk_access_t *dacc = disk_access_get(pdrv);
+    if (dacc != NULL) {
+        return dacc->initialize(dacc->storage);
+    }
+    return STA_NOINIT;
+}
+
+DSTATUS disk_status (
+    BYTE pdrv)
+{
+    PRINTF("disk_status(%u)\n", pdrv);
+    disk_access_t *dacc = disk_access_get(pdrv);
+    if (dacc != NULL) {
+        return dacc->status(dacc->storage);
+    }
     return STA_NOINIT;
 }
 
@@ -37,6 +58,11 @@ DRESULT disk_read (
     LBA_t sector,
     UINT count)
 {
+    PRINTF("disk_read(%u, %p, %lu, %u)\n", pdrv, buff, sector, count);
+    disk_access_t *dacc = disk_access_get(pdrv);
+    if (dacc != NULL) {
+        return dacc->read(dacc->storage, buff, sector, count);
+    }
     return RES_PARERR;
 }
 
@@ -46,6 +72,11 @@ DRESULT disk_write (
     LBA_t sector,
     UINT count)
 {
+    PRINTF("disk_write(%u, %p, %lu, %u)\n", pdrv, buff, sector, count);
+    disk_access_t *dacc = disk_access_get(pdrv);
+    if (dacc != NULL) {
+        return dacc->write(dacc->storage, buff, sector, count);
+    }
     return RES_PARERR;
 }
 
@@ -54,5 +85,10 @@ DRESULT disk_ioctl (
     BYTE cmd,
     void *buff)
 {
+    PRINTF("disk_ioctl(%u, %u, %p)\n", pdrv, cmd, buff);
+    disk_access_t *dacc = disk_access_get(pdrv);
+    if (dacc != NULL) {
+        return dacc->ioctl(dacc->storage, cmd, buff);
+    }
     return RES_PARERR;
 }

@@ -76,6 +76,7 @@ TARGET_fatfs_SOURCES = \
 
 TARGET_core_SOURCES = \
 	core/config.c \
+	core/disk_access.c \
 	core/module.c \
 	core/interface.c \
 	core/peripheral.c \

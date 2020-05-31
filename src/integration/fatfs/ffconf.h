@@ -37,7 +37,7 @@
 
 #define FF_CODE_PAGE            850
 
-#define FF_USE_LFN              0
+#define FF_USE_LFN              2
 #define FF_MAX_LFN              255
 #define FF_LFN_UNICODE          2
 #define FF_LFN_BUF              255
@@ -49,9 +49,9 @@
 
 /* Volumes */
 
-#define FF_VOLUMES              2
+#define FF_VOLUMES              4
 #define FF_STR_VOLUME_ID        2
-#define FF_VOLUME_STRS          "int", "ext"
+#define FF_VOLUME_STRS          "int", "ext1", "ext2", "ext3"
 
 /* Partitions/sectors */
 
@@ -79,6 +79,6 @@
 
 #include "FreeRTOS.h"
 #include "semphr.h"
-#define FF_FS_REENTRANT         0
+#define FF_FS_REENTRANT         1
 #define FF_FS_TIMEOUT           1000
 #define FF_SYNC_t               SemaphoreHandle_t

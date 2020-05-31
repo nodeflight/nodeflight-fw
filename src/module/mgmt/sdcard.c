@@ -20,31 +20,66 @@
 #include "core/interface.h"
 #include "core/interface_types.h"
 #include "core/config.h"
+#include "core/disk_access.h"
 #include "FreeRTOS.h"
 #include "task.h"
+#include "queue.h"
 
-#include "vendor/tinyprintf/tinyprintf.h"
 
 #include <stdint.h>
 #include <stddef.h>
 #include <stdbool.h>
 
-#define MAX_PACKET_LENGTH           256
-
 #define SDCARD_SPI_BAUD_RATE        10000000UL
 #define SDCARD_TASK_PRIORITY        2
+#define SDCARD_INIT_RETRIES         10
 
 #define SDCARD_TIMEOUT_ITERATIONS   50000
 
+#define SDCARD_REQUEST_QUEUE_LENGTH 4
+
 #define DEBUG_COMMANDS              0
+#define DEBUG_CALLS                 0
+#define DEBUG_ERRORS                0
+
+#if DEBUG_COMMANDS
+#include "vendor/tinyprintf/tinyprintf.h"
+#define D_COMMAND_PRINTF(...) tfp_printf("sdcard " __VA_ARGS__);
+#else
+#define D_COMMAND_PRINTF(...) do {} while(0)
+#endif
+
+#if DEBUG_CALLS
+#include "vendor/tinyprintf/tinyprintf.h"
+#define D_CALL_PRINTF(...) tfp_printf("sdcard " __VA_ARGS__);
+#else
+#define D_CALL_PRINTF(...) do {} while(0)
+#endif
+
+#if DEBUG_ERRORS
+#include "vendor/tinyprintf/tinyprintf.h"
+#define D_ERROR_PRINTF(...) tfp_printf("sdcard " __VA_ARGS__);
+#else
+#define D_ERROR_PRINTF(...) do {} while(0)
+#endif
 
 typedef struct sdcard_s sdcard_t;
+typedef struct sdcard_job_s sdcard_job_t;
+
+typedef enum sdcard_job_id_s {
+    SDCARD_JOB_ID_INITIALIZE,
+    SDCARD_JOB_ID_STATUS,
+    SDCARD_JOB_ID_READ,
+    SDCARD_JOB_ID_WRITE,
+    SDCARD_JOB_ID_IOCTL
+} sdcard_job_id_t;
 
 struct sdcard_s {
     if_spi_t *if_spi;
     if_gpio_t *if_cs;
 
     TaskHandle_t task;
+    QueueHandle_t jobs;
 
     bool card_available;
     uint32_t reg_ocr;
@@ -52,12 +87,94 @@ struct sdcard_s {
     uint8_t reg_cid[16];
 };
 
+struct sdcard_job_s {
+    TaskHandle_t calling_task;
+    sdcard_job_id_t job_id;
+
+    union {
+        struct {
+            BYTE *buff;
+            LBA_t sector;
+            UINT count;
+        } read;
+        struct {
+            const BYTE *buff;
+            LBA_t sector;
+            UINT count;
+        } write;
+        struct {
+            BYTE cmd;
+            void *buff;
+        } ioctl;
+    } arg;
+};
+
 static int sdcard_init(
     const char *name,
     md_arg_t *args);
 
+static uint8_t sdcard_crc7(
+    uint8_t *ptr,
+    int len);
+
+static uint16_t sdcard_crc16(
+    uint8_t *ptr,
+    int len);
+
+static uint8_t sdcard_wait_token(
+    sdcard_t *sdc);
+
+static int sdcard_send_command(
+    sdcard_t *sdc,
+    uint8_t command,
+    uint32_t arg);
+
+static uint8_t sdcard_read_r1(
+    sdcard_t *sdc);
+
+static uint8_t sdcard_read_r3(
+    sdcard_t *sdc,
+    uint32_t *var);
+
+static int sdcard_read_block(
+    sdcard_t *sdc,
+    uint8_t command,
+    uint32_t arg,
+    uint8_t data_token,
+    uint8_t *dst,
+    int size);
+
+static int sdcard_init_card(
+    sdcard_t *sdc);
+
+static void sdcard_disconnect(
+    sdcard_t *sdc);
+
 static void sdcard_task(
     void *storage);
+
+static DSTATUS sdcard_dacc_initialize(
+    void *storage);
+
+static DSTATUS sdcard_dacc_status(
+    void *storage);
+
+static DRESULT sdcard_dacc_read(
+    void *storage,
+    BYTE *buff,
+    LBA_t sector,
+    UINT count);
+
+static DRESULT sdcard_dacc_write (
+    void *storage,
+    const BYTE *buff,
+    LBA_t sector,
+    UINT count);
+
+static DRESULT sdcard_dacc_ioctl (
+    void *storage,
+    BYTE cmd,
+    void *buff);
 
 MD_DECL(sdcard, "pp", sdcard_init);
 
@@ -73,6 +190,7 @@ int sdcard_init(
     }
 
     sdcard_t *sdc;
+    disk_access_t *dacc;
 
     sdc = pvPortMalloc(sizeof(sdcard_t));
     if (sdc == NULL) {
@@ -94,11 +212,32 @@ int sdcard_init(
 
     sdc->card_available = false;
 
+    sdc->jobs = xQueueCreate(SDCARD_REQUEST_QUEUE_LENGTH, sizeof(sdcard_job_t));
+    if (sdc->jobs == NULL) {
+        return -1;
+    }
+
+    dacc = pvPortMalloc(sizeof(disk_access_t));
+    if (dacc == NULL) {
+        return -1;
+    }
+    dacc->initialize = sdcard_dacc_initialize;
+    dacc->status = sdcard_dacc_status;
+    dacc->read = sdcard_dacc_read;
+    dacc->write = sdcard_dacc_write;
+    dacc->ioctl = sdcard_dacc_ioctl;
+    dacc->storage = sdc;
+
+    /* TODO: Proper disk enumeration? */
+    if (0 != disk_access_register(1, dacc)) {
+        return -1;
+    }
+
     xTaskCreate(sdcard_task, "sdcard", 1024, sdc, SDCARD_TASK_PRIORITY, &sdc->task);
     return 0;
 }
 
-static uint8_t sdcard_crc7(
+uint8_t sdcard_crc7(
     uint8_t *ptr,
     int len)
 {
@@ -118,7 +257,7 @@ static uint8_t sdcard_crc7(
     return crc | 1;
 }
 
-static uint16_t sdcard_crc16(
+uint16_t sdcard_crc16(
     uint8_t *ptr,
     int len)
 {
@@ -139,7 +278,7 @@ static uint16_t sdcard_crc16(
     return crc;
 }
 
-static uint8_t sdcard_wait_token(
+uint8_t sdcard_wait_token(
     sdcard_t *sdc)
 {
     uint8_t rx;
@@ -150,7 +289,7 @@ static uint8_t sdcard_wait_token(
     return rx;
 }
 
-static int sdcard_send_command(
+int sdcard_send_command(
     sdcard_t *sdc,
     uint8_t command,
     uint32_t arg)
@@ -178,8 +317,7 @@ static int sdcard_send_command(
 
     sdc->if_spi->transfer(sdc->if_spi, buf, NULL, 6);
 
-#if DEBUG_COMMANDS
-    tfp_printf("sdcard: cmd=%3u: %02x | %02x %02x %02x %02x | %02x\n",
+    D_COMMAND_PRINTF("cmd=%3u: %02x | %02x %02x %02x %02x | %02x\n",
         command,
         buf[0],
         buf[1],
@@ -187,12 +325,11 @@ static int sdcard_send_command(
         buf[3],
         buf[4],
         buf[5]);
-#endif
 
     return 0;
 }
 
-static uint8_t sdcard_read_r1(
+uint8_t sdcard_read_r1(
     sdcard_t *sdc)
 {
     uint8_t r1;
@@ -203,7 +340,7 @@ static uint8_t sdcard_read_r1(
     return r1;
 }
 
-static uint8_t sdcard_read_r3(
+uint8_t sdcard_read_r3(
     sdcard_t *sdc,
     uint32_t *var)
 {
@@ -221,7 +358,48 @@ static uint8_t sdcard_read_r3(
     return r1;
 }
 
-static int sdcard_init_card(
+int sdcard_read_block(
+    sdcard_t *sdc,
+    uint8_t command,
+    uint32_t arg,
+    uint8_t data_token,
+    uint8_t *dst,
+    int size)
+{
+    uint8_t crc[2];
+    uint8_t r1;
+    uint16_t exp_crc;
+
+    sdc->if_cs->set_value(sdc->if_cs, false);
+
+    /* CMD=9 (SEND_CSD) */
+    if (0 != sdcard_send_command(sdc, command, arg)) {
+        goto error;
+    }
+    r1 = sdcard_read_r1(sdc);
+    if (r1 != 0x00) {
+        goto error;
+    }
+
+    if (sdcard_wait_token(sdc) != data_token) {
+        goto error;
+    }
+    sdc->if_spi->transfer(sdc->if_spi, NULL, dst, size);
+    sdc->if_spi->transfer(sdc->if_spi, NULL, crc, 2);
+
+    exp_crc = sdcard_crc16(dst, size);
+    if (crc[0] != (exp_crc >> 8) || crc[1] != (exp_crc & 0xff)) {
+        goto error;
+    }
+
+    sdc->if_cs->set_value(sdc->if_cs, true);
+    return 0;
+error:
+    sdc->if_cs->set_value(sdc->if_cs, true);
+    return -1;
+}
+
+int sdcard_init_card(
     sdcard_t *sdc)
 {
     uint8_t r1;
@@ -283,9 +461,41 @@ static int sdcard_init_card(
         goto error;
     }
 
+    sdc->if_cs->set_value(sdc->if_cs, true);
+
+    /* Card operation complete, read card information */
+
+    /* Read CSD */
+    if (sdcard_read_block(sdc, 9, 0, 0xfe, sdc->reg_csd, 16) != 0) {
+        D_ERROR_PRINTF("sdcard:! can't read CSD\n");
+        goto error;
+    }
+
+    /* Only allow high capacity cards (SDHC/SDXC), for now */
+    if ((sdc->reg_ocr & 0x40000000) == 0) {
+        D_ERROR_PRINTF("sdcard:! OCR missing high capacity bit\n");
+        goto error;
+    }
+
+    /* Only allow CSD version 2, which is SDHC/SDXC cards */
+    if ((sdc->reg_csd[0] & 0xc0) != 0x40) {
+        D_ERROR_PRINTF("sdcard:! invalid CSD version %u\n", sdc->reg_csd[0] >> 6);
+        goto error;
+    }
+
+    /* Read CID */
+    if (sdcard_read_block(sdc, 10, 0, 0xfe, sdc->reg_cid, 16) != 0) {
+        D_ERROR_PRINTF("sdcard:! can't read CID\n");
+        goto error;
+    }
+
+    /* Verify CID CRC */
+    if (sdcard_crc7(sdc->reg_cid, 15) != sdc->reg_cid[15]) {
+        D_ERROR_PRINTF("sdcard:! invalid CID CRC\n");
+        goto error;
+    }
+
     sdc->card_available = true;
-
-    sdc->if_cs->set_value(sdc->if_cs, true);
     return 0;
 
 error:
@@ -293,52 +503,7 @@ error:
     return -1;
 }
 
-static int sdcard_read_block(
-    sdcard_t *sdc,
-    uint8_t command,
-    uint32_t arg,
-    uint8_t data_token,
-    uint8_t *dst,
-    int size)
-{
-    uint8_t crc[2];
-    uint8_t r1;
-    uint16_t exp_crc;
-    /* Can't read card info if card isn't conneted */
-    if (!sdc->card_available) {
-        return -1;
-    }
-
-    sdc->if_cs->set_value(sdc->if_cs, false);
-
-    /* CMD=9 (SEND_CSD) */
-    if (0 != sdcard_send_command(sdc, command, arg)) {
-        goto error;
-    }
-    r1 = sdcard_read_r1(sdc);
-    if (r1 != 0x00) {
-        goto error;
-    }
-
-    if (sdcard_wait_token(sdc) != data_token) {
-        goto error;
-    }
-    sdc->if_spi->transfer(sdc->if_spi, NULL, dst, size);
-    sdc->if_spi->transfer(sdc->if_spi, NULL, crc, 2);
-
-    exp_crc = sdcard_crc16(dst, size);
-    if (crc[0] != (exp_crc >> 8) || crc[1] != (exp_crc & 0xff)) {
-        goto error;
-    }
-
-    sdc->if_cs->set_value(sdc->if_cs, true);
-    return 0;
-error:
-    sdc->if_cs->set_value(sdc->if_cs, true);
-    return -1;
-}
-
-static void sdcard_disconnect(
+void sdcard_disconnect(
     sdcard_t *sdc)
 {
     int i;
@@ -354,151 +519,181 @@ static void sdcard_disconnect(
     }
 }
 
-static int sdcard_dump_block(
-    sdcard_t *sdc,
-    uint32_t block_num)
-{
-    uint8_t block[512];
-    int i;
-
-    if (0 != sdcard_read_block(sdc, 17, block_num, 0xfe, block, 512)) {
-        return -1;
-    }
-
-    tfp_printf("Block %lu:\n", block_num);
-    for (i = 0; i < 512; i += 16) {
-        uint32_t offset = i + 512 * block_num;
-        tfp_printf("  %08lx: %02x %02x %02x %02x  %02x %02x %02x %02x    %02x %02x %02x %02x  %02x %02x %02x %02x\n",
-            offset,
-            block[i + 0], block[i + 1], block[i + 2], block[i + 3],
-            block[i + 4], block[i + 5], block[i + 6], block[i + 7],
-            block[i + 8], block[i + 9], block[i + 10], block[i + 11],
-            block[i + 12], block[i + 13], block[i + 14], block[i + 15]
-        );
-    }
-    tfp_printf("\n");
-
-    return 0;
-}
-
 void sdcard_task(
     void *storage)
 {
     sdcard_t *sdc = (sdcard_t *) storage;
-    int i;
-    int status;
+    sdcard_job_t job;
+    uint8_t result;
 
     for (;;) {
-        /* Just to make sure to start after system start, and power rails are loaded */
-        vTaskDelay(pdMS_TO_TICKS(250));
-
-        do {
-            status = sdcard_init_card(sdc);
-        } while(status != 0);
-
-        /* Read CSD */
-        if (sdcard_read_block(sdc, 9, 0, 0xfe, sdc->reg_csd, 16) != 0) {
-            tfp_printf("sdcard:! can't read CSD\n");
-            sdcard_disconnect(sdc);
-            continue;
-        }
-
-#if 1
-        /* Only allow high capacity cards (SDHC/SDXC), for now */
-        if ((sdc->reg_ocr & 0x40000000) == 0) {
-            tfp_printf("sdcard:! OCR missing high capacity bit\n");
-            sdcard_disconnect(sdc);
-            continue;
-        }
-
-        /* Only allow CSD version 2, which is SDHC/SDXC cards */
-        if ((sdc->reg_csd[0] & 0xc0) != 0x40) {
-            tfp_printf("sdcard:! invalid CSD version %u\n", sdc->reg_csd[0] >> 6);
-            sdcard_disconnect(sdc);
-            continue;
-        }
-#endif
-
-        /* Read CID */
-        if (sdcard_read_block(sdc, 10, 0, 0xfe, sdc->reg_cid, 16) != 0) {
-            tfp_printf("sdcard:! can't read CID\n");
-            sdcard_disconnect(sdc);
-            continue;
-        }
-
-        /* Verify CID */
-        if (sdcard_crc7(sdc->reg_cid, 15) != sdc->reg_cid[15]) {
-            tfp_printf("sdcard:! invalid CID CRC\n");
-            sdcard_disconnect(sdc);
-            continue;
-        }
-
-        tfp_printf("product name: %c%c %c%c%c%c%c\n",
-            sdc->reg_cid[1],
-            sdc->reg_cid[2],
-            sdc->reg_cid[3],
-            sdc->reg_cid[4],
-            sdc->reg_cid[5],
-            sdc->reg_cid[6],
-            sdc->reg_cid[7]);
-
-        tfp_printf("\n");
-
-        tfp_printf("csd  0: %02x %02x %02x %02x\n",
-            sdc->reg_csd[0],
-            sdc->reg_csd[1],
-            sdc->reg_csd[2],
-            sdc->reg_csd[3]);
-        tfp_printf("csd  4: %02x %02x %02x %02x\n",
-            sdc->reg_csd[4],
-            sdc->reg_csd[5],
-            sdc->reg_csd[6],
-            sdc->reg_csd[7]);
-        tfp_printf("csd  8: %02x %02x %02x %02x\n",
-            sdc->reg_csd[8],
-            sdc->reg_csd[9],
-            sdc->reg_csd[10],
-            sdc->reg_csd[11]);
-        tfp_printf("csd 12: %02x %02x %02x %02x\n",
-            sdc->reg_csd[12],
-            sdc->reg_csd[13],
-            sdc->reg_csd[14],
-            sdc->reg_csd[15]);
-
-        tfp_printf("\n");
-
-        tfp_printf("cid  0: %02x %02x %02x %02x\n",
-            sdc->reg_cid[0],
-            sdc->reg_cid[1],
-            sdc->reg_cid[2],
-            sdc->reg_cid[3]);
-        tfp_printf("cid  4: %02x %02x %02x %02x\n",
-            sdc->reg_cid[4],
-            sdc->reg_cid[5],
-            sdc->reg_cid[6],
-            sdc->reg_cid[7]);
-        tfp_printf("cid  8: %02x %02x %02x %02x\n",
-            sdc->reg_cid[8],
-            sdc->reg_cid[9],
-            sdc->reg_cid[10],
-            sdc->reg_cid[11]);
-        tfp_printf("cid 12: %02x %02x %02x %02x\n",
-            sdc->reg_cid[12],
-            sdc->reg_cid[13],
-            sdc->reg_cid[14],
-            sdc->reg_cid[15]);
-
-        tfp_printf("\n");
-
-        for (i = 0; i < 3; i++) {
-            if (0 != sdcard_dump_block(sdc, i + 43000)) {
-                tfp_printf("sdcard:! Failed reading card\n");
+        if (pdFALSE != xQueueReceive(sdc->jobs, &job, portMAX_DELAY)) {
+            result = 0;
+            switch (job.job_id) {
+            case SDCARD_JOB_ID_INITIALIZE:
+            {
+                int retries = SDCARD_INIT_RETRIES;
+                do {
+                    if (sdcard_init_card(sdc) < 0) {
+                        /* Error initialization */
+                        result = 1;
+                    } else {
+                        result = 0;
+                    }
+                } while(result != 0 && --retries);
             }
-        }
+            break;
 
-        while (sdc->card_available) {
-            vTaskDelay(pdMS_TO_TICKS(250));
+            case SDCARD_JOB_ID_STATUS:
+            {
+                result = sdc->card_available ? 0 : STA_NODISK;
+            }
+            break;
+
+            case SDCARD_JOB_ID_READ:
+            {
+                int i;
+                result = RES_OK;
+                for (i = 0; i < job.arg.read.count && result == RES_OK; i++) {
+                    if (0 != sdcard_read_block(
+                        sdc,
+                        17,
+                        job.arg.read.sector + i,
+                        0xfe,
+                        job.arg.read.buff + 512 * i,
+                        512)
+                    ) {
+                        result = RES_ERROR;
+                    }
+                }
+            }
+            break;
+
+            case SDCARD_JOB_ID_WRITE:
+            {
+                /* Not yet implemented */
+                result = RES_ERROR;
+            }
+
+            case SDCARD_JOB_ID_IOCTL:
+            {
+                /* Not yet implemented */
+                result = RES_ERROR;
+            }
+            break;
+            }
+            xTaskNotify(job.calling_task, 0x01000000 | (((uint32_t) result) << 25), eSetBits);
         }
-        tfp_printf("sdcard: disconnect\n");
+    }
+
+    (void) sdcard_disconnect;
+}
+
+uint8_t sdcard_dacc_exec_job(
+    sdcard_t *sdc,
+    sdcard_job_t *job)
+{
+    uint32_t notify_value;
+    job->calling_task = xTaskGetCurrentTaskHandle();
+
+    ulTaskNotifyValueClear(NULL, 0xff000000);
+    if (pdFALSE != xQueueSendToBack(sdc->jobs, job, portMAX_DELAY)) {
+        xTaskNotifyWait(0, 0xff000000, &notify_value, portMAX_DELAY);
+        uint8_t result = notify_value >> 25;
+        return result;
+    } else {
+        return 0xff;
+    }
+}
+
+DSTATUS sdcard_dacc_initialize(
+    void *storage)
+{
+    D_CALL_PRINTF("sdcard_dacc_initialize()\n");
+    uint8_t result = sdcard_dacc_exec_job((sdcard_t *) storage, &(sdcard_job_t) {
+        .job_id = SDCARD_JOB_ID_INITIALIZE
+    });
+    if (result == 0) {
+        return 0;
+    } else {
+        return STA_NODISK;
+    }
+}
+
+DSTATUS sdcard_dacc_status(
+    void *storage)
+{
+    D_CALL_PRINTF("sdcard_dacc_status()\n");
+    uint8_t result = sdcard_dacc_exec_job((sdcard_t *) storage, &(sdcard_job_t) {
+        .job_id = SDCARD_JOB_ID_STATUS
+    });
+    if (result != 0xff) {
+        return result;
+    } else {
+        return STA_NODISK;
+    }
+}
+
+DRESULT sdcard_dacc_read(
+    void *storage,
+    BYTE *buff,
+    LBA_t sector,
+    UINT count)
+{
+    D_CALL_PRINTF("sdcard_dacc_read(%p, %lu, %u)\n", buff, sector, count);
+    uint8_t result = sdcard_dacc_exec_job((sdcard_t *) storage, &(sdcard_job_t) {
+        .job_id = SDCARD_JOB_ID_READ,
+        .arg.read = {
+            .buff = buff,
+            .sector = sector,
+            .count = count
+        }
+    });
+    if (result == 0xff) {
+        return RES_ERROR;
+    } else {
+        return (DRESULT) result;
+    }
+}
+
+DRESULT sdcard_dacc_write (
+    void *storage,
+    const BYTE *buff,
+    LBA_t sector,
+    UINT count)
+{
+    D_CALL_PRINTF("sdcard_dacc_write(%p, %lu, %u)\n", buff, sector, count);
+    uint8_t result = sdcard_dacc_exec_job((sdcard_t *) storage, &(sdcard_job_t) {
+        .job_id = SDCARD_JOB_ID_WRITE,
+        .arg.write = {
+            .buff = buff,
+            .sector = sector,
+            .count = count
+        }
+    });
+    if (result == 0xff) {
+        return RES_ERROR;
+    } else {
+        return (DRESULT) result;
+    }
+}
+
+DRESULT sdcard_dacc_ioctl (
+    void *storage,
+    BYTE cmd,
+    void *buff)
+{
+    D_CALL_PRINTF("sdcard_dacc_ioctl(%u, %p)\n", cmd, buff);
+    uint8_t result = sdcard_dacc_exec_job((sdcard_t *) storage, &(sdcard_job_t) {
+        .job_id = SDCARD_JOB_ID_WRITE,
+        .arg.ioctl = {
+            .cmd = cmd,
+            .buff = buff
+        }
+    });
+    if (result == 0xff) {
+        return RES_ERROR;
+    } else {
+        return (DRESULT) result;
     }
 }

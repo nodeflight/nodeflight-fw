@@ -32,6 +32,10 @@
 
 #include "vendor/tinyprintf/tinyprintf.h"
 
+#include "ff.h"
+
+FATFS fs_ext;
+
 #if configUSE_TRACE_FACILITY
 static const char *task_state_name[] = {
     [eRunning] = "running",
@@ -96,6 +100,9 @@ static void main_task(
         for (;;) {
         }
     }
+
+    /* TODO: generalize */
+    f_mount(&fs_ext, "/ext1", 1);
 
     if (0 != vr_connect()) {
         tfp_printf("Error: connecting variables\n");
