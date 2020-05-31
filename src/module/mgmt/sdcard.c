@@ -26,6 +26,8 @@
 #include "task.h"
 #include "queue.h"
 
+#include "vendor/tinyprintf/tinyprintf.h"
+
 #include <stdint.h>
 #include <stddef.h>
 #include <stdbool.h>
@@ -43,21 +45,18 @@
 #define DEBUG_ERRORS                0
 
 #if DEBUG_COMMANDS
-#include "vendor/tinyprintf/tinyprintf.h"
 #define D_COMMAND_PRINTF(...) tfp_printf("sdcard " __VA_ARGS__);
 #else
 #define D_COMMAND_PRINTF(...) do {} while(0)
 #endif
 
 #if DEBUG_CALLS
-#include "vendor/tinyprintf/tinyprintf.h"
 #define D_CALL_PRINTF(...) tfp_printf("sdcard " __VA_ARGS__);
 #else
 #define D_CALL_PRINTF(...) do {} while(0)
 #endif
 
 #if DEBUG_ERRORS
-#include "vendor/tinyprintf/tinyprintf.h"
 #define D_ERROR_PRINTF(...) tfp_printf("sdcard " __VA_ARGS__);
 #else
 #define D_ERROR_PRINTF(...) do {} while(0)
@@ -188,7 +187,7 @@ int sdcard_init(
     if (args[1].iface->peripheral->decl->type != PP_GPIO) {
         return -1;
     }
-    if(name == NULL) {
+    if (name == NULL) {
         /* SD card needs a name/mount point */
         return -1;
     }
@@ -237,7 +236,11 @@ int sdcard_init(
         return -1;
     }
 
-    xTaskCreate(sdcard_task, "sdcard", 1024, sdc, SDCARD_TASK_PRIORITY, &sdc->task);
+    /* Generate traceable name for debug/stats */
+    char taskname[configMAX_TASK_NAME_LEN];
+    tfp_snprintf(taskname, configMAX_TASK_NAME_LEN, "md sdcard %s", name);
+
+    xTaskCreate(sdcard_task, taskname, 1024, sdc, SDCARD_TASK_PRIORITY, &sdc->task);
     return 0;
 }
 
