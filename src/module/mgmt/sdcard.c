@@ -34,6 +34,7 @@
 
 #define SDCARD_SPI_BAUD_RATE        10000000UL
 #define SDCARD_TASK_PRIORITY        2
+#define SDCARD_TASK_STACK_WORDS     256
 #define SDCARD_INIT_RETRIES         10
 
 #define SDCARD_TIMEOUT_ITERATIONS   50000
@@ -240,7 +241,7 @@ int sdcard_init(
     char taskname[configMAX_TASK_NAME_LEN];
     tfp_snprintf(taskname, configMAX_TASK_NAME_LEN, "md sdcard %s", name);
 
-    xTaskCreate(sdcard_task, taskname, 1024, sdc, SDCARD_TASK_PRIORITY, &sdc->task);
+    xTaskCreate(sdcard_task, taskname, SDCARD_TASK_STACK_WORDS, sdc, SDCARD_TASK_PRIORITY, &sdc->task);
     return 0;
 }
 
