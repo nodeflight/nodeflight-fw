@@ -191,7 +191,7 @@ PP_INST_DECL(uart, uart1, UART_DEF(USART1, 0),
     PP_INST_RS(UART_ARG_PIN_TX, pin_b06, 7),
 
     PP_INST_RS(UART_ARG_PIN_RX, pin_a10, 7),
-    PP_INST_RS(UART_ARG_PIN_RX, pin_b06, 7),
+    PP_INST_RS(UART_ARG_PIN_RX, pin_b07, 7),
 
     PP_INST_RS(UART_ARG_DMA_TX, dma_2_7, 4),
 
