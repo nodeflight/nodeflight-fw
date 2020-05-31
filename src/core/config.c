@@ -26,8 +26,14 @@
 
 #include "vendor/tinyprintf/tinyprintf.h"
 
+#define CONFIG_PATH_QUEUE_LENGTH 16
+
 #define LINEBUF_SIZE 256
 #define LINEBUF_NUM_ARGS 32
+
+static const char *cf_path_queue[CONFIG_PATH_QUEUE_LENGTH];
+static int cf_queue_head;
+static int cf_queue_tail;
 
 static char cf_linebuf[LINEBUF_SIZE];
 static map_t *cf_peripherals;
@@ -63,8 +69,10 @@ static int cf_process_line(
             /* TODO: Error handling */
             return -1;
         }
-    } else if (0 == strops_cmp("inc", argv[0])) {
-        /* Ignore for now, enqueue file name later */
+    } else if (argc == 2 && 0 == strops_cmp("inc", argv[0])) {
+        /* Push config file path to queue */
+        cf_path_queue[cf_queue_tail] = strops_dup(argv[1]);
+        cf_queue_tail = (cf_queue_tail + 1) % CONFIG_PATH_QUEUE_LENGTH;
     } else {
         /* TODO: Error handling */
         return -1;
@@ -80,21 +88,33 @@ int cf_init(
 
     cf_peripherals = map_create();
 
-    res = f_open(&f, path, FA_READ);
-    if (res != FR_OK) {
-        return -1;
-    }
+    /* Initialize queue and load initial path */
+    cf_queue_head = 0;
+    cf_queue_tail = 0;
 
-    /* Read every line and display it */
-    while (f_gets(cf_linebuf, sizeof(cf_linebuf), &f)) {
-        char *argv[LINEBUF_NUM_ARGS];
-        int argc = strops_split_argv(cf_linebuf, argv);
-        if (cf_process_line(argc, argv) < 0) {
-            f_close(&f);
+    cf_path_queue[cf_queue_tail] = strops_dup(path);
+    cf_queue_tail = (cf_queue_tail + 1) % CONFIG_PATH_QUEUE_LENGTH;
+
+    /* Load config files */
+    while (cf_queue_head != cf_queue_tail) {
+        res = f_open(&f, cf_path_queue[cf_queue_head], FA_READ);
+        if (res != FR_OK) {
             return -1;
         }
+
+        cf_queue_head = (cf_queue_head + 1) % CONFIG_PATH_QUEUE_LENGTH;
+
+        /* Read every line and display it */
+        while (f_gets(cf_linebuf, sizeof(cf_linebuf), &f)) {
+            char *argv[LINEBUF_NUM_ARGS];
+            int argc = strops_split_argv(cf_linebuf, argv);
+            if (cf_process_line(argc, argv) < 0) {
+                f_close(&f);
+                return -1;
+            }
+        }
+        f_close(&f);
     }
-    f_close(&f);
 
     return 0;
 }
