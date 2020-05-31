@@ -134,10 +134,11 @@ static void main_task(
         vTaskDelay(pdMS_TO_TICKS(1000));
         for (;;) {
             num_tasks = uxTaskGetSystemState(tasks, 32, &runtime);
-            tfp_printf("\nnum_tasks = %lu  runtime = %lu\n", num_tasks, runtime);
+            tfp_printf("\nnum_tasks = %lu\n", num_tasks);
+            tfp_printf("ID ................name ....state ...prio free\n");
             for (i = 0; i < num_tasks; i++) {
                 TaskStatus_t *t = &tasks[i];
-                tfp_printf("task[%2lu]: %-20s %9s prio=%2lu (%2lu), stack left=%4u\n",
+                tfp_printf("%2lu %-20s %9s %2lu (%2lu) %4u\n",
                     t->xTaskNumber,
                     t->pcTaskName,
                     task_state_name[t->eCurrentState],
