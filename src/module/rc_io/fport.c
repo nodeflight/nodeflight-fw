@@ -22,6 +22,7 @@
 #include "core/config.h"
 #include "core/scheduler.h"
 #include "core/variable.h"
+#include "lib/hdlc.h"
 #include "FreeRTOS.h"
 #include "task.h"
 
@@ -51,12 +52,14 @@
 
 /**
  * Buffer size packet processing
+ *
+ * It will be stored unstuffed in this buffer. Worst case is therefore double the size
  */
-#define FPORT_RX_MAX_PACKET_SIZE   32
+#define FPORT_RX_MAX_PACKET_SIZE   64
 /**
  * Buffer size for uart rx queue
  * Note that this should handle padding, and reception of next packet prior to previous being processed
- * 
+ *
  * Can be less than packet size, at the expense of more task switches
  */
 #define FPORT_RX_BUFFER_SIZE       64
@@ -136,7 +139,7 @@ int fport_init(
             | IF_SERIAL_INVERTED_TX
             | IF_SERIAL_HAS_FRAME_DELIMITER
             ),
-        .frame_delimiter = 0x7e,
+        .frame_delimiter = HDLC_FRAME_BOUNDARY,
         .storage = fport_if
     });
 
@@ -178,7 +181,6 @@ void fport_task(
 {
     fport_t *fport_if = storage;
 
-    uint8_t rx_byte;
     uint8_t buf[FPORT_RX_MAX_PACKET_SIZE];
     uint16_t checksum;
     int res;
@@ -188,41 +190,31 @@ void fport_task(
     bool channel_update;
 
     for (;;) {
-        /* Wait for start-of-buf */
-        do {
-            res = fport_if->if_ser->rx_read(fport_if->if_ser, &rx_byte, 1);
-        } while(res < 1 || rx_byte != 0x7e);
-
-        /* Skip until start-of-buf doesn't arrive */
-        do {
-            res = fport_if->if_ser->rx_read(fport_if->if_ser, &rx_byte, 1);
-        } while(res < 1 || rx_byte == 0x7e);
-
-        /* Read all buf */
+        /* Reading is guaranteed to end with frame boundary to keep sync */
         len = 0;
-        buf[len++] = rx_byte;
-        while (len < FPORT_RX_MAX_PACKET_SIZE && rx_byte != 0x7e) {
-            res = fport_if->if_ser->rx_read(fport_if->if_ser, &rx_byte, 1);
-            if (res < 0) {
-                continue;
+        while (len == 0 || buf[len - 1] != HDLC_FRAME_BOUNDARY) {
+            if (len == FPORT_RX_MAX_PACKET_SIZE) {
+                /* TODO: Error handling. For now, wrap around, the packet will get bad checksum anyway */
+                len = 0;
             }
-            if (rx_byte == 0x7d) {
-                res = fport_if->if_ser->rx_read(fport_if->if_ser, &rx_byte, 1);
-                if (res < 0) {
-                    continue;
-                }
-                buf[len++] = rx_byte ^ 0x20;
+            res = fport_if->if_ser->rx_read(fport_if->if_ser, &buf[len], FPORT_RX_MAX_PACKET_SIZE - len);
+            if (res < 0) {
+                /* TODO: error handling */
+            } else if (res == 0) {
+                /* Timeout, handle later... */
             } else {
-                buf[len++] = rx_byte;
+                len += res;
             }
         }
-        if (len == FPORT_RX_MAX_PACKET_SIZE) {
-            /* Buf to long, drop */
+        /* Unstuff bytes */
+        len = hdlc_frame_unstuff(buf, len);
+
+        /* Ignore error frames and empty frames */
+        if (len <= 0) {
             continue;
         }
-        len--; /* Last 0x7e recorded, ignore */
 
-        /* Validate buf length */
+        /* Validate buf length against length header */
         if (len != buf[0] + 2) {
             /* Invalid length, drop */
             D_ERROR_PRINTF("Invalid length %d %u\n", len, buf[0]);

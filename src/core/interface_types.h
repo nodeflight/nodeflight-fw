@@ -107,13 +107,18 @@ typedef struct if_serial_cf_s if_serial_cf_t;
 
 /**
  * The protocol has a frame delimiter character
- * 
- * If the frame delimiter hint is enabled, the RX interrupt doesn't have to wake the calling thread up until the frame
- * delimiter is received. It is however just an optimization, and the peripheral itself doesn't have to implemented the
- * behaviour if not suitable for the backend.
- * 
- * Useful for protocols similar to HDLC, to reduce the amount of task switching.
- * 
+ *
+ * In case of having a frame delinmiter, two things may happen:
+ *
+ * 1. the serial backend may use the delimiter to hint when to wake up the task for further processing, to reduce the
+ *    number of task switches. It is not required however.
+ * 2. The backend must stop rx_read operation on the frame delimiter, so if a frame delimiter is received, the rx_read
+ *    operation is interrupted and data is returned, including the frame delimiter. This makes it possible to assume
+ *    a frame start always occurs at first byte in a buffer if previous buffer ended with the frame delimiter.
+ *
+ * Useful for protocols similar to HDLC, to reduce the amount of task switching, or for line buffered input with frame
+ * delimiter set to '\n'
+ *
  * If set, also set the frame_delimiter parameter in the configuration struct.
  */
 #define IF_SERIAL_HAS_FRAME_DELIMITER 0x00000008

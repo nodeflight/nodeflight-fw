@@ -33,7 +33,6 @@ TARGET_stm32f745_SOURCES = \
 TARGET_nodeflight_DEPENDS = freertos tinyprintf core lib fatfs
 TARGET_nodeflight_SOURCES = \
 	core/main.c \
-	lib/strops.c \
 	module/math/arithmetic.c \
 	module/math/calculus.c \
 	module/mgmt/nfcp.c \
@@ -85,6 +84,7 @@ TARGET_core_SOURCES = \
 	core/variable.c
 
 TARGET_lib_SOURCES = \
+	lib/hdlc.c \
 	lib/strops.c \
 	lib/map.c
 

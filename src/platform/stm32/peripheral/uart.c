@@ -265,8 +265,12 @@ int uart_rx_read(
     }
     out_size = 0;
     while (if_uart->rx_buf_tail != if_uart->rx_buf_head && out_size < dst_size) {
-        dst[out_size++] = if_uart->rx_buf[if_uart->rx_buf_tail];
+        uint8_t c = if_uart->rx_buf[if_uart->rx_buf_tail];
+        dst[out_size++] = c;
         if_uart->rx_buf_tail = (if_uart->rx_buf_tail + 1) % if_uart->rx_buf_size;
+        if((if_uart->config.flags & IF_SERIAL_HAS_FRAME_DELIMITER) && c == if_uart->config.frame_delimiter) {
+            break;
+        }
     }
     return out_size;
 }
