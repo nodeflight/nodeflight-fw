@@ -74,7 +74,8 @@ static void uart_tx_wait_done(
 static int uart_rx_read(
     if_serial_t *iface,
     uint8_t *dst,
-    int dst_size);
+    int dst_size,
+    TickType_t timeout);
 
 static uart_if_t *uart_ifs[UART_MAX_COUNT] = {
     0
@@ -251,17 +252,16 @@ void uart_tx_wait_done(
 int uart_rx_read(
     if_serial_t *iface,
     uint8_t *dst,
-    int dst_size)
+    int dst_size,
+    TickType_t timeout)
 {
     uart_if_t *if_uart = (uart_if_t *) iface;
     uint32_t notify_value;
     int out_size;
     if_uart->current_task = xTaskGetCurrentTaskHandle();
-    while (if_uart->rx_buf_head == if_uart->rx_buf_tail) {
-        xTaskNotifyWait(0, 0xff000000, &notify_value, (1000 * portTICK_PERIOD_MS));
-        if (!(notify_value & 0x01000000)) {
-            return -1;
-        }
+    if (if_uart->rx_buf_head == if_uart->rx_buf_tail) {
+        xTaskNotifyWait(0, 0xff000000, &notify_value, timeout);
+        /* If timeout, the buffer will still be empty afterwards, which means 0 size */
     }
     out_size = 0;
     while (if_uart->rx_buf_tail != if_uart->rx_buf_head && out_size < dst_size) {

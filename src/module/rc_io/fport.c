@@ -35,7 +35,7 @@
 #define DEBUG_ERRORS          0
 
 #if DEBUG_ERRORS
-#define D_ERROR_PRINTF(...) tfp_printf("sdcard " __VA_ARGS__);
+#define D_ERROR_PRINTF(...) tfp_printf("fport " __VA_ARGS__);
 #else
 #define D_ERROR_PRINTF(...) do {} while(0)
 #endif
@@ -45,7 +45,7 @@
 #define FPORT_FLAG_CH18            0x02
 #define FPORT_FLAG_CH17            0x04
 
-#define FPORT_TIMEOUT              (50 * portTICK_PERIOD_MS)
+#define FPORT_TIMEOUT              pdMS_TO_TICKS(50)
 
 #define FPORT_RAW_VALUE_MIN        192
 #define FPORT_RAW_VALUE_MAX        1792
@@ -197,11 +197,17 @@ void fport_task(
                 /* TODO: Error handling. For now, wrap around, the packet will get bad checksum anyway */
                 len = 0;
             }
-            res = fport_if->if_ser->rx_read(fport_if->if_ser, &buf[len], FPORT_RX_MAX_PACKET_SIZE - len);
+            res = fport_if->if_ser->rx_read(fport_if->if_ser, &buf[len], FPORT_RX_MAX_PACKET_SIZE - len, FPORT_TIMEOUT);
             if (res < 0) {
                 /* TODO: error handling */
             } else if (res == 0) {
-                /* Timeout, handle later... */
+                /* Timeout, force scheduler to trigger with loss */
+                fport_if->failsafe = true;
+                fport_if->signal_loss = true;
+                D_ERROR_PRINTF("timeout\n");
+                if (fport_if->target_scheduler != NULL) {
+                    sc_trigger(fport_if->target_scheduler);
+                }
             } else {
                 len += res;
             }

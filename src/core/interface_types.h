@@ -19,6 +19,7 @@
 #pragma once
 
 #include "core/interface.h"
+#include "FreeRTOS.h"
 #include <stdbool.h>
 
 typedef struct if_gpio_s if_gpio_t;
@@ -152,7 +153,8 @@ struct if_serial_s {
     int (*rx_read)(
         if_serial_t *iface,
         uint8_t *dst,
-        int dst_size);
+        int dst_size,
+        TickType_t timeout);
 };
 
 #define IF_SERIAL(_INTERFACE) ((if_serial_t *) (_INTERFACE))
