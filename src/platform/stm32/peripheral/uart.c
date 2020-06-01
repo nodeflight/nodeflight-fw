@@ -259,12 +259,12 @@ int uart_rx_read(
     if_uart->current_task = xTaskGetCurrentTaskHandle();
     while (if_uart->rx_buf_head == if_uart->rx_buf_tail) {
         xTaskNotifyWait(0, 0xff000000, &notify_value, (1000 * portTICK_PERIOD_MS));
-        if(!(notify_value & 0x01000000)) {
+        if (!(notify_value & 0x01000000)) {
             return -1;
         }
     }
     out_size = 0;
-    while(if_uart->rx_buf_tail != if_uart->rx_buf_head && out_size < dst_size) {
+    while (if_uart->rx_buf_tail != if_uart->rx_buf_head && out_size < dst_size) {
         dst[out_size++] = if_uart->rx_buf[if_uart->rx_buf_tail];
         if_uart->rx_buf_tail = (if_uart->rx_buf_tail + 1) % if_uart->rx_buf_size;
     }
@@ -287,9 +287,27 @@ static void uart_irqhandler(
     uint32_t isr = if_uart->def.reg->ISR;
     if_uart->def.reg->ICR = isr;
     if (isr & USART_ISR_RXNE) {
-        if_uart->rx_buf[if_uart->rx_buf_head] = LL_USART_ReceiveData8(if_uart->def.reg);
+        bool should_wakeup;
+        /* Read byte */
+        uint8_t rx_byte = LL_USART_ReceiveData8(if_uart->def.reg);
+
+        /* Enqueue byte */
+        if_uart->rx_buf[if_uart->rx_buf_head] = rx_byte;
         if_uart->rx_buf_head = (if_uart->rx_buf_head + 1) % if_uart->rx_buf_size;
-        uart_notify(if_uart);
+
+        /* Wakeup process if necessary */
+        should_wakeup = !(if_uart->config.flags & IF_SERIAL_HAS_FRAME_DELIMITER);
+        if (!should_wakeup) {
+            should_wakeup = (rx_byte == if_uart->config.frame_delimiter);
+        }
+        if (!should_wakeup) {
+            uint16_t remain =
+                (if_uart->rx_buf_tail - if_uart->rx_buf_head + if_uart->rx_buf_size) % if_uart->rx_buf_size;
+            should_wakeup = remain < (if_uart->rx_buf_size / 4); /* If more than close to full, wakeup anyway */
+        }
+        if (should_wakeup) {
+            uart_notify(if_uart);
+        }
     }
 }
 

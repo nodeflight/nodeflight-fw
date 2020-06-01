@@ -39,18 +39,35 @@
 #define D_ERROR_PRINTF(...) do {} while(0)
 #endif
 
-#define FPORT_FLAG_FAILSAFE   0x08
-#define FPORT_FLAG_FRAME_LOST 0x04
-#define FPORT_FLAG_CH18       0x02
-#define FPORT_FLAG_CH17       0x04
+#define FPORT_FLAG_FAILSAFE        0x08
+#define FPORT_FLAG_FRAME_LOST      0x04
+#define FPORT_FLAG_CH18            0x02
+#define FPORT_FLAG_CH17            0x04
 
-#define FPORT_TIMEOUT         (50 * portTICK_PERIOD_MS)
+#define FPORT_TIMEOUT              (50 * portTICK_PERIOD_MS)
 
-#define FPORT_RAW_VALUE_MIN   192
-#define FPORT_RAW_VALUE_MAX   1792
+#define FPORT_RAW_VALUE_MIN        192
+#define FPORT_RAW_VALUE_MAX        1792
 
-#define FPORT_TASK_PRIORITY   7
-#define FPORT_STACK_WORDS     256
+/**
+ * Buffer size packet processing
+ */
+#define FPORT_RX_MAX_PACKET_SIZE   32
+/**
+ * Buffer size for uart rx queue
+ * Note that this should handle padding, and reception of next packet prior to previous being processed
+ * 
+ * Can be less than packet size, at the expense of more task switches
+ */
+#define FPORT_RX_BUFFER_SIZE       64
+/**
+ * Buffer size for uart tx queue
+ * Should handle telemetry response, nothing more reall
+ */
+#define FPORT_TX_BUFFER_SIZE       32
+
+#define FPORT_TASK_PRIORITY        7
+#define FPORT_STACK_WORDS          256
 
 typedef struct fport_s fport_t;
 
@@ -111,13 +128,15 @@ int fport_init(
     fport_if->if_ser->configure(fport_if->if_ser,
         &(const if_serial_cf_t) {
         .baudrate = 115200,
-        .tx_buf_size = 16,
-        .rx_buf_size = 128,
+        .tx_buf_size = FPORT_TX_BUFFER_SIZE,
+        .rx_buf_size = FPORT_RX_BUFFER_SIZE,
         .flags = (
             IF_SERIAL_HALF_DUPLEX
             | IF_SERIAL_INVERTED_RX
             | IF_SERIAL_INVERTED_TX
+            | IF_SERIAL_HAS_FRAME_DELIMITER
             ),
+        .frame_delimiter = 0x7e,
         .storage = fport_if
     });
 
@@ -160,7 +179,7 @@ void fport_task(
     fport_t *fport_if = storage;
 
     uint8_t rx_byte;
-    uint8_t buf[64];
+    uint8_t buf[FPORT_RX_MAX_PACKET_SIZE];
     uint16_t checksum;
     int res;
     int len;
@@ -182,7 +201,7 @@ void fport_task(
         /* Read all buf */
         len = 0;
         buf[len++] = rx_byte;
-        while (len < 128 && rx_byte != 0x7e) {
+        while (len < FPORT_RX_MAX_PACKET_SIZE && rx_byte != 0x7e) {
             res = fport_if->if_ser->rx_read(fport_if->if_ser, &rx_byte, 1);
             if (res < 0) {
                 continue;
@@ -197,7 +216,7 @@ void fport_task(
                 buf[len++] = rx_byte;
             }
         }
-        if (len == 128) {
+        if (len == FPORT_RX_MAX_PACKET_SIZE) {
             /* Buf to long, drop */
             continue;
         }

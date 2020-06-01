@@ -90,15 +90,41 @@ struct if_gpio_s {
 typedef struct if_serial_s if_serial_t;
 typedef struct if_serial_cf_s if_serial_cf_t;
 
-#define IF_SERIAL_INVERTED_TX 0x00000001
-#define IF_SERIAL_INVERTED_RX 0x00000002
-#define IF_SERIAL_HALF_DUPLEX 0x00000004
+/**
+ * The TX line is inverted, which means active low.
+ */
+#define IF_SERIAL_INVERTED_TX         0x00000001
+
+/**
+ * The RX line is inverted, which means active low.
+ */
+#define IF_SERIAL_INVERTED_RX         0x00000002
+
+/**
+ * RX is coupled to the TX line, and TX is in tri-state when not transmitting
+ */
+#define IF_SERIAL_HALF_DUPLEX         0x00000004
+
+/**
+ * The protocol has a frame delimiter character
+ * 
+ * If the frame delimiter hint is enabled, the RX interrupt doesn't have to wake the calling thread up until the frame
+ * delimiter is received. It is however just an optimization, and the peripheral itself doesn't have to implemented the
+ * behaviour if not suitable for the backend.
+ * 
+ * Useful for protocols similar to HDLC, to reduce the amount of task switching.
+ * 
+ * If set, also set the frame_delimiter parameter in the configuration struct.
+ */
+#define IF_SERIAL_HAS_FRAME_DELIMITER 0x00000008
 
 struct if_serial_cf_s {
     uint32_t baudrate;
     uint16_t tx_buf_size;
     uint16_t rx_buf_size;
     uint32_t flags;
+
+    uint8_t frame_delimiter;
 
     void *storage;
 };
