@@ -42,9 +42,16 @@ struct uart_if_s {
     uart_def_t def; /* Keep a copy for quick access. Just a few bytes */
     if_serial_cf_t config;
 
-    const dma_stream_def_t *tx_dma;
+    /* TX common */
     uint8_t *tx_buf;
     uint16_t tx_buf_size;
+
+    /* TX DMA mode (tx_dma == NULL means irq mode) */
+    const dma_stream_def_t *tx_dma;
+
+    /* TX IRQ mode */
+    volatile uint16_t tx_buf_head;
+    volatile uint16_t tx_buf_tail;
 
     const dma_stream_def_t *rx_dma;
     uint8_t *rx_buf;
@@ -63,7 +70,17 @@ static int uart_configure(
     if_serial_t *iface,
     const if_serial_cf_t *config);
 
-static int uart_tx_write(
+static int uart_tx_write_null(
+    if_serial_t *iface,
+    const void *buf,
+    int bytes);
+
+static int uart_tx_write_dma(
+    if_serial_t *iface,
+    const void *buf,
+    int bytes);
+
+static int uart_tx_write_irq(
     if_serial_t *iface,
     const void *buf,
     int bytes);
@@ -101,7 +118,7 @@ int uart_init(
     uart_if_t *if_uart = (uart_if_t *) iface;
 
     if_uart->header.configure = uart_configure;
-    if_uart->header.tx_write = uart_tx_write;
+    if_uart->header.tx_write = uart_tx_write_null;
     if_uart->header.tx_wait_done = uart_tx_wait_done;
     if_uart->header.rx_read = uart_rx_read;
 
@@ -110,6 +127,8 @@ int uart_init(
     if_uart->tx_dma = NULL;
     if_uart->tx_buf = NULL;
     if_uart->tx_buf_size = 0;
+
+    if_uart->current_task = NULL;
 
     if (uart_ifs[if_uart->def.id] != NULL) {
         /* Already created - error */
@@ -126,11 +145,10 @@ int uart_configure(
 {
     uart_if_t *if_uart = (uart_if_t *) iface;
     if_rs_t *rscs = if_uart->header.header.rscs;
-    uint32_t irqn = if_uart->def.IRQn;
     if_uart->config = *config;
 
-    bool tx_en = rscs[UART_ARG_PIN_TX].decl->ref != GPIO_ID_NONE && rscs[UART_ARG_DMA_TX].decl->ref != DMA_ID_NONE;
-    bool rx_en = rscs[UART_ARG_PIN_RX].decl->ref != GPIO_ID_NONE && rscs[UART_ARG_DMA_RX].decl->ref != DMA_ID_NONE;
+    bool tx_en = rscs[UART_ARG_PIN_TX].decl->ref != GPIO_ID_NONE;
+    bool rx_en = rscs[UART_ARG_PIN_RX].decl->ref != GPIO_ID_NONE;
 
     LL_USART_Init(if_uart->def.reg, &(LL_USART_InitTypeDef) {
         .BaudRate = config->baudrate,
@@ -161,28 +179,38 @@ int uart_configure(
             ? LL_USART_TXPIN_LEVEL_INVERTED
             : LL_USART_TXPIN_LEVEL_STANDARD
         );
+        if (if_uart->tx_dma != NULL) {
+            /* DMA based transmission */
+            LL_DMA_Init(if_uart->tx_dma->reg, if_uart->tx_dma->stream, &(LL_DMA_InitTypeDef) {
+                .PeriphOrM2MSrcAddress = LL_USART_DMA_GetRegAddr(if_uart->def.reg, LL_USART_DMA_REG_DATA_TRANSMIT),
+                .MemoryOrM2MDstAddress = (uint32_t) if_uart->tx_buf,
+                .Direction = LL_DMA_DIRECTION_MEMORY_TO_PERIPH,
+                .Mode = LL_DMA_MODE_NORMAL, // LL_DMA_MODE_CIRCULAR,
+                .PeriphOrM2MSrcIncMode = LL_DMA_PERIPH_NOINCREMENT,
+                .MemoryOrM2MDstIncMode = LL_DMA_MEMORY_INCREMENT,
+                .PeriphOrM2MSrcDataSize = LL_DMA_PDATAALIGN_BYTE,
+                .MemoryOrM2MDstDataSize = LL_DMA_MDATAALIGN_BYTE,
+                .NbData = 0,
+                .Channel = rscs[UART_ARG_DMA_TX].inst->attr << DMA_SxCR_CHSEL_Pos,
+                .Priority = LL_DMA_PRIORITY_MEDIUM,
+                .FIFOMode = LL_DMA_FIFOMODE_ENABLE,
+                .FIFOThreshold = LL_DMA_FIFOTHRESHOLD_1_2,
+                .MemBurst = LL_DMA_MBURST_SINGLE,
+                .PeriphBurst = LL_DMA_PBURST_SINGLE
+            });
 
-        LL_DMA_Init(if_uart->tx_dma->reg, if_uart->tx_dma->stream, &(LL_DMA_InitTypeDef) {
-            .PeriphOrM2MSrcAddress = LL_USART_DMA_GetRegAddr(if_uart->def.reg, LL_USART_DMA_REG_DATA_TRANSMIT),
-            .MemoryOrM2MDstAddress = (uint32_t) if_uart->tx_buf,
-            .Direction = LL_DMA_DIRECTION_MEMORY_TO_PERIPH,
-            .Mode = LL_DMA_MODE_NORMAL, // LL_DMA_MODE_CIRCULAR,
-            .PeriphOrM2MSrcIncMode = LL_DMA_PERIPH_NOINCREMENT,
-            .MemoryOrM2MDstIncMode = LL_DMA_MEMORY_INCREMENT,
-            .PeriphOrM2MSrcDataSize = LL_DMA_PDATAALIGN_BYTE,
-            .MemoryOrM2MDstDataSize = LL_DMA_MDATAALIGN_BYTE,
-            .NbData = 0,
-            .Channel = rscs[UART_ARG_DMA_TX].inst->attr << DMA_SxCR_CHSEL_Pos,
-            .Priority = LL_DMA_PRIORITY_MEDIUM,
-            .FIFOMode = LL_DMA_FIFOMODE_ENABLE,
-            .FIFOThreshold = LL_DMA_FIFOTHRESHOLD_1_2,
-            .MemBurst = LL_DMA_MBURST_SINGLE,
-            .PeriphBurst = LL_DMA_PBURST_SINGLE
-        });
+            dma_enable_irq(if_uart->tx_dma, UART_TX_DMA_IRQ_PRIORITY, if_uart);
+            dma_set_transfer_complete_cb(if_uart->tx_dma, uart_tx_tc_callback);
+            LL_USART_EnableDMAReq_TX(if_uart->def.reg);
 
-        dma_enable_irq(if_uart->tx_dma, UART_TX_DMA_IRQ_PRIORITY, if_uart);
-        dma_set_transfer_complete_cb(if_uart->tx_dma, uart_tx_tc_callback);
-        LL_USART_EnableDMAReq_TX(if_uart->def.reg);
+            if_uart->header.tx_write = uart_tx_write_dma;
+        } else {
+            /* Interrupt based transmission */
+            if_uart->tx_buf_head = 0;
+            if_uart->tx_buf_tail = 0;
+
+            if_uart->header.tx_write = uart_tx_write_irq;
+        }
     }
 
     /* RX */
@@ -200,29 +228,34 @@ int uart_configure(
             ? LL_USART_RXPIN_LEVEL_INVERTED
             : LL_USART_RXPIN_LEVEL_STANDARD
         );
-
-        NVIC_ClearPendingIRQ(irqn);
-        NVIC_EnableIRQ(irqn);
-        NVIC_SetPriority(irqn, UART_RX_CHAR_IRQ_PRIORITY);
         LL_USART_EnableIT_RXNE(if_uart->def.reg);
     }
+
+    NVIC_ClearPendingIRQ(if_uart->def.IRQn);
+    NVIC_EnableIRQ(if_uart->def.IRQn);
+    NVIC_SetPriority(if_uart->def.IRQn, UART_RX_CHAR_IRQ_PRIORITY);
 
     LL_USART_Enable(if_uart->def.reg);
 
     return 0;
 }
 
-int uart_tx_write(
+int uart_tx_write_null(
+    if_serial_t *iface,
+    const void *buf,
+    int bytes)
+{
+    /* Not started, error */
+    return -1;
+}
+
+int uart_tx_write_dma(
     if_serial_t *iface,
     const void *buf,
     int bytes)
 {
     int i;
     uart_if_t *if_uart = (uart_if_t *) iface;
-
-    if (if_uart->tx_buf == NULL) {
-        return -1;
-    }
 
     for (i = 0; i < bytes; i += if_uart->tx_buf_size) {
         int cur_bytes = bytes - i;
@@ -231,6 +264,7 @@ int uart_tx_write(
         }
         /* Block if already transmitting */
         while (LL_DMA_IsEnabledStream(if_uart->tx_dma->reg, if_uart->tx_dma->stream)) {
+            /* TODO: yield */
         }
         memcpy(if_uart->tx_buf, ((const uint8_t *) buf) + i, cur_bytes);
         LL_DMA_SetDataLength(if_uart->tx_dma->reg, if_uart->tx_dma->stream, cur_bytes);
@@ -241,11 +275,43 @@ int uart_tx_write(
     return bytes;
 }
 
+int uart_tx_write_irq(
+    if_serial_t *iface,
+    const void *buf,
+    int bytes)
+{
+    uart_if_t *if_uart = (uart_if_t *) iface;
+    const uint8_t *ptr = buf;
+    int left = bytes;
+    bool enable_tx = false;
+    while (left > 0) {
+        /* Buffer tail to have control to volatile memory access */
+        uint16_t tail = if_uart->tx_buf_tail;
+        if_uart->tx_buf[tail] = *ptr;
+        tail = (tail + 1) % if_uart->tx_buf_size;
+        if_uart->tx_buf_tail = tail;
+        enable_tx = true;
+        while (tail == if_uart->tx_buf_head) {
+            LL_USART_EnableIT_TXE(if_uart->def.reg);
+            enable_tx = false;
+            /* TODO: buffer full, yield */
+        }
+
+        ptr++;
+        left--;
+    }
+    if (enable_tx) {
+        LL_USART_EnableIT_TXE(if_uart->def.reg);
+    }
+    return bytes;
+}
+
 void uart_tx_wait_done(
     if_serial_t *iface)
 {
     uart_if_t *if_uart = (uart_if_t *) iface;
     while (!LL_USART_IsActiveFlag_TC(if_uart->def.reg)) {
+        /* TODO: yield */
     }
 }
 
@@ -268,7 +334,7 @@ int uart_rx_read(
         uint8_t c = if_uart->rx_buf[if_uart->rx_buf_tail];
         dst[out_size++] = c;
         if_uart->rx_buf_tail = (if_uart->rx_buf_tail + 1) % if_uart->rx_buf_size;
-        if((if_uart->config.flags & IF_SERIAL_HAS_FRAME_DELIMITER) && c == if_uart->config.frame_delimiter) {
+        if ((if_uart->config.flags & IF_SERIAL_HAS_FRAME_DELIMITER) && c == if_uart->config.frame_delimiter) {
             break;
         }
     }
@@ -290,7 +356,7 @@ static void uart_irqhandler(
 {
     uint32_t isr = if_uart->def.reg->ISR;
     if_uart->def.reg->ICR = isr;
-    if (isr & USART_ISR_RXNE) {
+    if (isr & LL_USART_ISR_RXNE) {
         bool should_wakeup;
         /* Read byte */
         uint8_t rx_byte = LL_USART_ReceiveData8(if_uart->def.reg);
@@ -311,6 +377,17 @@ static void uart_irqhandler(
         }
         if (should_wakeup) {
             uart_notify(if_uart);
+        }
+    }
+    if (isr & LL_USART_ISR_TXE) {
+        /* Should not be possible to get here if no data is available */
+        uint16_t head = if_uart->tx_buf_head;
+        LL_USART_TransmitData8(if_uart->def.reg, if_uart->tx_buf[head]);
+        head = (head + 1) % if_uart->tx_buf_size;
+        if_uart->tx_buf_head = head;
+        if (head == if_uart->tx_buf_tail) {
+            /* Buffer empty */
+            LL_USART_DisableIT_TXE(if_uart->def.reg);
         }
     }
 }

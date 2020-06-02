@@ -69,7 +69,7 @@ int nfcp_init(
         &(const if_serial_cf_t) {
         .baudrate = 115200,
         .tx_buf_size = MAX_PACKET_LENGTH,
-        .rx_buf_size = 0,
+        .rx_buf_size = MAX_PACKET_LENGTH,
         .flags = 0
     });
 
