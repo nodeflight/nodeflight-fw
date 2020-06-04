@@ -39,7 +39,8 @@ static int usb_vcp_tx_write(
     int bytes);
 
 static void usb_vcp_tx_wait_done(
-    if_serial_t *iface);
+    if_serial_t *iface,
+    TickType_t timeout);
 
 PP_TYPE_DECL(usb_vcp, PP_SERIAL, 0, usb_vcp_init, sizeof(usb_vcp_if_t));
 
@@ -71,7 +72,8 @@ int usb_vcp_tx_write(
 }
 
 void usb_vcp_tx_wait_done(
-    if_serial_t *iface)
+    if_serial_t *iface,
+    TickType_t timeout)
 {
 
 }

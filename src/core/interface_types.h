@@ -148,7 +148,8 @@ struct if_serial_s {
         int bytes);
 
     void (*tx_wait_done)(
-        if_serial_t *iface);
+        if_serial_t *iface,
+        TickType_t timeout);
 
     int (*rx_read)(
         if_serial_t *iface,

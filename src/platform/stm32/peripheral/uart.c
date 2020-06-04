@@ -35,6 +35,9 @@
 #define UART_TX_DMA_IRQ_PRIORITY 11
 #define UART_RX_CHAR_IRQ_PRIORITY 10
 
+#define UART_TX_NOTIFY_FLAG 0x01000000
+#define UART_RX_NOTIFY_FLAG 0x02000000
+
 typedef struct uart_if_s uart_if_t;
 
 struct uart_if_s {
@@ -43,6 +46,7 @@ struct uart_if_s {
     if_serial_cf_t config;
 
     /* TX common */
+    TaskHandle_t tx_task;
     uint8_t *tx_buf;
     uint16_t tx_buf_size;
 
@@ -53,14 +57,17 @@ struct uart_if_s {
     volatile uint16_t tx_buf_head;
     volatile uint16_t tx_buf_tail;
 
-    const dma_stream_def_t *rx_dma;
+    /* RX common */
+    TaskHandle_t rx_task;
     uint8_t *rx_buf;
     uint16_t rx_buf_size;
 
+    /* RX DMA mode (not implemented) */
+    const dma_stream_def_t *rx_dma;
+
+    /* RX IRQ mode */
     volatile uint16_t rx_buf_head;
     uint16_t rx_buf_tail;
-
-    TaskHandle_t current_task;
 };
 
 static int uart_init(
@@ -86,13 +93,21 @@ static int uart_tx_write_irq(
     int bytes);
 
 static void uart_tx_wait_done(
-    if_serial_t *iface);
+    if_serial_t *iface,
+    TickType_t timeout);
 
 static int uart_rx_read(
     if_serial_t *iface,
     uint8_t *dst,
     int dst_size,
     TickType_t timeout);
+
+static void uart_tx_tc_irq(
+    const dma_stream_def_t *def,
+    void *storage);
+
+static void uart_irqhandler(
+    uart_if_t *if_uart);
 
 static uart_if_t *uart_ifs[UART_MAX_COUNT] = {
     0
@@ -104,13 +119,6 @@ PP_TYPE_DECL(
     UART_NUM_ARGS,
     uart_init,
     sizeof(uart_if_t));
-
-static void uart_tx_tc_callback(
-    const dma_stream_def_t *def,
-    void *storage)
-{
-    LL_DMA_DisableStream(def->reg, def->stream);
-}
 
 int uart_init(
     if_header_t *iface)
@@ -124,11 +132,19 @@ int uart_init(
 
     if_uart->def = *((const uart_def_t *) if_uart->header.header.peripheral->storage);
 
-    if_uart->tx_dma = NULL;
+    if_uart->tx_task = NULL;
     if_uart->tx_buf = NULL;
     if_uart->tx_buf_size = 0;
+    if_uart->tx_dma = NULL;
+    if_uart->tx_buf_head = 0;
+    if_uart->tx_buf_tail = 0;
 
-    if_uart->current_task = NULL;
+    if_uart->rx_task = NULL;
+    if_uart->rx_buf = NULL;
+    if_uart->rx_buf_size = 0;
+    if_uart->rx_dma = NULL;
+    if_uart->rx_buf_head = 0;
+    if_uart->rx_buf_tail = 0;
 
     if (uart_ifs[if_uart->def.id] != NULL) {
         /* Already created - error */
@@ -171,6 +187,8 @@ int uart_configure(
         if_uart->tx_dma = dma_get(rscs[UART_ARG_DMA_TX].decl->ref);
         if_uart->tx_buf = pvPortMalloc(config->tx_buf_size);
         if_uart->tx_buf_size = config->tx_buf_size;
+        if_uart->tx_buf_head = 0;
+        if_uart->tx_buf_tail = 0;
 
         gpio_configure_alternative(&rscs[UART_ARG_PIN_TX]);
 
@@ -200,7 +218,7 @@ int uart_configure(
             });
 
             dma_enable_irq(if_uart->tx_dma, UART_TX_DMA_IRQ_PRIORITY, if_uart);
-            dma_set_transfer_complete_cb(if_uart->tx_dma, uart_tx_tc_callback);
+            dma_set_transfer_complete_cb(if_uart->tx_dma, uart_tx_tc_irq);
             LL_USART_EnableDMAReq_TX(if_uart->def.reg);
 
             if_uart->header.tx_write = uart_tx_write_dma;
@@ -217,9 +235,9 @@ int uart_configure(
     if (rx_en) {
         if_uart->rx_dma = dma_get(rscs[UART_ARG_DMA_RX].decl->ref);
         if_uart->rx_buf = pvPortMalloc(config->rx_buf_size);
+        if_uart->rx_buf_size = config->rx_buf_size;
         if_uart->rx_buf_head = 0;
         if_uart->rx_buf_tail = 0;
-        if_uart->rx_buf_size = config->rx_buf_size;
 
         gpio_configure_alternative(&rscs[UART_ARG_PIN_RX]);
 
@@ -307,12 +325,16 @@ int uart_tx_write_irq(
 }
 
 void uart_tx_wait_done(
-    if_serial_t *iface)
+    if_serial_t *iface,
+    TickType_t timeout)
 {
     uart_if_t *if_uart = (uart_if_t *) iface;
+    uint32_t notify_value;
+    if_uart->tx_task = xTaskGetCurrentTaskHandle();
     while (!LL_USART_IsActiveFlag_TC(if_uart->def.reg)) {
-        /* TODO: yield */
+        xTaskNotifyWait(0, UART_TX_NOTIFY_FLAG, &notify_value, timeout);
     }
+    if_uart->tx_task = NULL;
 }
 
 int uart_rx_read(
@@ -324,10 +346,15 @@ int uart_rx_read(
     uart_if_t *if_uart = (uart_if_t *) iface;
     uint32_t notify_value;
     int out_size;
-    if_uart->current_task = xTaskGetCurrentTaskHandle();
+    if_uart->rx_task = xTaskGetCurrentTaskHandle();
     if (if_uart->rx_buf_head == if_uart->rx_buf_tail) {
-        xTaskNotifyWait(0, 0xff000000, &notify_value, timeout);
-        /* If timeout, the buffer will still be empty afterwards, which means 0 size */
+        do {
+            xTaskNotifyWait(0, UART_RX_NOTIFY_FLAG, &notify_value, timeout);
+            /*
+             * If timeout, the buffer will still be empty afterwards, which means 0 size. Other notificaitons shouldn't
+             * happen. If those happen, it will affect timeout
+             */
+        } while((notify_value & UART_RX_NOTIFY_FLAG) == 0);
     }
     out_size = 0;
     while (if_uart->rx_buf_tail != if_uart->rx_buf_head && out_size < dst_size) {
@@ -341,20 +368,24 @@ int uart_rx_read(
     return out_size;
 }
 
-static void uart_notify(
-    uart_if_t *if_uart)
+void uart_tx_tc_irq(
+    const dma_stream_def_t *def,
+    void *storage)
 {
-    if (if_uart->current_task != NULL) {
-        BaseType_t should_switch = pdFALSE;
-        xTaskNotifyFromISR(if_uart->current_task, 0x01000000, eSetBits, &should_switch);
-        portYIELD_FROM_ISR(should_switch);
+    uart_if_t *if_uart = (uart_if_t *) storage;
+    LL_DMA_DisableStream(def->reg, def->stream);
+    BaseType_t should_switch = pdFALSE;
+    if (if_uart->tx_task != NULL) {
+        xTaskNotifyFromISR(if_uart->tx_task, UART_TX_NOTIFY_FLAG, eSetBits, &should_switch);
     }
+    portYIELD_FROM_ISR(should_switch);
 }
 
-static void uart_irqhandler(
+void uart_irqhandler(
     uart_if_t *if_uart)
 {
     uint32_t isr = if_uart->def.reg->ISR;
+    BaseType_t should_switch = pdFALSE;
     if_uart->def.reg->ICR = isr;
     if (isr & LL_USART_ISR_RXNE) {
         bool should_wakeup;
@@ -375,8 +406,8 @@ static void uart_irqhandler(
                 (if_uart->rx_buf_tail - if_uart->rx_buf_head + if_uart->rx_buf_size) % if_uart->rx_buf_size;
             should_wakeup = remain < (if_uart->rx_buf_size / 4); /* If more than close to full, wakeup anyway */
         }
-        if (should_wakeup) {
-            uart_notify(if_uart);
+        if (should_wakeup && if_uart->rx_task != NULL) {
+            xTaskNotifyFromISR(if_uart->rx_task, UART_RX_NOTIFY_FLAG, eSetBits, &should_switch);
         }
     }
     if (isr & LL_USART_ISR_TXE) {
@@ -388,8 +419,12 @@ static void uart_irqhandler(
         if (head == if_uart->tx_buf_tail) {
             /* Buffer empty */
             LL_USART_DisableIT_TXE(if_uart->def.reg);
+            if (if_uart->tx_task != NULL) {
+                xTaskNotifyFromISR(if_uart->tx_task, UART_TX_NOTIFY_FLAG, eSetBits, &should_switch);
+            }
         }
     }
+    portYIELD_FROM_ISR(should_switch);
 }
 
 /* *INDENT-OFF* */
