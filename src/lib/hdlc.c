@@ -30,13 +30,13 @@ int hdlc_frame_unstuff(
     if (len > 0 && buf[len - 1] == HDLC_FRAME_BOUNDARY) {
         len--;
     }
-    while(rd < len) {
+    while (rd < len) {
         c = buf[rd++];
-        if(c == HDLC_FRAME_BOUNDARY) {
+        if (c == HDLC_FRAME_BOUNDARY) {
             /* Not allowed in packet */
             return -1;
-        } else if(c == HDLC_ESCAPE_CHAR) {
-            if(rd == len) {
+        } else if (c == HDLC_ESCAPE_CHAR) {
+            if (rd == len) {
                 /* Abort sequence */
                 return -1;
             }

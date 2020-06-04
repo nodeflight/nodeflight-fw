@@ -98,7 +98,7 @@ struct pp_inst_rs_s {
 
 #define PP_INST_DECL(_name, _tag, _storage, ...) \
     const static pp_inst_decl_t pp_inst_ ##  _tag ## _decl _PP_SECTION(_name, _tag) = { \
-        .decl = (const pp_decl_t *)&pp_ ## _name ## _decl, \
+        .decl = (const pp_decl_t *) &pp_ ## _name ## _decl, \
         .tag = #_tag, \
         .rscs = (const pp_inst_rs_t[]) { \
             __VA_ARGS__, \

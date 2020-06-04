@@ -20,7 +20,7 @@
 
 /**
  * Init and register /int file system
- * 
+ *
  * @return 0 on success, negative on error
  */
 int disk_int_init(
