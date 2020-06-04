@@ -31,19 +31,19 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <stdbool.h>
+#define SDCARD_SPI_STARTUP_BAUD_RATE    1000000UL
+#define SDCARD_SPI_RUNNING_BAUD_RATE    20000000UL
+#define SDCARD_TASK_PRIORITY            2
+#define SDCARD_TASK_STACK_WORDS         256
+#define SDCARD_INIT_RETRIES             10
 
-#define SDCARD_SPI_BAUD_RATE        10000000UL
-#define SDCARD_TASK_PRIORITY        2
-#define SDCARD_TASK_STACK_WORDS     256
-#define SDCARD_INIT_RETRIES         10
+#define SDCARD_TIMEOUT_ITERATIONS       50000
 
-#define SDCARD_TIMEOUT_ITERATIONS   50000
+#define SDCARD_REQUEST_QUEUE_LENGTH     4
 
-#define SDCARD_REQUEST_QUEUE_LENGTH 4
-
-#define DEBUG_COMMANDS              0
-#define DEBUG_CALLS                 0
-#define DEBUG_ERRORS                0
+#define DEBUG_COMMANDS                  0
+#define DEBUG_CALLS                     0
+#define DEBUG_ERRORS                    0
 
 #if DEBUG_COMMANDS
 #define D_COMMAND_PRINTF(...) tfp_printf("sdcard " __VA_ARGS__);
@@ -112,6 +112,12 @@ struct sdcard_job_s {
 static int sdcard_init(
     const char *name,
     md_arg_t *args);
+
+static void sdcard_spi_configure_statup(
+    sdcard_t *sdc);
+
+static void sdcard_spi_configure_running(
+    sdcard_t *sdc);
 
 static uint8_t sdcard_crc7(
     uint8_t *ptr,
@@ -202,10 +208,7 @@ int sdcard_init(
     }
 
     sdc->if_spi = IF_SPI(args[0].iface);
-    sdc->if_spi->configure(sdc->if_spi, &(if_spi_cf_t) {
-        .max_baud_rate = SDCARD_SPI_BAUD_RATE,
-        .mode = SPI_MODE_LEADING_LOW
-    });
+    sdcard_spi_configure_statup(sdc);
 
     sdc->if_cs = IF_GPIO(args[1].iface);
     sdc->if_cs->configure(sdc->if_cs, &(if_gpio_cf_t) {
@@ -243,6 +246,24 @@ int sdcard_init(
 
     xTaskCreate(sdcard_task, taskname, SDCARD_TASK_STACK_WORDS, sdc, SDCARD_TASK_PRIORITY, &sdc->task);
     return 0;
+}
+
+void sdcard_spi_configure_statup(
+    sdcard_t *sdc)
+{
+    sdc->if_spi->configure(sdc->if_spi, &(if_spi_cf_t) {
+        .max_baud_rate = SDCARD_SPI_STARTUP_BAUD_RATE,
+        .mode = SPI_MODE_LEADING_LOW
+    });
+}
+
+void sdcard_spi_configure_running(
+    sdcard_t *sdc)
+{
+    sdc->if_spi->configure(sdc->if_spi, &(if_spi_cf_t) {
+        .max_baud_rate = SDCARD_SPI_RUNNING_BAUD_RATE,
+        .mode = SPI_MODE_LEADING_LOW
+    });
 }
 
 uint8_t sdcard_crc7(
@@ -306,13 +327,16 @@ int sdcard_send_command(
 
     int time_left = SDCARD_TIMEOUT_ITERATIONS;
 
-    /* Wait until not busy */
-    do {
-        sdc->if_spi->transfer(sdc->if_spi, NULL, buf, 1);
-        if (time_left-- == 0) {
-            return -1;
-        }
-    } while(buf[0] != 0xff);
+    /* Wait until not busy, for all commands except GO_TO_IDLE */
+    if (command != 0) {
+        do {
+            sdc->if_spi->transfer(sdc->if_spi, NULL, buf, 1);
+            if (time_left-- == 0) {
+                D_COMMAND_PRINTF("!cmd=%u: timeout\n", command);
+                return -1;
+            }
+        } while(buf[0] != 0xff);
+    }
 
     /* Pack command and send */
     buf[0] = 0x40 | command;
@@ -541,14 +565,17 @@ void sdcard_task(
             case SDCARD_JOB_ID_INITIALIZE:
             {
                 int retries = SDCARD_INIT_RETRIES;
+                sdcard_spi_configure_statup(sdc);
                 do {
-                    if (sdcard_init_card(sdc) < 0) {
+                    int res = sdcard_init_card(sdc);
+                    if (res < 0) {
                         /* Error initialization */
                         result = 1;
                     } else {
                         result = 0;
                     }
                 } while(result != 0 && --retries);
+                sdcard_spi_configure_running(sdc);
             }
             break;
 
@@ -561,17 +588,21 @@ void sdcard_task(
             case SDCARD_JOB_ID_READ:
             {
                 int i;
-                result = RES_OK;
-                for (i = 0; i < job.arg.read.count && result == RES_OK; i++) {
-                    if (0 != sdcard_read_block(
-                        sdc,
-                        17,
-                        job.arg.read.sector + i,
-                        0xfe,
-                        job.arg.read.buff + 512 * i,
-                        512)
-                    ) {
-                        result = RES_ERROR;
+                if (!sdc->card_available) {
+                    result = RES_NOTRDY;
+                } else {
+                    result = RES_OK;
+                    for (i = 0; i < job.arg.read.count && result == RES_OK; i++) {
+                        if (0 != sdcard_read_block(
+                            sdc,
+                            17,
+                            job.arg.read.sector + i,
+                            0xfe,
+                            job.arg.read.buff + 512 * i,
+                            512)
+                        ) {
+                            result = RES_ERROR;
+                        }
                     }
                 }
             }
