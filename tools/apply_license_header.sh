@@ -5,7 +5,7 @@ cd $BASEDIR
 
 for F in $(find "src" -name '*.[ch]' -not -path 'src/vendor/*'); do
 	if grep -q 'You should have received a copy of the GNU General Public License' ${F}; then
-		printf "Already applied to %-60s %s\n" "${F}" "$(grep 'Copyright (C)' "${F}")"
+		printf "    %-45s %s\n" "${F}" "$(grep 'Copyright (C)' "${F}" | sed 's/^.*(C)//')"
 	else
 		mv "${F}" "${F}_orig"
 		cat > "${F}" <<EOF
@@ -30,7 +30,7 @@ for F in $(find "src" -name '*.[ch]' -not -path 'src/vendor/*'); do
 EOF
 		cat "${F}_orig" >> "${F}"
 		rm "${F}_orig"
-		printf "Licence added to   %-60s %s\n" "${F}" "$(grep 'Copyright (C)' "${F}")"
+		printf " >> %-45s %s\n" "${F}" "$(grep 'Copyright (C)' "${F}" | sed 's/^.*(C)//')"
 	fi
 done
 
