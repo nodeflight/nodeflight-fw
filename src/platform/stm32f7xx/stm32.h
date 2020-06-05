@@ -32,6 +32,7 @@
 #include "stm32f7xx_ll_usart.h"
 #include "stm32f7xx_ll_usb.h"
 #include "stm32f7xx_ll_utils.h"
+#include "stm32f7xx_ll_rng.h"
 
 /* Maximum number of resources available, sets limit of allocated arrays for storage */
 #define UART_MAX_COUNT 8

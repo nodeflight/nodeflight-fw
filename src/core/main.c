@@ -25,6 +25,7 @@
 #include "core/peripheral.h"
 #include "core/scheduler.h"
 #include "core/variable.h"
+#include "core/random.h"
 
 #include "integration/heap.h"
 
@@ -93,7 +94,7 @@ int main(
 static void main_task(
     void *storage)
 {
-
+    random_init();
     vr_init();
     sc_init();
 

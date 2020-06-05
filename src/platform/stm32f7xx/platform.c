@@ -41,6 +41,8 @@ void platform_init(
     __DSB();
 
     platform_clock_config();
+
+    LL_RNG_Enable(RNG);
 }
 
 static void platform_clock_config(
@@ -83,4 +85,17 @@ static void platform_clock_config(
     LL_RCC_SetUARTClockSource(LL_RCC_UART5_CLKSOURCE_PCLK1);
     LL_RCC_SetUARTClockSource(LL_RCC_UART7_CLKSOURCE_PCLK1);
     LL_RCC_SetUARTClockSource(LL_RCC_UART8_CLKSOURCE_PCLK1);
+}
+
+/**
+ * Get a random number
+ *
+ * Does not have to be thread safe
+ */
+uint32_t platform_random_get(
+    void)
+{
+    while (!LL_RNG_IsActiveFlag_DRDY(RNG)) {
+    }
+    return LL_RNG_ReadRandData32(RNG);
 }

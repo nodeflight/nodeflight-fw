@@ -81,7 +81,8 @@ TARGET_core_SOURCES = \
 	core/peripheral.c \
 	core/resource.c \
 	core/scheduler.c \
-	core/variable.c
+	core/variable.c \
+	core/random.c
 
 TARGET_lib_SOURCES = \
 	lib/hdlc.c \
