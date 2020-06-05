@@ -27,6 +27,7 @@
 #include "core/interface_types.h"
 #include "core/config.h"
 #include "FreeRTOS.h"
+#include "task.h"
 
 #include "vendor/tinyprintf/tinyprintf.h"
 
@@ -34,17 +35,26 @@
 #include <stddef.h>
 #include <stdbool.h>
 
-#define MAX_PACKET_LENGTH 256
+#define MAX_PACKET_LENGTH             256
+
+#define NFCP_TASK_PRIORITY            2
+#define NFCP_TASK_STACK_WORDS         256
+
+#define NFCP_SERIAL_BAUDRATE          115200
 
 typedef struct nfcp_s nfcp_t;
 
 struct nfcp_s {
     if_serial_t *if_ser;
+    TaskHandle_t task;
 };
 
 static int nfcp_init(
     const char *name,
     md_arg_t *args);
+
+static void nfcp_task(
+    void *storage);
 
 MD_DECL(nfcp, "p", nfcp_init);
 
@@ -67,11 +77,40 @@ int nfcp_init(
 
     nfcp->if_ser->configure(nfcp->if_ser,
         &(const if_serial_cf_t) {
-        .baudrate = 115200,
+        .baudrate = NFCP_SERIAL_BAUDRATE,
         .tx_buf_size = MAX_PACKET_LENGTH,
         .rx_buf_size = MAX_PACKET_LENGTH,
-        .flags = 0
+        .flags = IF_SERIAL_HAS_FRAME_DELIMITER,
+        .frame_delimiter = '\n'
     });
 
+    /* Generate traceable name for debug/stats */
+    char taskname[configMAX_TASK_NAME_LEN];
+    tfp_snprintf(taskname, configMAX_TASK_NAME_LEN, "md nfcp %s", name);
+
+    xTaskCreate(nfcp_task, taskname, NFCP_TASK_STACK_WORDS, nfcp, NFCP_TASK_PRIORITY, &nfcp->task);
     return 0;
+}
+
+void nfcp_task(
+    void *storage)
+{
+    nfcp_t *nfcp = storage;
+    uint8_t line[128];
+    int len;
+    int i;
+    nfcp->if_ser->tx_write(nfcp->if_ser, "start\n", 6);
+    for (;;) {
+        len = 0;
+        while (len < 128 && (len == 0 || line[len - 1] != '\n')) {
+            len += nfcp->if_ser->rx_read(nfcp->if_ser, line+len, 128-len, portMAX_DELAY);
+        }
+        for (i = 0; i < len; i++) {
+            if (line[i] >= 'a' && line[i] <= 'z') {
+                line[i] += 'A' - 'a';
+            }
+        }
+        tfp_printf("len=%d\n", len);
+        nfcp->if_ser->tx_write(nfcp->if_ser, line, len);
+    }
 }
