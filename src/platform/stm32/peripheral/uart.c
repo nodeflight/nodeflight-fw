@@ -428,12 +428,28 @@ void uart_irqhandler(
 }
 
 /* *INDENT-OFF* */
+#ifdef USART1
 void USART1_IRQHandler(void) { uart_irqhandler(uart_ifs[0]); }
+#endif
+#ifdef USART2
 void USART2_IRQHandler(void) { uart_irqhandler(uart_ifs[1]); }
+#endif
+#ifdef USART3
 void USART3_IRQHandler(void) { uart_irqhandler(uart_ifs[2]); }
+#endif
+#ifdef UART4
 void UART4_IRQHandler(void)  { uart_irqhandler(uart_ifs[3]); }
+#endif
+#ifdef UART5
 void UART5_IRQHandler(void)  { uart_irqhandler(uart_ifs[4]); }
+#endif
+#ifdef USART6
 void USART6_IRQHandler(void) { uart_irqhandler(uart_ifs[5]); }
+#endif
+#ifdef UART7
 void UART7_IRQHandler(void)  { uart_irqhandler(uart_ifs[6]); }
+#endif
+#ifdef UART8
 void UART8_IRQHandler(void)  { uart_irqhandler(uart_ifs[7]); }
+#endif
 /* *INDENT-ON* */

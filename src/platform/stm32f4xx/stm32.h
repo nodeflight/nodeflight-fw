@@ -22,8 +22,19 @@
 
 #include "stm32f4xx.h"
 #include "stm32f4xx_ll_dma.h"
+#include "stm32f4xx_ll_exti.h"
 #include "stm32f4xx_ll_pwr.h"
 #include "stm32f4xx_ll_rcc.h"
 #include "stm32f4xx_ll_gpio.h"
+#include "stm32f4xx_ll_spi.h"
+#include "stm32f4xx_ll_system.h"
+#include "stm32f4xx_ll_tim.h"
 #include "stm32f4xx_ll_usart.h"
+#include "stm32f4xx_ll_usb.h"
 #include "stm32f4xx_ll_utils.h"
+#include "stm32f4xx_ll_rng.h"
+
+/* Maximum number of resources available, sets limit of allocated arrays for storage */
+#define UART_MAX_COUNT 6
+#define TIMER_MAX_COUNT 14
+#define SPI_MAX_COUNT 3

@@ -252,9 +252,19 @@ static void spi_irqhandler(
 }
 
 /* *INDENT-OFF* */
+#ifdef SPI1
 void SPI1_IRQHandler(void) { spi_irqhandler(SPI1, spi_interfaces[0]); }
+#endif
+#ifdef SPI2
 void SPI2_IRQHandler(void) { spi_irqhandler(SPI2, spi_interfaces[1]); }
+#endif
+#ifdef SPI3
 void SPI3_IRQHandler(void) { spi_irqhandler(SPI3, spi_interfaces[2]); }
+#endif
+#ifdef SPI4
 void SPI4_IRQHandler(void) { spi_irqhandler(SPI4, spi_interfaces[3]); }
+#endif
+#ifdef SPI5
 void SPI5_IRQHandler(void) { spi_irqhandler(SPI5, spi_interfaces[4]); }
+#endif
 /* *INDENT-ON* */
