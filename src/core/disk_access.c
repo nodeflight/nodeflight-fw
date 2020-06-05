@@ -32,12 +32,9 @@
 static disk_access_t *disk_access[FF_VOLUMES];
 static int disks_mounted = 0;
 
-static FATFS *disk_fs[FF_VOLUMES];
-
 /* Mount names */
-const char *VolumeStr[FF_VOLUMES] = {
-    "not_mounted_a", "not_mounted_b", "not_mounted_c", "not_mounted_d"
-};
+const static char volume_str_not_mounted[] = "not_mounted";
+const char *VolumeStr[FF_VOLUMES];
 
 void disk_access_init(
     void)
@@ -46,13 +43,14 @@ void disk_access_init(
     disks_mounted = 0;
     for (i = 0; i < FF_VOLUMES; i++) {
         disk_access[i] = NULL;
-        disk_fs[i] = NULL;
+        VolumeStr[i] = volume_str_not_mounted;
     }
 }
 
 int disk_access_register(
     disk_access_t *dacc)
 {
+    FATFS *ffs;
     char id_string[3] = "0:";
     if (disks_mounted >= FF_VOLUMES) {
         return -1;
@@ -62,14 +60,14 @@ int disk_access_register(
     VolumeStr[disk_id] = dacc->name;
 
     /* Allocate FATFS */
-    disk_fs[disk_id] = pvPortMalloc(sizeof(FATFS));
-    if (disk_fs[disk_id] == NULL) {
+    ffs = pvPortMalloc(sizeof(FATFS));
+    if (ffs == NULL) {
         return -1;
     }
 
     /* Mount via disk id */
     id_string[0] = '0' + disk_id;
-    if (FR_OK != f_mount(disk_fs[disk_id], id_string, 0)) {
+    if (FR_OK != f_mount(ffs, id_string, 0)) {
         return -1;
     }
     return 0;
