@@ -410,7 +410,7 @@ void uart_irqhandler(
             xTaskNotifyFromISR(if_uart->rx_task, UART_RX_NOTIFY_FLAG, eSetBits, &should_switch);
         }
     }
-    if (isr & LL_USART_ISR_TXE) {
+    if (isr & LL_USART_ISR_TXE && LL_USART_IsEnabledIT_TXE(if_uart->def.reg)) {
         /* Should not be possible to get here if no data is available */
         uint16_t head = if_uart->tx_buf_head;
         LL_USART_TransmitData8(if_uart->def.reg, if_uart->tx_buf[head]);
