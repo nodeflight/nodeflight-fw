@@ -203,18 +203,16 @@ int vr_register(
 }
 
 int vr_request(
-    const char *name,
+    char *name,
     char type,
     void **target)
 {
     /* Split name and index */
-    /* TODO: Don't duplicate name... not really necessary... */
-    char *name_w = strops_dup(name);
     char *dot = NULL;
     int i;
-    for (i = 0; name_w[i] != '\0'; i++) {
-        if (name_w[i] == '.') {
-            dot = &name_w[i];
+    for (i = 0; name[i] != '\0'; i++) {
+        if (name[i] == '.') {
+            dot = &name[i];
         }
     }
     if (dot == NULL) {
@@ -225,7 +223,7 @@ int vr_request(
     int32_t index = strops_word_to_int(dot + 1);
 
     /* Fetch source */
-    vr_source_t *src = vr_get_source(name_w);
+    vr_source_t *src = vr_get_source(name);
 
     if (src->fmt == NULL) {
         /* Source not yet registered, create relocation request */

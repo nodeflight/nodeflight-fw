@@ -103,7 +103,7 @@ void nfcp_task(
     for (;;) {
         len = 0;
         while (len < 128 && (len == 0 || line[len - 1] != '\n')) {
-            len += nfcp->if_ser->rx_read(nfcp->if_ser, line+len, 128-len, portMAX_DELAY);
+            len += nfcp->if_ser->rx_read(nfcp->if_ser, line + len, 128 - len, portMAX_DELAY);
         }
         for (i = 0; i < len; i++) {
             if (line[i] >= 'a' && line[i] <= 'z') {

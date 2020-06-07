@@ -27,7 +27,7 @@ typedef struct md_decl_s md_decl_t;
 union md_arg_u {
     if_header_t *iface;
     sc_t *sched;
-    const char *name;
+    char *name;
     int32_t const_int;
     float const_float;
 };
