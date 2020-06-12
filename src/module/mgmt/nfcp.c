@@ -40,7 +40,7 @@
 #define NFCP_TASK_PRIORITY            2
 #define NFCP_TASK_STACK_WORDS         256
 
-#define NFCP_SERIAL_BAUDRATE          115200
+#define NFCP_SERIAL_BAUDRATE          230400
 
 typedef struct nfcp_s nfcp_t;
 
@@ -110,7 +110,11 @@ void nfcp_task(
                 line[i] += 'A' - 'a';
             }
         }
-        tfp_printf("len=%d\n", len);
+        tfp_printf("len=%d", len);
+        for (i = 0; i < len; i++) {
+            tfp_printf(" %02x", line[i]);
+        }
+        tfp_printf("\n");
         nfcp->if_ser->tx_write(nfcp->if_ser, line, len);
     }
 }

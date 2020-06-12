@@ -49,7 +49,7 @@ int vr_register(
 
 /**
  * Request a variable
- * 
+ *
  * @param name name of the variable, in the format module.N. Note: will be overwritten
  * @param type variable type, as character same as vr_register
  * @param target where to store the pointer to the variable
