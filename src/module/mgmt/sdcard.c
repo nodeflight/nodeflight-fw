@@ -22,6 +22,7 @@
 #include "core/config.h"
 #include "core/disk_access.h"
 #include "lib/strops.h"
+#include "lib/crc.h"
 #include "FreeRTOS.h"
 #include "task.h"
 #include "queue.h"
@@ -120,10 +121,6 @@ static void sdcard_spi_configure_running(
     sdcard_t *sdc);
 
 static uint8_t sdcard_crc7(
-    uint8_t *ptr,
-    int len);
-
-static uint16_t sdcard_crc16(
     uint8_t *ptr,
     int len);
 
@@ -286,27 +283,6 @@ uint8_t sdcard_crc7(
     return crc | 1;
 }
 
-uint16_t sdcard_crc16(
-    uint8_t *ptr,
-    int len)
-{
-    uint16_t crc = 0;
-    int i;
-    int bit;
-    for (i = 0; i < len; i++) {
-        crc ^= ((uint16_t) ptr[i] << 8);
-        for (bit = 0; bit < 8; bit++) {
-            if (crc & 0x8000) {
-                crc <<= 1;
-                crc ^= 0x1021;
-            } else {
-                crc <<= 1;
-            }
-        }
-    }
-    return crc;
-}
-
 uint8_t sdcard_wait_token(
     sdcard_t *sdc)
 {
@@ -419,7 +395,7 @@ int sdcard_read_block(
     sdc->if_spi->transfer(sdc->if_spi, NULL, dst, size);
     sdc->if_spi->transfer(sdc->if_spi, NULL, crc, 2);
 
-    exp_crc = sdcard_crc16(dst, size);
+    exp_crc = crc16(dst, size, 0, CRC16_POLY_CCITT);
     if (crc[0] != (exp_crc >> 8) || crc[1] != (exp_crc & 0xff)) {
         goto error;
     }

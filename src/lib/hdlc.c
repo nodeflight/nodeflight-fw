@@ -50,3 +50,45 @@ int hdlc_frame_unstuff(
     }
     return wr;
 }
+
+int hdlc_frame_stuff(
+    uint8_t *buf,
+    int len)
+{
+    int out_len;
+    int rd, wr;
+
+    /* Calculate output length */
+    out_len = 0;
+    for (rd = 0; rd < len; rd++) {
+        uint8_t c = buf[rd];
+        if (c == HDLC_ESCAPE_CHAR
+            || c == HDLC_FRAME_BOUNDARY
+            || c == HDLC_XON
+            || c == HDLC_XOFF) {
+            out_len += 2;
+        } else {
+            out_len += 1;
+        }
+    }
+    out_len += 1; /* frame boundary */
+
+    /* To not overwrite data, update buffer from the end */
+    wr = out_len;
+    buf[--wr] = HDLC_FRAME_BOUNDARY;
+
+    for (rd = len - 1; rd >= 0; rd--) {
+        uint8_t c = buf[rd];
+        if (c == HDLC_ESCAPE_CHAR
+            || c == HDLC_FRAME_BOUNDARY
+            || c == HDLC_XON
+            || c == HDLC_XOFF) {
+            buf[--wr] = c ^ HDLC_ESCAPE_BITS;
+            buf[--wr] = HDLC_ESCAPE_CHAR;
+        } else {
+            buf[--wr] = c;
+        }
+    }
+
+    return out_len;
+}

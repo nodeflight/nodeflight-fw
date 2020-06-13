@@ -24,6 +24,10 @@
 #define HDLC_ESCAPE_CHAR    0x7d
 #define HDLC_ESCAPE_BITS    0x20
 
+/* Escape for transmission, in case a link needs them. Not used otherwise */
+#define HDLC_XON            0x17
+#define HDLC_XOFF           0x19
+
 /**
  * Unstuff packet in-place
  *
@@ -34,5 +38,18 @@
  * @return output length if successful, negative on error or abort sequence
  */
 int hdlc_frame_unstuff(
+    uint8_t *buf,
+    int len);
+
+/**
+ * Stuff packet in-place
+ *
+ * The packet will increase in size to at most double + 1 byte. Frame boundary will always be added at the end
+ *
+ * @param buf raw payload, which will be updated.
+ * @param len unstuffed packet length
+ * @return output length if successful, negative on error or abort sequence
+ */
+int hdlc_frame_stuff(
     uint8_t *buf,
     int len);

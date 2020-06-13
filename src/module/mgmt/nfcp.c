@@ -26,6 +26,8 @@
 #include "core/interface.h"
 #include "core/interface_types.h"
 #include "core/config.h"
+#include "lib/crc.h"
+#include "lib/hdlc.h"
 #include "FreeRTOS.h"
 #include "task.h"
 
@@ -35,10 +37,15 @@
 #include <stddef.h>
 #include <stdbool.h>
 
-#define MAX_PACKET_LENGTH             256
+#define NFCP_MAX_PACKET_LENGTH        256
+
+/* Add 16bit CRC + frame delimiter */
+#define NFCP_PACKET_BUFFER_SIZE       (NFCP_MAX_PACKET_LENGTH * 2 + 3)
+
+#define NFCP_IF_BUFFER_SIZE           128
 
 #define NFCP_TASK_PRIORITY            2
-#define NFCP_TASK_STACK_WORDS         256
+#define NFCP_TASK_STACK_WORDS         512
 
 #define NFCP_SERIAL_BAUDRATE          230400
 
@@ -52,6 +59,16 @@ struct nfcp_s {
 static int nfcp_init(
     const char *name,
     md_arg_t *args);
+
+static void nfcp_tx_packet(
+    nfcp_t *nfcp,
+    uint8_t *buf,
+    int len);
+
+static int nfcp_rx_packet(
+    nfcp_t *nfcp,
+    uint8_t *buf,
+    int size);
 
 static void nfcp_task(
     void *storage);
@@ -78,10 +95,10 @@ int nfcp_init(
     nfcp->if_ser->configure(nfcp->if_ser,
         &(const if_serial_cf_t) {
         .baudrate = NFCP_SERIAL_BAUDRATE,
-        .tx_buf_size = MAX_PACKET_LENGTH,
-        .rx_buf_size = MAX_PACKET_LENGTH,
+        .tx_buf_size = NFCP_IF_BUFFER_SIZE,
+        .rx_buf_size = NFCP_IF_BUFFER_SIZE,
         .flags = IF_SERIAL_HAS_FRAME_DELIMITER,
-        .frame_delimiter = '\n'
+        .frame_delimiter = HDLC_FRAME_BOUNDARY
     });
 
     /* Generate traceable name for debug/stats */
@@ -92,29 +109,69 @@ int nfcp_init(
     return 0;
 }
 
+void nfcp_tx_packet(
+    nfcp_t *nfcp,
+    uint8_t *buf,
+    int len)
+{
+    uint16_t crc = crc16(buf, len, 0, CRC16_POLY_CCITT);
+    buf[len++] = (crc >> 8) & 0xff;
+    buf[len++] = (crc >> 0) & 0xff;
+    len = hdlc_frame_stuff(buf, len);
+    nfcp->if_ser->tx_write(nfcp->if_ser, buf, len);
+}
+
+int nfcp_rx_packet(
+    nfcp_t *nfcp,
+    uint8_t *buf,
+    int size)
+{
+    int len;
+    len = 0;
+    while (len < size && (len == 0 || buf[len - 1] != HDLC_FRAME_BOUNDARY)) {
+        len += nfcp->if_ser->rx_read(nfcp->if_ser, buf + len, size - len, portMAX_DELAY);
+    }
+    len = hdlc_frame_unstuff(buf, len);
+    if (len < 2) {
+        return -1;
+    }
+    uint16_t crc = crc16(buf, len - 2, 0, CRC16_POLY_CCITT);
+    len -= 2;
+    if (buf[len] != ((crc >> 8) & 0xff) || buf[len + 1] != ((crc >> 0) & 0xff)) {
+        return -1;
+    }
+    return len;
+}
+
 void nfcp_task(
     void *storage)
 {
     nfcp_t *nfcp = storage;
-    uint8_t line[128];
+    uint8_t packet[NFCP_PACKET_BUFFER_SIZE];
     int len;
     int i;
-    nfcp->if_ser->tx_write(nfcp->if_ser, "start\n", 6);
+
+    /* Just for test, keep a packet that contains escaped data */
+    packet[0] = 0x00;
+    packet[1] = 0x17;
+    packet[2] = 0x02;
+    packet[3] = 0x03;
+    nfcp_tx_packet(nfcp, packet, 4);
+
     for (;;) {
-        len = 0;
-        while (len < 128 && (len == 0 || line[len - 1] != '\n')) {
-            len += nfcp->if_ser->rx_read(nfcp->if_ser, line + len, 128 - len, portMAX_DELAY);
-        }
-        for (i = 0; i < len; i++) {
-            if (line[i] >= 'a' && line[i] <= 'z') {
-                line[i] += 'A' - 'a';
+        len = nfcp_rx_packet(nfcp, packet, NFCP_PACKET_BUFFER_SIZE);
+        if (len < 0) {
+            tfp_printf("Unknown packet\n");
+        } else {
+            tfp_printf("len=%d", len);
+            for (i = 0; i < len; i++) {
+                tfp_printf(" %02x", packet[i]);
             }
+            tfp_printf("\n");
+
+            packet[0] ^= 0x80;
+            len = hdlc_frame_stuff(packet, len);
+            nfcp->if_ser->tx_write(nfcp->if_ser, packet, len);
         }
-        tfp_printf("len=%d", len);
-        for (i = 0; i < len; i++) {
-            tfp_printf(" %02x", line[i]);
-        }
-        tfp_printf("\n");
-        nfcp->if_ser->tx_write(nfcp->if_ser, line, len);
     }
 }

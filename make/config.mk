@@ -85,6 +85,7 @@ TARGET_core_SOURCES = \
 	core/random.c
 
 TARGET_lib_SOURCES = \
+	lib/crc.c \
 	lib/hdlc.c \
 	lib/strops.c \
 	lib/map.c
