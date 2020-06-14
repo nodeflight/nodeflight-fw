@@ -1,5 +1,7 @@
 # NodeFlight Control Protocol - NFCP
 
+> Note: This is a draft, and may get breaking changes prior to first stable release of NodeFlight. Parts that expects updates is marked with TBD, however, other parts may get updates too.
+
 NodeFlight Control Protocol is a protocol designed for high reliability and flexibility.
 
 Key features:
@@ -131,7 +133,7 @@ Request and response packets start with 3 byte header header:
 | Byte 0  | class                                               | call=1 | resp   |
 | Byte 1  | seq nr                                                                |
 | Byte 2  | operation                                                             |
-| ...     | packet data                                                           |
+| ...     | packet payload                                                        |
 ```
 
 Information packets starts with 2 byte header: 
@@ -140,7 +142,7 @@ Information packets starts with 2 byte header:
 |---------+-----------------------------------------------------------------------|
 | Byte 0  | class                                               | call=0 | resp=0 |
 | Byte 1  | operation                                                             |
-| ...     | packet data                                                           |
+| ...     | packet payload                                                        |
 ```
 
 `class` defines packet class. The classes may be added or removed in future versions. Packets with unknown classes should be notified using packet MGMT/UNKNOWN_CLASS (see below)
@@ -152,9 +154,20 @@ Information packets starts with 2 byte header:
 
 ### Request/reply
 
-TODO: documentation for:
-- description
-- timeout
+A request packet is sent when a response is expected, either containing response data, a status code, or just to get a validation that the packet arrived.
+
+For request packets, a sequence number is included to map the response to the request. The same sequence number is included in the resposnse.
+
+| Host                                                           | Client                                            |
+| -------------------------------------------------------------- | ------------------------------------------------- |
+| 1. Host increments the local sequence number                   |                                                   |
+| 2. Host sends the request to the client including `seq nr`     |                                                   |
+|                                                                | 3. Client receives the request                    |
+| _other communication may occur_                                | _other communication may occur_                   |
+|                                                                | 4. Client sends a response with the same `seq nr` |
+| 5. Host processes the response and forwards it to upper layers |                                                   |
+
+When upper layers sends the request, it should specify a timeout for how long until the response should arrive. If timeout, the upper layer are notified with a timeout. If the response arrives late, it will be discarded.
 
 ### Connection and session
 
@@ -171,7 +184,7 @@ To initiate a session, following sequence should be used: (for packet formats, s
 |                                                  | 3. Identify new session id                             |
 |                                                  | 4. Reply with firmware tag, version and capabilities   |
 | 5. Register response and mark session as started |                                                        |
-| ... session is running ...                       | ... session is running ...                             |
+| _session is running_                             | _session is running_                                   |
 | 6. Send MGMT/SESSION_ID every 1 second           |                                                        |
 |                                                  | 7. Reply with empty ack to indicate session is running |
 
@@ -194,25 +207,73 @@ Note that special class 0 - MGMT is described as application packets, but is han
 
 A complete list of classes/operations:
 
-| class    | operation             | call=0      | call=1      | Description                      |
-| -------- | --------------------- | ----------- | ----------- | -------------------------------- |
-| MGMT (0) | SESSION_ID (0)        | not allowed | allowed     | Set session id                   |
-| MGMT (0) | LOG_MESSAGE (1)       | allowed     | not allowed | Log message                      |
-| MGMT (0) | INVALID_CLASS (2)     | allowed     | not allowed | Notify invalid class is used     |
-| MGMT (0) | INVALID_OPERATION (3) | allowed     | not allowed | Notify invalid operation is used |
+| class       | operation             | call=0      | call=1      | Description                       |
+| ----------- | --------------------- | ----------- | ----------- | --------------------------------- |
+| MGMT (0)    | SESSION_ID (0)        | not allowed | allowed     | Set session id                    |
+| MGMT (0)    | LOG_MESSAGE (1)       | allowed     | not allowed | Log message                       |
+| MGMT (0)    | INVALID_CLASS (2)     | allowed     | not allowed | Notify invalid class is used      |
+| MGMT (0)    | INVALID_OPERATION (3) | allowed     | not allowed | Notify invalid operation is used  |
+| FILE (1)    | ...                   | ...         | ...         | TBD: Access virtual file system   |
+| MONITOR (2) | ...                   | ...         | ...         | TBD: Monitor state and parameters |
 
 ### Packet: MGMT - SESSION_ID
 
-TODO
+Request packet payload:
+
+| Byte | Content           |
+| ---- | ----------------- |
+| 0-3  | 4 byte session id |
+
+Response packet payload for first response:
+
+| Byte | Content                                                           |
+| ---- | ----------------------------------------------------------------- |
+| ...  | TBD: Some extra information about capabilities... not yet defined |
+| 0-n  | string, with firmware information                                 |
+
+Response packet for second and upcoming requests:
+
+| Byte | Content |
+| ---- | ------- |
+| ...  | Empty   |
 
 ### Packet: MGMT - LOG_MESSAGE
 
-TODO
+A printable message. Only allowed as information message.
+
+| Byte  | Content                    |
+| ----- | -------------------------- |
+| 0     | Context                    |
+| 1-... | Message in printable ASCII |
+
+Context is used to color code messages, and/or give diffrent exposure in the UI. Set to 0.
+
+Messages with unknown context should be written to a log, and marked with as unknown context.
 
 ### Packet: MGMT - INVALID_CLASS
 
-TODO
+Sent as information message when a message is received of unknown class.
+
+| Byte | Content                                                      |
+| ---- | ------------------------------------------------------------ |
+| 0    | class id + flags (as defined in first byte of packet header) |
+| 1    | operation                                                    |
+| 2    | seq nr, or 0 if not available                                |
+
+The message should be handled by the receiving node by directly aborting the ongoing request with proper reason. For information messages, this may be used to notify the upper to stop sending the messages.
+
+It may also be logged for inclusion in bug report.
 
 ### Packet: MGMT - INVALID_OPERATION
 
-TODO
+Sent as information message when a message is received of unknown operation, but the class is defined.
+
+| Byte | Content                                                      |
+| ---- | ------------------------------------------------------------ |
+| 0    | class id + flags (as defined in first byte of packet header) |
+| 1    | operation                                                    |
+| 2    | seq nr, or 0 if not available                                |
+
+The message should be handled by the receiving node by directly aborting the ongoing request with proper reason, For information messages, this may be used to notify the upper to stop sending the messages.
+
+It may also be logged for inclusion in bug report.
