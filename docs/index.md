@@ -51,6 +51,10 @@ The system is in early stage. Functionality still intended to be added:
 - configuration protocol
 - named parameters to simplify configuration UI
 
+## NFCP - NodeFlight Control Protocol
+
+Configuration and remote control is done via the NFCP protocol. For more information, see [NodeFlight Control Protocol](nfcp.md) documentation.
+
 # Contact
 
 Developed and designed by:
