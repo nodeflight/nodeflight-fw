@@ -19,15 +19,9 @@
 /**
  * Stdout - handle status output over serial port
  *
- * This module is a singleton, which means only one may exist at a time.
- *
  * It is intended for status from other modules, where status isn't required for real time handling.
  *
- * To send information out over this port, use the tfp_printf() function available in vendor/tinyprintf/tinyprintf.h
- *
- * Output is linebuffered, and will be transmitted in bursts of lines, if lines are short.
- *
- * Writing to the output is blocking in the case of full buffer.
+ * To send information out over this port, use the log_printf() function available in core/log.
  */
 
 #include "core/module.h"
@@ -36,45 +30,33 @@
 #include "core/config.h"
 #include "FreeRTOS.h"
 
-#include "vendor/tinyprintf/tinyprintf.h"
+#include "core/log.h"
 
 #include <stdint.h>
 #include <stddef.h>
 #include <stdbool.h>
 
-#define MAX_LINE_LENGTH 64
+#include "vendor/tinyprintf/tinyprintf.h"
+
+#define STDOUT_LINE_LENGTH 128
 
 typedef struct stdout_s stdout_t;
 
 struct stdout_s {
-    if_header_t *if_stdout;
-    char *buffer;
-    uint16_t pos;
-    uint16_t size;
+    if_serial_t *iface;
+    char buffer[STDOUT_LINE_LENGTH];
 };
 
 static int stdout_init(
     const char *name,
     md_arg_t *args);
 
+static void stdout_log_handler(
+    TaskHandle_t task,
+    const char *message,
+    void *storage);
+
 MD_DECL(stdout, "p", stdout_init);
-
-/**
- * Guard for multiple allocations
- */
-static bool stdout_loaded = false;
-
-static void stdout_putc(
-    void *storage,
-    char c)
-{
-    stdout_t *out_if = storage;
-    out_if->buffer[out_if->pos++] = c;
-    if (out_if->pos >= out_if->size || c == '\n') {
-        IF_SERIAL(out_if->if_stdout)->tx_write(IF_SERIAL(out_if->if_stdout), out_if->buffer, out_if->pos);
-        out_if->pos = 0;
-    }
-}
 
 int stdout_init(
     const char *name,
@@ -86,35 +68,39 @@ int stdout_init(
 
     stdout_t *out_if;
 
-    if (stdout_loaded) {
-        /* Only one stdout module may be used at a time */
-        return -1;
-    }
-
     out_if = pvPortMalloc(sizeof(stdout_t));
     if (out_if == NULL) {
         return -1;
     }
 
-    out_if->size = MAX_LINE_LENGTH;
-    out_if->pos = 0;
-    out_if->buffer = pvPortMalloc(MAX_LINE_LENGTH);
-    if (out_if->buffer == NULL) {
-        return -1;
-    }
-    out_if->if_stdout = args[0].iface;
+    out_if->iface = IF_SERIAL(args[0].iface);
 
-    IF_SERIAL(out_if->if_stdout)->configure(IF_SERIAL(out_if->if_stdout),
+    out_if->iface->configure(out_if->iface,
         &(const if_serial_cf_t) {
         .baudrate = 115200,
-        .tx_buf_size = MAX_LINE_LENGTH,
+        .tx_buf_size = STDOUT_LINE_LENGTH,
         .rx_buf_size = 0,
         .flags = 0
     });
 
-    init_printf(out_if, stdout_putc);
-
-    stdout_loaded = true;
+    log_register(stdout_log_handler, out_if);
 
     return 0;
+}
+
+static void stdout_log_handler(
+    TaskHandle_t task,
+    const char *message,
+    void *storage)
+{
+    stdout_t *out_if = storage;
+    int len;
+
+    /* Make sure the output is ready... */
+
+    len = tfp_snprintf(out_if->buffer, STDOUT_LINE_LENGTH, "%-16s: %s\n", pcTaskGetName(task), message);
+    if (len >= STDOUT_LINE_LENGTH - 1) {
+        len = STDOUT_LINE_LENGTH - 1;
+    }
+    out_if->iface->tx_write(out_if->iface, out_if->buffer, len);
 }

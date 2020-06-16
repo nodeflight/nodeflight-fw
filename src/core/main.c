@@ -26,13 +26,14 @@
 #include "core/scheduler.h"
 #include "core/variable.h"
 #include "core/random.h"
+#include "core/log.h"
 
 #include "integration/heap.h"
 
 #include "FreeRTOS.h"
 #include "task.h"
 
-#include "vendor/tinyprintf/tinyprintf.h"
+#include "core/log.h"
 
 #include "ff.h"
 
@@ -56,21 +57,15 @@ static void print_boot_message(
 {
     uint32_t mem_size;
     uint32_t mem_used;
-    tfp_printf("\nNodeFlight loaded\n\n");
+    log_println("");
+    log_println("");
+    log_println("NodeFlight loaded");
 
     mem_size = heap_get_size();
     mem_used = heap_get_usage();
-    tfp_printf("memory usage: %lu / %lu (%lu%%)\n", mem_used, mem_size, (100UL * mem_used) / mem_size);
+    log_println("memory usage: %lu / %lu (%lu%%)", mem_used, mem_size, (100UL * mem_used) / mem_size);
 
-    tfp_printf("\n");
-}
-
-static void dummy_putc(
-    void *storage,
-    char c)
-{
-    (void) storage;
-    (void) c;
+    log_println("");
 }
 
 static void main_task(
@@ -79,9 +74,6 @@ static void main_task(
 int main(
     void)
 {
-    /* tfp_printf() shoudn't crash if stdout isn't loaded */
-    init_printf(NULL, dummy_putc);
-
     vPortInitialiseBlocks();
     platform_init();
 
@@ -94,28 +86,31 @@ int main(
 static void main_task(
     void *storage)
 {
+    log_init();
+
     random_init();
+
     vr_init();
     sc_init();
 
     disk_int_init();
 
     if (0 != cf_init("/int/boot.cfg")) {
-        tfp_printf("Error: processing config\n");
+        log_println("Error: processing config");
         vTaskSuspend(NULL);
         for (;;) {
         }
     }
 
     if (0 != vr_connect()) {
-        tfp_printf("Error: connecting variables\n");
+        log_println("Error: connecting variables");
         vTaskSuspend(NULL);
         for (;;) {
         }
     }
 
     if (0 != sc_init_clients()) {
-        tfp_printf("Error: initializing scheduler clients\n");
+        log_println("Error: initializing scheduler clients");
         vTaskSuspend(NULL);
         for (;;) {
         }
@@ -135,11 +130,12 @@ static void main_task(
         vTaskDelay(pdMS_TO_TICKS(1000));
         for (;;) {
             num_tasks = uxTaskGetSystemState(tasks, 32, &runtime);
-            tfp_printf("\nnum_tasks = %lu\n", num_tasks);
-            tfp_printf("ID ................name ....state ...prio free\n");
+            log_println("");
+            log_println("num_tasks = %lu", num_tasks);
+            log_println("ID ................name ....state ...prio free");
             for (i = 0; i < num_tasks; i++) {
                 TaskStatus_t *t = &tasks[i];
-                tfp_printf("%2lu %-20s %9s %2lu (%2lu) %4u\n",
+                log_println("%2lu %-20s %9s %2lu (%2lu) %4u",
                     t->xTaskNumber,
                     t->pcTaskName,
                     task_state_name[t->eCurrentState],

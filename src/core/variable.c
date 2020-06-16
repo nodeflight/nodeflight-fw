@@ -22,7 +22,7 @@
 
 #include "FreeRTOS.h"
 
-#include "vendor/tinyprintf/tinyprintf.h"
+#include "core/log.h"
 
 #include <stdarg.h>
 

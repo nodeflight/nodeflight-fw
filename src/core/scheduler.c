@@ -24,6 +24,7 @@
 #include "task.h"
 #include "semphr.h"
 
+#include "core/log.h"
 #include "vendor/tinyprintf/tinyprintf.h"
 
 #define SCHEDULER_CLIENTS_PER_POOL    32

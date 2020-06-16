@@ -59,7 +59,7 @@ TARGET_tinyprintf_SOURCES = \
 	vendor/tinyprintf/tinyprintf.c
 
 TARGET_tinyprintf_CFLAGS = \
-	-DTINYPRINTF_DEFINE_TFP_PRINTF=1 \
+	-DTINYPRINTF_DEFINE_TFP_PRINTF=0 \
 	-DTINYPRINTF_OVERRIDE_LIBC=0 \
 	-TINYPRINTF_DEFINE_TFP_SPRINTF=1
 
@@ -78,6 +78,7 @@ TARGET_core_SOURCES = \
 	core/disk_int.c \
 	core/module.c \
 	core/interface.c \
+	core/log.c \
 	core/peripheral.c \
 	core/resource.c \
 	core/scheduler.c \

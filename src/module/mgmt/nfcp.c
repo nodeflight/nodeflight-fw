@@ -31,6 +31,7 @@
 #include "FreeRTOS.h"
 #include "task.h"
 
+#include "core/log.h"
 #include "vendor/tinyprintf/tinyprintf.h"
 
 #include <stdint.h>
@@ -149,7 +150,6 @@ void nfcp_task(
     nfcp_t *nfcp = storage;
     uint8_t packet[NFCP_PACKET_BUFFER_SIZE];
     int len;
-    int i;
 
     /* Just for test, keep a packet that contains escaped data */
     packet[0] = 0x00;
@@ -161,13 +161,9 @@ void nfcp_task(
     for (;;) {
         len = nfcp_rx_packet(nfcp, packet, NFCP_PACKET_BUFFER_SIZE);
         if (len < 0) {
-            tfp_printf("Unknown packet\n");
+            log_println("Unknown packet");
         } else {
-            tfp_printf("len=%d", len);
-            for (i = 0; i < len; i++) {
-                tfp_printf(" %02x", packet[i]);
-            }
-            tfp_printf("\n");
+            log_println("Valid packet len=%d", len);
 
             packet[0] ^= 0x80;
             len = hdlc_frame_stuff(packet, len);

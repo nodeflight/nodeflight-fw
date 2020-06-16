@@ -27,10 +27,10 @@
 #define DEBUG_CONFIG                1
 
 #if DEBUG_CONFIG
-#include "vendor/tinyprintf/tinyprintf.h"
-#define D_CONFIG_PRINTF(...) tfp_printf("config " __VA_ARGS__);
+#include "core/log.h"
+#define D_CONFIG_PRINTLN(...) log_println(__VA_ARGS__);
 #else
-#define D_CONFIG_PRINTF(...) do {} while(0)
+#define D_CONFIG_PRINTLN(...) do {} while(0)
 #endif
 
 #define CONFIG_PATH_QUEUE_LENGTH 16
@@ -58,11 +58,12 @@ static int cf_process_line(
         /* Don't use D_CONFIG_PRINTF, since it won't handle multiple writes on single line */
         {
             int i;
-            tfp_printf("config   ");
+            log_line_t line;
+            log_begin_line(&line);
             for (i = 0; i < argc; i++) {
-                tfp_printf(" %s", argv[i]);
+                log_printf(&line, " %s", argv[i]);
             }
-            tfp_printf("\n");
+            log_finish_line(&line);
         }
 #endif
 
@@ -120,7 +121,7 @@ int cf_init(
 
     /* Load config files */
     while (cf_queue_head != cf_queue_tail) {
-        D_CONFIG_PRINTF("%s\n", cf_path_queue[cf_queue_head]);
+        D_CONFIG_PRINTLN("%s", cf_path_queue[cf_queue_head]);
         res = f_open(&f, cf_path_queue[cf_queue_head], FA_READ);
         if (res != FR_OK) {
             return -1;

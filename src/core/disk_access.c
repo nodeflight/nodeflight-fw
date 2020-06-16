@@ -23,10 +23,10 @@
 #define DEBUG 0
 
 #if DEBUG
-#include "vendor/tinyprintf/tinyprintf.h"
-#define PRINTF(...) tfp_printf(__VA_ARGS__)
+#include "core/log.h"
+#define PRINTLN(...) log_println(__VA_ARGS__)
 #else
-#define PRINTF(...) do {} while(0)
+#define PRINTLN(...) do {} while(0)
 #endif
 
 static disk_access_t *disk_access[FF_VOLUMES];
@@ -80,14 +80,14 @@ int disk_access_register(
 DSTATUS disk_initialize (
     BYTE pdrv)
 {
-    PRINTF("disk_initialize(%u)\n", pdrv);
+    PRINTLN("disk_initialize(%u)", pdrv);
     return disk_access[pdrv]->initialize(disk_access[pdrv]->storage);
 }
 
 DSTATUS disk_status (
     BYTE pdrv)
 {
-    PRINTF("disk_status(%u)\n", pdrv);
+    PRINTLN("disk_status(%u)", pdrv);
     return disk_access[pdrv]->status(disk_access[pdrv]->storage);
 }
 
@@ -97,7 +97,7 @@ DRESULT disk_read (
     LBA_t sector,
     UINT count)
 {
-    PRINTF("disk_read(%u, %p, %lu, %u)\n", pdrv, buff, sector, count);
+    PRINTLN("disk_read(%u, %p, %lu, %u)", pdrv, buff, sector, count);
     return disk_access[pdrv]->read(disk_access[pdrv]->storage, buff, sector, count);
 }
 
@@ -107,7 +107,7 @@ DRESULT disk_write (
     LBA_t sector,
     UINT count)
 {
-    PRINTF("disk_write(%u, %p, %lu, %u)\n", pdrv, buff, sector, count);
+    PRINTLN("disk_write(%u, %p, %lu, %u)", pdrv, buff, sector, count);
     return disk_access[pdrv]->write(disk_access[pdrv]->storage, buff, sector, count);
 }
 
@@ -116,6 +116,6 @@ DRESULT disk_ioctl (
     BYTE cmd,
     void *buff)
 {
-    PRINTF("disk_ioctl(%u, %u, %p)\n", pdrv, cmd, buff);
+    PRINTLN("disk_ioctl(%u, %u, %p)", pdrv, cmd, buff);
     return disk_access[pdrv]->ioctl(disk_access[pdrv]->storage, cmd, buff);
 }

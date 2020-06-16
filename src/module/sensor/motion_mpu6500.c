@@ -28,6 +28,7 @@
 #include <stddef.h>
 #include <math.h>
 
+#include "core/log.h"
 #include "vendor/tinyprintf/tinyprintf.h"
 
 /* Specificataions from datasheet */

@@ -25,7 +25,7 @@
 
 #include "stm32.h"
 
-#include "vendor/tinyprintf/tinyprintf.h"
+#include "core/log.h"
 
 #include "FreeRTOS.h"
 #include "task.h"

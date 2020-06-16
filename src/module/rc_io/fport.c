@@ -26,6 +26,7 @@
 #include "FreeRTOS.h"
 #include "task.h"
 
+#include "core/log.h"
 #include "vendor/tinyprintf/tinyprintf.h"
 
 #include <stdint.h>
@@ -35,9 +36,9 @@
 #define DEBUG_ERRORS          0
 
 #if DEBUG_ERRORS
-#define D_ERROR_PRINTF(...) tfp_printf("fport " __VA_ARGS__);
+#define D_ERROR_PRINTLN(...) log_println(__VA_ARGS__);
 #else
-#define D_ERROR_PRINTF(...) do {} while(0)
+#define D_ERROR_PRINTLN(...) do {} while(0)
 #endif
 
 #define FPORT_FLAG_FAILSAFE        0x08
@@ -204,7 +205,7 @@ void fport_task(
                 /* Timeout, force scheduler to trigger with loss */
                 fport_if->failsafe = true;
                 fport_if->signal_loss = true;
-                D_ERROR_PRINTF("timeout\n");
+                D_ERROR_PRINTLN("timeout");
                 if (fport_if->target_scheduler != NULL) {
                     sc_trigger(fport_if->target_scheduler);
                 }
@@ -223,7 +224,7 @@ void fport_task(
         /* Validate buf length against length header */
         if (len != buf[0] + 2) {
             /* Invalid length, drop */
-            D_ERROR_PRINTF("Invalid length %d %u\n", len, buf[0]);
+            D_ERROR_PRINTLN("Invalid length %d %u", len, buf[0]);
             continue;
         }
 
@@ -238,7 +239,7 @@ void fport_task(
         }
         if (checksum != 0xff) {
             /* Invalid checksum, drop */
-            D_ERROR_PRINTF("Invalid checksum %u\n", checksum);
+            D_ERROR_PRINTLN("Invalid checksum %u", checksum);
             continue;
         }
 

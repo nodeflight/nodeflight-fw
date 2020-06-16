@@ -26,10 +26,10 @@
 #define DEBUG 0
 
 #if DEBUG
-#include "vendor/tinyprintf/tinyprintf.h"
-#define PRINTF(...) tfp_printf(__VA_ARGS__)
+#include "core/log.h"
+#define PRINTLN(...) log_println(__VA_ARGS__)
 #else
-#define PRINTF(...) do {} while(0)
+#define PRINTLN(...) do {} while(0)
 #endif
 
 static SemaphoreHandle_t fs_mutexes[FF_VOLUMES];
@@ -62,7 +62,7 @@ int ff_cre_syncobj (
 
     *sobj = selected;
 
-    PRINTF("ff_cre_syncobj() = %p\n", (void *) selected);
+    PRINTLN("ff_cre_syncobj() = %p", (void *) selected);
     return (int) (selected != NULL);
 }
 
@@ -70,7 +70,7 @@ int ff_del_syncobj (
     FF_SYNC_t sobj)
 {
     int i;
-    PRINTF("ff_del_syncobj(%p)", (void *) sobj);
+    PRINTLN("ff_del_syncobj(%p)", (void *) sobj);
 
     /* Can't free, mark as unused and available for reuse */
     for (i = 0; i < fs_mutexes_allocated; i++) {
@@ -85,13 +85,13 @@ int ff_del_syncobj (
 int ff_req_grant (
     FF_SYNC_t sobj)
 {
-    PRINTF("ff_req_grant(%p)\n", (void *) sobj);
+    PRINTLN("ff_req_grant(%p)", (void *) sobj);
     return (int) (xSemaphoreTake(sobj, FF_FS_TIMEOUT) == pdTRUE);
 }
 
 void ff_rel_grant (
     FF_SYNC_t sobj)
 {
-    PRINTF("ff_rel_grant(%p)\n", (void *) sobj);
+    PRINTLN("ff_rel_grant(%p)", (void *) sobj);
     xSemaphoreGive(sobj);
 }

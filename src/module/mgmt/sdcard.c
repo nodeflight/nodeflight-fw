@@ -27,6 +27,7 @@
 #include "task.h"
 #include "queue.h"
 
+#include "core/log.h"
 #include "vendor/tinyprintf/tinyprintf.h"
 
 #include <stdint.h>
@@ -47,21 +48,21 @@
 #define DEBUG_ERRORS                    0
 
 #if DEBUG_COMMANDS
-#define D_COMMAND_PRINTF(...) tfp_printf("sdcard " __VA_ARGS__);
+#define D_COMMAND_PRINTLN(...) log_println(__VA_ARGS__);
 #else
-#define D_COMMAND_PRINTF(...) do {} while(0)
+#define D_COMMAND_PRINTLN(...) do {} while(0)
 #endif
 
 #if DEBUG_CALLS
-#define D_CALL_PRINTF(...) tfp_printf("sdcard " __VA_ARGS__);
+#define D_CALL_PRINTLN(...) log_println(__VA_ARGS__);
 #else
-#define D_CALL_PRINTF(...) do {} while(0)
+#define D_CALL_PRINTLN(...) do {} while(0)
 #endif
 
 #if DEBUG_ERRORS
-#define D_ERROR_PRINTF(...) tfp_printf("sdcard " __VA_ARGS__);
+#define D_ERROR_PRINTLN(...) log_println(__VA_ARGS__);
 #else
-#define D_ERROR_PRINTF(...) do {} while(0)
+#define D_ERROR_PRINTLN(...) do {} while(0)
 #endif
 
 typedef struct sdcard_s sdcard_t;
@@ -308,7 +309,7 @@ int sdcard_send_command(
         do {
             sdc->if_spi->transfer(sdc->if_spi, NULL, buf, 1);
             if (time_left-- == 0) {
-                D_COMMAND_PRINTF("!cmd=%u: timeout\n", command);
+                D_COMMAND_PRINTLN("!cmd=%u: timeout", command);
                 return -1;
             }
         } while(buf[0] != 0xff);
@@ -325,7 +326,7 @@ int sdcard_send_command(
 
     sdc->if_spi->transfer(sdc->if_spi, buf, NULL, 6);
 
-    D_COMMAND_PRINTF("cmd=%3u: %02x | %02x %02x %02x %02x | %02x\n",
+    D_COMMAND_PRINTLN("cmd=%3u: %02x | %02x %02x %02x %02x | %02x",
         command,
         buf[0],
         buf[1],
@@ -475,31 +476,31 @@ int sdcard_init_card(
 
     /* Read CSD */
     if (sdcard_read_block(sdc, 9, 0, 0xfe, sdc->reg_csd, 16) != 0) {
-        D_ERROR_PRINTF("sdcard:! can't read CSD\n");
+        D_ERROR_PRINTLN("sdcard:! can't read CSD");
         goto error;
     }
 
     /* Only allow high capacity cards (SDHC/SDXC), for now */
     if ((sdc->reg_ocr & 0x40000000) == 0) {
-        D_ERROR_PRINTF("sdcard:! OCR missing high capacity bit\n");
+        D_ERROR_PRINTLN("sdcard:! OCR missing high capacity bit");
         goto error;
     }
 
     /* Only allow CSD version 2, which is SDHC/SDXC cards */
     if ((sdc->reg_csd[0] & 0xc0) != 0x40) {
-        D_ERROR_PRINTF("sdcard:! invalid CSD version %u\n", sdc->reg_csd[0] >> 6);
+        D_ERROR_PRINTLN("sdcard:! invalid CSD version %u", sdc->reg_csd[0] >> 6);
         goto error;
     }
 
     /* Read CID */
     if (sdcard_read_block(sdc, 10, 0, 0xfe, sdc->reg_cid, 16) != 0) {
-        D_ERROR_PRINTF("sdcard:! can't read CID\n");
+        D_ERROR_PRINTLN("sdcard:! can't read CID");
         goto error;
     }
 
     /* Verify CID CRC */
     if (sdcard_crc7(sdc->reg_cid, 15) != sdc->reg_cid[15]) {
-        D_ERROR_PRINTF("sdcard:! invalid CID CRC\n");
+        D_ERROR_PRINTLN("sdcard:! invalid CID CRC");
         goto error;
     }
 
@@ -624,7 +625,7 @@ uint8_t sdcard_dacc_exec_job(
 DSTATUS sdcard_dacc_initialize(
     void *storage)
 {
-    D_CALL_PRINTF("sdcard_dacc_initialize()\n");
+    D_CALL_PRINTLN("sdcard_dacc_initialize()");
     uint8_t result = sdcard_dacc_exec_job((sdcard_t *) storage, &(sdcard_job_t) {
         .job_id = SDCARD_JOB_ID_INITIALIZE
     });
@@ -638,7 +639,7 @@ DSTATUS sdcard_dacc_initialize(
 DSTATUS sdcard_dacc_status(
     void *storage)
 {
-    D_CALL_PRINTF("sdcard_dacc_status()\n");
+    D_CALL_PRINTLN("sdcard_dacc_status()");
     uint8_t result = sdcard_dacc_exec_job((sdcard_t *) storage, &(sdcard_job_t) {
         .job_id = SDCARD_JOB_ID_STATUS
     });
@@ -655,7 +656,7 @@ DRESULT sdcard_dacc_read(
     LBA_t sector,
     UINT count)
 {
-    D_CALL_PRINTF("sdcard_dacc_read(%p, %lu, %u)\n", buff, sector, count);
+    D_CALL_PRINTLN("sdcard_dacc_read(%p, %lu, %u)", buff, sector, count);
     uint8_t result = sdcard_dacc_exec_job((sdcard_t *) storage, &(sdcard_job_t) {
         .job_id = SDCARD_JOB_ID_READ,
         .arg.read = {
@@ -677,7 +678,7 @@ DRESULT sdcard_dacc_write (
     LBA_t sector,
     UINT count)
 {
-    D_CALL_PRINTF("sdcard_dacc_write(%p, %lu, %u)\n", buff, sector, count);
+    D_CALL_PRINTLN("sdcard_dacc_write(%p, %lu, %u)", buff, sector, count);
     uint8_t result = sdcard_dacc_exec_job((sdcard_t *) storage, &(sdcard_job_t) {
         .job_id = SDCARD_JOB_ID_WRITE,
         .arg.write = {
@@ -698,7 +699,7 @@ DRESULT sdcard_dacc_ioctl (
     BYTE cmd,
     void *buff)
 {
-    D_CALL_PRINTF("sdcard_dacc_ioctl(%u, %p)\n", cmd, buff);
+    D_CALL_PRINTLN("sdcard_dacc_ioctl(%u, %p)", cmd, buff);
     uint8_t result = sdcard_dacc_exec_job((sdcard_t *) storage, &(sdcard_job_t) {
         .job_id = SDCARD_JOB_ID_WRITE,
         .arg.ioctl = {
