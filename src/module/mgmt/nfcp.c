@@ -104,7 +104,7 @@ int nfcp_init(
 
     /* Generate traceable name for debug/stats */
     char taskname[configMAX_TASK_NAME_LEN];
-    tfp_snprintf(taskname, configMAX_TASK_NAME_LEN, "md nfcp %s", name);
+    tfp_snprintf(taskname, configMAX_TASK_NAME_LEN, "md nfcp %s", name == NULL ? "-" : name);
 
     xTaskCreate(nfcp_task, taskname, NFCP_TASK_STACK_WORDS, nfcp, NFCP_TASK_PRIORITY, &nfcp->task);
     return 0;
