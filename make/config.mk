@@ -30,12 +30,11 @@ TARGET_stm32f745_SOURCES = \
 #######################################################################
 # Common configuration
 
-TARGET_nodeflight_DEPENDS = freertos tinyprintf core lib fatfs
+TARGET_nodeflight_DEPENDS = freertos tinyprintf core lib fatfs nfcp
 TARGET_nodeflight_SOURCES = \
 	core/main.c \
 	module/math/arithmetic.c \
 	module/math/calculus.c \
-	module/mgmt/nfcp.c \
 	module/mgmt/sdcard.c \
 	module/mgmt/stdout.c \
 	module/rc_io/fport.c \
@@ -90,6 +89,14 @@ TARGET_lib_SOURCES = \
 	lib/hdlc.c \
 	lib/strops.c \
 	lib/map.c
+
+
+#######################################################################
+# NFCP
+
+TARGET_nfcp_SOURCES = \
+	module/nfcp/nfcp.c \
+	module/nfcp/nfcp_cls_mgmt.c
 
 #######################################################################
 # Unit test framework
