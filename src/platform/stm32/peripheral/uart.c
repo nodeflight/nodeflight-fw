@@ -348,13 +348,11 @@ int uart_rx_read(
     int out_size;
     if_uart->rx_task = xTaskGetCurrentTaskHandle();
     if (if_uart->rx_buf_head == if_uart->rx_buf_tail) {
-        do {
-            xTaskNotifyWait(0, UART_RX_NOTIFY_FLAG, &notify_value, timeout);
-            /*
-             * If timeout, the buffer will still be empty afterwards, which means 0 size. Other notificaitons shouldn't
-             * happen. If those happen, it will affect timeout
-             */
-        } while((notify_value & UART_RX_NOTIFY_FLAG) == 0);
+        xTaskNotifyWait(0, UART_RX_NOTIFY_FLAG, &notify_value, timeout);
+        /*
+         * If timeout, the buffer will still be empty afterwards, which means 0 size. Other notificaitons shouldn't
+         * happen. If those happen, it will affect timeout
+         */
     }
     out_size = 0;
     while (if_uart->rx_buf_tail != if_uart->rx_buf_head && out_size < dst_size) {

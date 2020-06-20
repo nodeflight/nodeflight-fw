@@ -62,6 +62,8 @@ struct nfcp_s {
     if_serial_t *if_ser;
     TaskHandle_t task;
 
+    TickType_t session_end_time;
+
     uint8_t buffer[NFCP_PACKET_BUFFER_SIZE];
 
     void *class_storage[NFCP_MAX_CLASSES];
@@ -82,14 +84,6 @@ struct nfcp_cls_s {
 };
 
 /**
- * Reset a NFCP connection
- *
- * Resetting the connection clears all ongoing operations and reset the current session ID
- */
-void nfcp_reset(
-    nfcp_t *nfcp);
-
-/**
  * Send a packet
  *
  * For now, only to be used from within nfcp task
@@ -98,3 +92,31 @@ void nfcp_tx_packet(
     nfcp_t *nfcp,
     uint8_t *buf,
     int len);
+
+/**
+ * Send a abort sequence
+ *
+ * Send a sequence to abort the packet and get the receiver into known state for accepting a new packet
+ *
+ * For now, only to be used from within nfcp task
+ */
+void nfcp_tx_abort(
+    nfcp_t *nfcp);
+
+/**
+ * Reset a NFCP connection
+ *
+ * Resetting the connection clears all ongoing operations and reset the current session ID
+ */
+void nfcp_reset(
+    nfcp_t *nfcp);
+
+/**
+ * Refresh NFCP session timeout
+ *
+ * Needs to be called within 5 seconds to keep NFCP session active. If not, the session will be reset
+ *
+ * Intended to be called every second
+ */
+void nfcp_refresh_session(
+    nfcp_t *nfcp);

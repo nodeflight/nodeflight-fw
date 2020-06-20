@@ -114,7 +114,6 @@ void *nfcp_cls_mgmt_init(
         /* TODO: Error handling */
         return NULL;
     }
-    nfcp_cls_mgmt_reset(nfcp, mgmt);
     return mgmt;
 }
 
@@ -123,7 +122,8 @@ void nfcp_cls_mgmt_reset(
     void *cls_storage)
 {
     nfcp_cls_mgmt_t *mgmt = cls_storage;
-    mgmt->session_id = 0;
+    mgmt->session_id = NFCP_SESSION_ID_NONE;
+    D_PRINTLN("mgmt: reset session");
 }
 
 nfcp_op_status_t nfcp_cls_op_session_id(
@@ -151,8 +151,10 @@ nfcp_op_status_t nfcp_cls_op_session_id(
     nfcp->buffer[resp_len++] = seq_nr;
 
     if (mgmt->session_id != pkt_session_id) {
-        /* Reset session */
-        nfcp_reset(nfcp);
+        /* Reset session if not already reset */
+        if (mgmt->session_id != NFCP_SESSION_ID_NONE) {
+            nfcp_reset(nfcp);
+        }
         /* Store session id */
         mgmt->session_id = pkt_session_id;
 
@@ -164,11 +166,16 @@ nfcp_op_status_t nfcp_cls_op_session_id(
         for (cur = version_tag; *cur; cur++) {
             nfcp->buffer[resp_len++] = (uint8_t) *cur;
         }
+
+        /* It's a new session, put the receiver into a known state prior to answer */
+        nfcp_tx_abort(nfcp);
     } else {
         /* Response with empty */
         D_PRINTLN("mgmt: refresh session");
     }
     nfcp_tx_packet(nfcp, nfcp->buffer, resp_len);
+
+    nfcp_refresh_session(nfcp);
     return NFCP_OP_STATUS_SUCCESS;
 }
 

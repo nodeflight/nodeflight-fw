@@ -180,13 +180,17 @@ To initiate a session, following sequence should be used: (for packet formats, s
 | Host                                             | Client                                                 |
 | ------------------------------------------------ | ------------------------------------------------------ |
 | 1. Generate random session id (not 0)            |                                                        |
-| 2. Send MGMT/SESSION_ID                          |                                                        |
-|                                                  | 3. Identify new session id                             |
-|                                                  | 4. Reply with firmware tag, version and capabilities   |
-| 5. Register response and mark session as started |                                                        |
+| 2. Send an abort sequence (0x7d 0x7e)            |                                                        |
+| 3. Send MGMT/SESSION_ID                          |                                                        |
+|                                                  | 4. Identify new session id                             |
+|                                                  | 5. Send abort sequence                                 |  |
+|                                                  | 6. Reply with firmware tag, version and capabilities   |
+| 7. Register response and mark session as started |                                                        |
 | _session is running_                             | _session is running_                                   |
-| 6. Send MGMT/SESSION_ID every 1 second           |                                                        |
-|                                                  | 7. Reply with empty ack to indicate session is running |
+| 8. Send MGMT/SESSION_ID every 1 second           |                                                        |
+|                                                  | 9. Reply with empty ack to indicate session is running |
+
+An abort sequence should always be sent prior to sequence number, to get the client into a known state. In case the client has received any bytes prior to the packet, possibly due to noise from connector, the abort sequence guarantees the previous packet is dropped and the receiver waits for first byte.
 
 The client shall treat the link as closed if:
 - If no valid MGMT/SESSION_ID has been received for 3 seconds

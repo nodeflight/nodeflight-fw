@@ -42,12 +42,18 @@
 #include <stddef.h>
 #include <stdbool.h>
 
+#if !defined(configUSE_16_BIT_TICKS) || configUSE_16_BIT_TICKS
+#error nfcp.c expect 32 bit timers
+#endif
+
 #define NFCP_IF_BUFFER_SIZE           128
 
 #define NFCP_TASK_PRIORITY            2
 #define NFCP_TASK_STACK_WORDS         256
 
 #define NFCP_SERIAL_BAUDRATE          230400
+
+#define NFCP_SESSION_TIMEOUT_TICKS    pdMS_TO_TICKS(5000)
 
 #define NFCP_DEBUG                    0
 #define NFCP_DEBUG_DISABLE_CRC_CHECK  0
@@ -71,7 +77,8 @@ static int nfcp_init(
 static int nfcp_rx_packet(
     nfcp_t *nfcp,
     uint8_t *buf,
-    int size);
+    int size,
+    TickType_t tick_end);
 
 static void nfcp_task(
     void *storage);
@@ -80,6 +87,10 @@ MD_DECL(nfcp, "p", nfcp_init);
 
 static const nfcp_cls_t *const nfcp_class[NFCP_MAX_CLASSES] = {
     [NFCP_CLS_MGMT] = &nfcp_cls_mgmt
+};
+
+static const uint8_t nfcp_abort_sequence[2] = {
+    0x7d, 0x7e
 };
 
 int nfcp_init(
@@ -128,22 +139,36 @@ void nfcp_tx_packet(
     nfcp->if_ser->tx_write(nfcp->if_ser, buf, len);
 }
 
+void nfcp_tx_abort(
+    nfcp_t *nfcp)
+{
+    nfcp->if_ser->tx_write(nfcp->if_ser, nfcp_abort_sequence, sizeof(nfcp_abort_sequence));
+}
+
 int nfcp_rx_packet(
     nfcp_t *nfcp,
     uint8_t *buf,
-    int size)
+    int size,
+    TickType_t tick_end)
 {
     int len;
     len = 0;
+
     while (len < size && (len == 0 || buf[len - 1] != HDLC_FRAME_BOUNDARY)) {
-        len += nfcp->if_ser->rx_read(nfcp->if_ser, buf + len, size - len, portMAX_DELAY);
+        TickType_t diff = tick_end - xTaskGetTickCount();
+        D_PRINTLN("nfcp_rx_packet for %lu ticks", diff);
+        if (((int32_t) diff) <= 0) {
+            return -1;
+        }
+
+        len += nfcp->if_ser->rx_read(nfcp->if_ser, buf + len, size - len, diff);
     }
     len = hdlc_frame_unstuff(buf, len);
     if (len < 2) {
         return -1;
     }
 #if NFCP_DEBUG_DISABLE_CRC_CHECK
-#pragma message ( "NFCP_DEBUG_DISABLE_CRC_CHECK is enabled" )
+#pragma message "NFCP_DEBUG_DISABLE_CRC_CHECK is enabled"
     len -= 2;
 #else
     uint16_t crc = crc16(buf, len - 2, 0, CRC16_POLY_CCITT);
@@ -175,7 +200,14 @@ void nfcp_task(
     nfcp_reset(nfcp);
 
     for (;;) {
-        len = nfcp_rx_packet(nfcp, nfcp->buffer, NFCP_PACKET_BUFFER_SIZE);
+        len = nfcp_rx_packet(nfcp, nfcp->buffer, NFCP_PACKET_BUFFER_SIZE, nfcp->session_end_time);
+
+        /* Check for timeout */
+        if ((int32_t) (xTaskGetTickCount() - nfcp->session_end_time) >= 0) {
+            nfcp_reset(nfcp);
+        }
+
+        /* Check incoming packet */
         if (len < 0) {
             D_PRINTLN("Unknown packet");
         } else if (len < 2 || ((nfcp->buffer[0] & 0x02) && len < 3)) {
@@ -243,9 +275,16 @@ void nfcp_reset(
     nfcp_t *nfcp)
 {
     int i;
+    nfcp_refresh_session(nfcp);
     for (i = 0; i < NFCP_MAX_CLASSES; i++) {
         if (nfcp_class[i] != NULL) {
             nfcp_class[i]->reset(nfcp, nfcp->class_storage[i]);
         }
     }
+}
+
+void nfcp_refresh_session(
+    nfcp_t *nfcp)
+{
+    nfcp->session_end_time = xTaskGetTickCount() + NFCP_SESSION_TIMEOUT_TICKS;
 }
