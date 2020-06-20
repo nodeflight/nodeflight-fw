@@ -23,6 +23,7 @@
 
 #include "FreeRTOS.h"
 #include "task.h"
+#include "semphr.h"
 
 #define NFCP_MAX_PACKET_LENGTH        128
 /* Add 16bit CRC + frame delimiter */
@@ -61,10 +62,13 @@ typedef void (*nfcp_cls_reset_t)(
 struct nfcp_s {
     if_serial_t *if_ser;
     TaskHandle_t task;
-
     TickType_t session_end_time;
 
-    uint8_t buffer[NFCP_PACKET_BUFFER_SIZE];
+    /* Recursive sempaphore. Can be taken from the same task prior to transmission, to also guard tx_buffer */
+    SemaphoreHandle_t tx_mutex;
+
+    uint8_t rx_buffer[NFCP_PACKET_BUFFER_SIZE];
+    uint8_t tx_buffer[NFCP_PACKET_BUFFER_SIZE];
 
     void *class_storage[NFCP_MAX_CLASSES];
 };
@@ -86,9 +90,9 @@ struct nfcp_cls_s {
 /**
  * Send a packet
  *
- * For now, only to be used from within nfcp task
+ * @return 0 on success, negative on error
  */
-void nfcp_tx_packet(
+int nfcp_tx_packet(
     nfcp_t *nfcp,
     uint8_t *buf,
     int len);
@@ -98,9 +102,21 @@ void nfcp_tx_packet(
  *
  * Send a sequence to abort the packet and get the receiver into known state for accepting a new packet
  *
- * For now, only to be used from within nfcp task
+ * @return 0 on success, negative on error
  */
-void nfcp_tx_abort(
+int nfcp_tx_abort(
+    nfcp_t *nfcp);
+
+/**
+ * Take TX mutex
+ */
+int nfcp_tx_take(
+    nfcp_t *nfcp);
+
+/**
+ * Give TX mutex
+ */
+void nfcp_tx_give(
     nfcp_t *nfcp);
 
 /**

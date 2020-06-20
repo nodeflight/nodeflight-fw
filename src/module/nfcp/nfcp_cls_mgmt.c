@@ -38,6 +38,7 @@ typedef struct nfcp_cls_mgmt_s nfcp_cls_mgmt_t;
 
 struct nfcp_cls_mgmt_s {
     uint32_t session_id;
+
 };
 
 static void *nfcp_cls_mgmt_init(
@@ -79,6 +80,11 @@ static nfcp_op_status_t nfcp_cls_op_invalid_operation(
     uint8_t *payload,
     int length);
 
+static void nfcp_cls_mgmt_log_handler(
+    TaskHandle_t task,
+    const char *message,
+    void *storage);
+
 const static nfcp_operation_t nfcp_cls_mgmt_ops[NFCP_CLS_MGMT_NUM_OPS] = {
     [NFCP_CLS_MGMT_OP_SESSION_ID] = {
         .handler = nfcp_cls_op_session_id,
@@ -114,6 +120,8 @@ void *nfcp_cls_mgmt_init(
         /* TODO: Error handling */
         return NULL;
     }
+
+    log_register(nfcp_cls_mgmt_log_handler, nfcp);
     return mgmt;
 }
 
@@ -135,7 +143,7 @@ nfcp_op_status_t nfcp_cls_op_session_id(
     int length)
 {
     nfcp_cls_mgmt_t *mgmt = cls_storage;
-    int resp_len;
+    bool send_version;
     if (length != 4 || !is_call) {
         return NFCP_OP_STATUS_ERROR;
     }
@@ -144,11 +152,6 @@ nfcp_op_status_t nfcp_cls_op_session_id(
     if (pkt_session_id == NFCP_SESSION_ID_NONE) {
         return NFCP_OP_STATUS_ERROR;
     }
-
-    resp_len = 0;
-    nfcp->buffer[resp_len++] = NFCP_CLS_MGMT << 2 | NFCP_HDR_BIT_IS_CALL | NFCP_HDR_BIT_IS_RESP;
-    nfcp->buffer[resp_len++] = NFCP_CLS_MGMT_OP_SESSION_ID;
-    nfcp->buffer[resp_len++] = seq_nr;
 
     if (mgmt->session_id != pkt_session_id) {
         /* Reset session if not already reset */
@@ -161,19 +164,28 @@ nfcp_op_status_t nfcp_cls_op_session_id(
         /* Response with version */
         D_PRINTLN("mgmt: new session");
 
-        const char version_tag[] = "NodeFlight test";
-        const char *cur;
-        for (cur = version_tag; *cur; cur++) {
-            nfcp->buffer[resp_len++] = (uint8_t) *cur;
-        }
-
-        /* It's a new session, put the receiver into a known state prior to answer */
-        nfcp_tx_abort(nfcp);
+        send_version = true;
     } else {
         /* Response with empty */
         D_PRINTLN("mgmt: refresh session");
+        send_version = false;
     }
-    nfcp_tx_packet(nfcp, nfcp->buffer, resp_len);
+
+    if (0 == nfcp_tx_take(nfcp)) {
+        int resp_len = 0;
+        nfcp->tx_buffer[resp_len++] = NFCP_CLS_MGMT << 2 | NFCP_HDR_BIT_IS_CALL | NFCP_HDR_BIT_IS_RESP;
+        nfcp->tx_buffer[resp_len++] = NFCP_CLS_MGMT_OP_SESSION_ID;
+        nfcp->tx_buffer[resp_len++] = seq_nr;
+        if (send_version) {
+            const char version_tag[] = "NodeFlight test";
+            const char *cur;
+            for (cur = version_tag; *cur; cur++) {
+                nfcp->tx_buffer[resp_len++] = (uint8_t) *cur;
+            }
+        }
+        nfcp_tx_packet(nfcp, nfcp->tx_buffer, resp_len);
+        nfcp_tx_give(nfcp);
+    }
 
     nfcp_refresh_session(nfcp);
     return NFCP_OP_STATUS_SUCCESS;
@@ -215,4 +227,43 @@ nfcp_op_status_t nfcp_cls_op_invalid_operation(
 {
     /* Nothing that can be done from FW point of view. Accept to not send a status back */
     return NFCP_OP_STATUS_SUCCESS;
+}
+
+void nfcp_cls_mgmt_log_handler(
+    TaskHandle_t task,
+    const char *message,
+    void *storage)
+{
+    nfcp_t *nfcp = storage;
+    nfcp_cls_mgmt_t *mgmt = nfcp->class_storage[NFCP_CLS_MGMT];
+    const char *task_name;
+
+    if (mgmt->session_id != NFCP_SESSION_ID_NONE) {
+        if (0 == nfcp_tx_take(nfcp)) {
+            int len = 0;
+            /* Header */
+            nfcp->tx_buffer[len++] = NFCP_CLS_MGMT << 2;
+            nfcp->tx_buffer[len++] = NFCP_CLS_MGMT_OP_LOG_MESSAGE;
+
+            /* log context */
+            nfcp->tx_buffer[len++] = 0;
+
+            /* message - task name */
+            task_name = pcTaskGetName(task);
+            while (*task_name != '\0' && len < NFCP_MAX_PACKET_LENGTH - 1) {
+                nfcp->tx_buffer[len++] = *(task_name++);
+            }
+
+            /* message - field delimiter */
+            nfcp->tx_buffer[len++] = '\t';
+
+            /* message - message */
+            while (*message != '\0' && len < NFCP_MAX_PACKET_LENGTH) {
+                nfcp->tx_buffer[len++] = *(message++);
+            }
+
+            nfcp_tx_packet(nfcp, nfcp->tx_buffer, len);
+            nfcp_tx_give(nfcp);
+        }
+    }
 }

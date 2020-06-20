@@ -119,6 +119,8 @@ int nfcp_init(
         .frame_delimiter = HDLC_FRAME_BOUNDARY
     });
 
+    nfcp->tx_mutex = xSemaphoreCreateRecursiveMutex();
+
     /* Generate traceable name for debug/stats */
     char taskname[configMAX_TASK_NAME_LEN];
     tfp_snprintf(taskname, configMAX_TASK_NAME_LEN, "md nfcp %s", name == NULL ? "-" : name);
@@ -127,7 +129,7 @@ int nfcp_init(
     return 0;
 }
 
-void nfcp_tx_packet(
+int nfcp_tx_packet(
     nfcp_t *nfcp,
     uint8_t *buf,
     int len)
@@ -136,13 +138,42 @@ void nfcp_tx_packet(
     buf[len++] = (crc >> 8) & 0xff;
     buf[len++] = (crc >> 0) & 0xff;
     len = hdlc_frame_stuff(buf, len);
-    nfcp->if_ser->tx_write(nfcp->if_ser, buf, len);
+
+    if (0 == nfcp_tx_take(nfcp)) {
+        nfcp->if_ser->tx_write(nfcp->if_ser, buf, len);
+        nfcp_tx_give(nfcp);
+        return 0;
+    }
+    return -1;
 }
 
-void nfcp_tx_abort(
+int nfcp_tx_abort(
     nfcp_t *nfcp)
 {
-    nfcp->if_ser->tx_write(nfcp->if_ser, nfcp_abort_sequence, sizeof(nfcp_abort_sequence));
+    if (0 == nfcp_tx_take(nfcp)) {
+        nfcp->if_ser->tx_write(nfcp->if_ser, nfcp_abort_sequence, sizeof(nfcp_abort_sequence));
+        nfcp_tx_give(nfcp);
+        return 0;
+    }
+    return -1;
+}
+
+int nfcp_tx_take(
+    nfcp_t *nfcp)
+{
+    if (pdTRUE == xSemaphoreTakeRecursive(nfcp->tx_mutex, portMAX_DELAY)) {
+        return 0;
+    }
+    return -1;
+}
+
+/**
+ * Give TX mutex
+ */
+void nfcp_tx_give(
+    nfcp_t *nfcp)
+{
+    xSemaphoreGiveRecursive(nfcp->tx_mutex);
 }
 
 int nfcp_rx_packet(
@@ -200,7 +231,7 @@ void nfcp_task(
     nfcp_reset(nfcp);
 
     for (;;) {
-        len = nfcp_rx_packet(nfcp, nfcp->buffer, NFCP_PACKET_BUFFER_SIZE, nfcp->session_end_time);
+        len = nfcp_rx_packet(nfcp, nfcp->rx_buffer, NFCP_PACKET_BUFFER_SIZE, nfcp->session_end_time);
 
         /* Check for timeout */
         if ((int32_t) (xTaskGetTickCount() - nfcp->session_end_time) >= 0) {
@@ -210,47 +241,53 @@ void nfcp_task(
         /* Check incoming packet */
         if (len < 0) {
             D_PRINTLN("Unknown packet");
-        } else if (len < 2 || ((nfcp->buffer[0] & 0x02) && len < 3)) {
+        } else if (len < 2 || ((nfcp->rx_buffer[0] & 0x02) && len < 3)) {
             D_PRINTLN("No header");
         } else {
-            uint8_t class = (nfcp->buffer[0] & 0xfc) >> 2;
-            uint8_t operation = nfcp->buffer[1];
-            bool is_call = (nfcp->buffer[0] & 0x02) != 0;
-            bool is_resp = (nfcp->buffer[0] & 0x01) != 0;
+            uint8_t class = (nfcp->rx_buffer[0] & 0xfc) >> 2;
+            uint8_t operation = nfcp->rx_buffer[1];
+            bool is_call = (nfcp->rx_buffer[0] & 0x02) != 0;
+            bool is_resp = (nfcp->rx_buffer[0] & 0x01) != 0;
             uint8_t seq_nr = 0;
 
             uint8_t *payload;
             int payload_len;
 
             if (is_call) {
-                seq_nr = nfcp->buffer[2];
+                seq_nr = nfcp->rx_buffer[2];
                 payload_len = len - 3;
-                payload = nfcp->buffer + 3;
+                payload = nfcp->rx_buffer + 3;
             } else {
                 payload_len = len - 2;
-                payload = nfcp->buffer + 2;
+                payload = nfcp->rx_buffer + 2;
             }
 
             if (class >= NFCP_MAX_CLASSES || nfcp_class[class] == NULL) {
                 D_PRINTLN("Unknown class");
-                nfcp->buffer[0] = NFCP_CLS_MGMT << 2;
-                nfcp->buffer[1] = NFCP_CLS_MGMT_OP_INVALID_CLASS;
-                nfcp->buffer[2] = class << 2 | (is_call ? 0x02 : 0) | (is_resp ? 0x01 : 0);
-                nfcp->buffer[3] = operation;
-                nfcp->buffer[4] = seq_nr;
-                nfcp_tx_packet(nfcp, nfcp->buffer, 5);
+                if (0 == nfcp_tx_take(nfcp)) {
+                    nfcp->tx_buffer[0] = NFCP_CLS_MGMT << 2;
+                    nfcp->tx_buffer[1] = NFCP_CLS_MGMT_OP_INVALID_CLASS;
+                    nfcp->tx_buffer[2] = class << 2 | (is_call ? 0x02 : 0) | (is_resp ? 0x01 : 0);
+                    nfcp->tx_buffer[3] = operation;
+                    nfcp->tx_buffer[4] = seq_nr;
+                    nfcp_tx_packet(nfcp, nfcp->tx_buffer, 5);
+                    nfcp_tx_give(nfcp);
+                }
             } else if (operation >= nfcp_class[class]->num_ops
                        || nfcp_class[class]->ops[operation].handler == NULL
                        || (is_call && !nfcp_class[class]->ops[operation].handle_call)
                        || (!is_call && !nfcp_class[class]->ops[operation].handle_info)
             ) {
                 D_PRINTLN("Unknown operation");
-                nfcp->buffer[0] = NFCP_CLS_MGMT << 2;
-                nfcp->buffer[1] = NFCP_CLS_MGMT_OP_INVALID_OPERATION;
-                nfcp->buffer[2] = class << 2 | (is_call ? 0x02 : 0) | (is_resp ? 0x01 : 0);
-                nfcp->buffer[3] = operation;
-                nfcp->buffer[4] = seq_nr;
-                nfcp_tx_packet(nfcp, nfcp->buffer, 5);
+                if (0 == nfcp_tx_take(nfcp)) {
+                    nfcp->tx_buffer[0] = NFCP_CLS_MGMT << 2;
+                    nfcp->tx_buffer[1] = NFCP_CLS_MGMT_OP_INVALID_OPERATION;
+                    nfcp->tx_buffer[2] = class << 2 | (is_call ? 0x02 : 0) | (is_resp ? 0x01 : 0);
+                    nfcp->tx_buffer[3] = operation;
+                    nfcp->tx_buffer[4] = seq_nr;
+                    nfcp_tx_packet(nfcp, nfcp->tx_buffer, 5);
+                    nfcp_tx_give(nfcp);
+                }
             } else {
                 /* Valid request */
                 D_PRINTLN("Valid packet class=%u op=%u call=%d resp=%d len=%d",
@@ -281,6 +318,9 @@ void nfcp_reset(
             nfcp_class[i]->reset(nfcp, nfcp->class_storage[i]);
         }
     }
+
+    /* Always put the receiver into a known state upon reset */
+    nfcp_tx_abort(nfcp);
 }
 
 void nfcp_refresh_session(

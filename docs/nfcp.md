@@ -254,6 +254,8 @@ Context is used to color code messages, and/or give diffrent exposure in the UI.
 
 Messages with unknown context should be written to a log, and marked with as unknown context.
 
+The printable message may contain tab characters to identify next field for tabular data
+
 ### Packet: MGMT - INVALID_CLASS
 
 Sent as information message when a message is received of unknown class.
