@@ -211,22 +211,31 @@ Note that special class 0 - MGMT is described as application packets, but is han
 
 A complete list of classes/operations:
 
-| class       | operation             | call=0      | call=1      | Description                       |
-| ----------- | --------------------- | ----------- | ----------- | --------------------------------- |
-| MGMT (0)    | SESSION_ID (0)        | not allowed | allowed     | Set session id                    |
-| MGMT (0)    | LOG_MESSAGE (1)       | allowed     | not allowed | Log message                       |
-| MGMT (0)    | INVALID_CLASS (2)     | allowed     | not allowed | Notify invalid class is used      |
-| MGMT (0)    | INVALID_OPERATION (3) | allowed     | not allowed | Notify invalid operation is used  |
-| FILE (1)    | ...                   | ...         | ...         | TBD: Access virtual file system   |
-| MONITOR (2) | ...                   | ...         | ...         | TBD: Monitor state and parameters |
+| class       | operation             | call=0      | call=1      | Description                        |
+| ----------- | --------------------- | ----------- | ----------- | ---------------------------------- |
+| MGMT (0)    | SESSION_ID (0)        | not allowed | allowed     | Set session id                     |
+| MGMT (0)    | LOG_MESSAGE (1)       | allowed     | not allowed | Log message                        |
+| MGMT (0)    | INVALID_CLASS (2)     | allowed     | not allowed | Notify invalid class is used       |
+| MGMT (0)    | INVALID_OPERATION (3) | allowed     | not allowed | Notify invalid operation is used   |
+| CAP (1)     | GET_INFO (0)          | allowed     | not allowed | Get global sytem capabilities      |
+| CAP (1)     | GET_RESOURCE (1)      | allowed     | not allowed | Get information about a resource   |
+| CAP (1)     | GET_PERIPHERAL (2)    | allowed     | not allowed | Get information about a peripheral |
+| CAP (1)     | GET_MODULE (3)        | allowed     | not allowed | Get information about a module     |
+| FILE (2)    | ...                   | ...         | ...         | TBD: Access virtual file system    |
+| MONITOR (3) | ...                   | ...         | ...         | TBD: Monitor state and parameters  |
 
 ### Packet: MGMT - SESSION_ID
 
-Request packet payload:
+Session management
+
+#### Request
 
 | Byte | Content           |
 | ---- | ----------------- |
 | 0-3  | 4 byte session id |
+
+
+#### Response
 
 Response packet payload for first response:
 
@@ -283,3 +292,128 @@ Sent as information message when a message is received of unknown operation, but
 The message should be handled by the receiving node by directly aborting the ongoing request with proper reason, For information messages, this may be used to notify the upper to stop sending the messages.
 
 It may also be logged for inclusion in bug report.
+
+
+### Packet: CAP - GET_INFO
+
+Request global capabilities of the system
+
+#### Request
+
+| Bytes | Content |
+| ----- | ------- |
+| ...   | empty   |
+
+#### Response
+
+| Bytes | Content                |
+| ----- | ---------------------- |
+| 0-1   | Number of resources    |
+| 2-3   | Number of peripherals  |
+| 4-5   | Number of module types |
+| 6-7   | CPU speed (in MHz)     |
+| 8-... | CPU type               |
+
+### Packet: CAP - GET_RESOURCE
+
+Request information about a given resource
+
+#### Request
+
+| Bytes | Type   | Content                          |
+| ----- | ------ | -------------------------------- |
+| 0-1   | uint16 | Object id (Resource id)          |
+| 2     | uint8  | Field type                       |
+| 3-4   | uint16 | Field index (0 if not indexable) |
+
+#### Response
+
+Depends on field type in request
+
+Field 0 - resource info
+
+| Bytes | Type   | Content                                     |
+| ----- | ------ | ------------------------------------------- |
+| 0-1   | uint16 | Object id (Resource id)                     |
+| 2     | uint8  | Field type (0 = resource info)              |
+| 3-4   | uint16 | Field id (0 = not indexable)                |
+| 5-6   | uint16 | resource type (value is platform dependent) |
+| 7-8   | uint16 | number available                            |
+| 9-... | string | name                                        |
+
+### Packet: CAP - GET_PERIPHERAL
+
+Request information about a given peripheral
+
+#### Request
+
+| Bytes | Type   | Content                          |
+| ----- | ------ | -------------------------------- |
+| 0-1   | uint16 | Object id (Peripheral id)        |
+| 2     | uint8  | Field type                       |
+| 3-4   | uint16 | Field index (0 if not indexable) |
+
+#### Response
+
+Depends on field type in request
+
+TODO: arguments needs to get more description
+
+Field 0 - peripheral info
+
+| Bytes  | Type   | Content                                                 |
+| ------ | ------ | ------------------------------------------------------- |
+| 0-1    | uint16 | Object id (Peripheral id)                               |
+| 2      | uint8  | Field type (0 = peripheral info)                        |
+| 3-4    | uint16 | Field id (0 = not indexable)                            |
+| 5      | uint8  | peripheral type (as defined by pp_type_t)               |
+| 6-7    | uint16 | number of arguments                                     |
+| 8-9    | uint16 | argument list length (total number of argument options) |
+| 10-... | string | name                                                    |
+
+Field 1 - argument info
+
+| Bytes  | Type   | Content                                                   |
+| ------ | ------ | --------------------------------------------------------- |
+| 0-1    | uint16 | Object id (Peripheral id)                                 |
+| 2      | uint8  | Field type (1 = argument info)                            |
+| 3-4    | uint16 | Field id (n = argument option id)                         |
+| 5-6    | uint16 | argument number (to which argument this field applies to) |
+| 11-... | string | resource tag                                              |
+
+### Packet: CAP - GET_MODULE
+
+Request information about a given module
+
+#### Request
+
+| Bytes | Type   | Content                          |
+| ----- | ------ | -------------------------------- |
+| 0-1   | uint16 | Object id (Module id)            |
+| 2     | uint8  | Field type                       |
+| 3-4   | uint16 | Field index (0 if not indexable) |
+
+#### Response
+
+Depends on field type in request
+
+TODO: Arguments needs to be updated to be more descriptive/strict
+
+Field 0 - module info
+
+| Bytes | Type   | Content                      |
+| ----- | ------ | ---------------------------- |
+| 0-1   | uint16 | Object id (Module id)        |
+| 2     | uint8  | Field type (0 = module info) |
+| 3-4   | uint16 | Field id (0 = not indexable) |
+| 5-6   | uint16 | num_arguments                |
+| 7-... | string | name                         |
+
+Field 1 - argument info
+
+| Bytes | Type   | Content                        |
+| ----- | ------ | ------------------------------ |
+| 0-1   | uint16 | Object id (Module id)          |
+| 2     | uint8  | Field type (1 = argument info) |
+| 3-4   | uint16 | Field id (n = argument id)     |
+| 5     | uint8  | argument type                  |
