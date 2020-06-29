@@ -103,19 +103,51 @@ static void nfcp_cls_cap_reset(
     void *cls_storage)
 {
 }
-static void abort_call(
+
+static uint8_t *prepare_response(
     nfcp_t *nfcp,
+    const uint8_t *payload,
+    int payload_len,
     uint8_t op,
-    uint8_t seq_nr)
+    uint8_t seq_nr,
+    uint16_t *obj_id,
+    uint8_t *field_type,
+    uint16_t *field_idx)
 {
-    /* TODO: Better error handling */
+    if (payload_len < 5) {
+        return NULL;
+    }
+
+    *obj_id = pack_to_u16(payload + 0);
+    *field_type = payload[2];
+    *field_idx = pack_to_u16(payload + 3);
+
     int resp_len = 0;
     if (0 == nfcp_tx_take(nfcp)) {
+        /* Packet header */
         resp_len +=
             nfcp_set_header(&nfcp->tx_buffer[resp_len], NFCP_CLS_CAP, op, true, true, seq_nr);
-        nfcp_tx_packet(nfcp, nfcp->tx_buffer, resp_len);
-        nfcp_tx_give(nfcp);
+
+        /* Object header */
+        pack_from_u16(&nfcp->tx_buffer[resp_len + 0], *obj_id);
+        nfcp->tx_buffer[resp_len + 2] = *field_type;
+        pack_from_u16(&nfcp->tx_buffer[resp_len + 3], *field_idx);
+        resp_len += 5;
+
+        return &nfcp->tx_buffer[resp_len];
+    } else {
+        return NULL;
     }
+}
+
+static void send_response(
+    nfcp_t *nfcp,
+    uint8_t *end_ptr)
+{
+    int length = end_ptr - nfcp->tx_buffer;
+
+    nfcp_tx_packet(nfcp, nfcp->tx_buffer, length);
+    nfcp_tx_give(nfcp);
 }
 
 static nfcp_op_status_t nfcp_cls_cap_op_get_info(
@@ -162,49 +194,33 @@ static nfcp_op_status_t nfcp_cls_cap_op_get_resource(
     uint8_t *payload,
     int length)
 {
-    if (length != 5) {
-        abort_call(nfcp, NFCP_CLS_CAP_GET_RS, seq_nr);
+    uint16_t obj_id;
+    uint8_t field_type;
+    uint16_t field_idx;
+    int i;
+
+    uint8_t *ptr = prepare_response(
+        nfcp,
+        payload, length, NFCP_CLS_CAP_GET_RS, seq_nr, &obj_id, &field_type, &field_idx);
+    if (ptr == NULL) {
+        /* TODO: Better error handling */
         return NFCP_OP_STATUS_SUCCESS;
     }
-
-    uint16_t obj_id = pack_to_u16(payload + 0);
-    uint8_t field_type = payload[2];
-    uint16_t field_idx = pack_to_u16(payload + 3);
 
     const rs_decl_t *rs = rs_get_by_id(obj_id);
     if (rs == NULL) {
-        abort_call(nfcp, NFCP_CLS_CAP_GET_RS, seq_nr);
-        return NFCP_OP_STATUS_SUCCESS;
-    }
+        /* TODO: Error handling */
+    } else if (field_type == 0 && field_idx == 0) {
+        /* Resource info */
+        pack_from_u16(ptr + 0, rs->type);
+        pack_from_u16(ptr + 2, rs->count_avail);
+        ptr += 4;
 
-    if (field_type == 0 && field_idx == 0) {
-        if (0 == nfcp_tx_take(nfcp)) {
-            int resp_len = 0;
-            int i;
-            resp_len +=
-                nfcp_set_header(&nfcp->tx_buffer[resp_len], NFCP_CLS_CAP, NFCP_CLS_CAP_GET_RS, true, true, seq_nr);
-
-            /* Object header */
-            pack_from_u16(&nfcp->tx_buffer[resp_len + 0], obj_id);
-            nfcp->tx_buffer[resp_len + 2] = field_type;
-            pack_from_u16(&nfcp->tx_buffer[resp_len + 3], field_idx);
-            resp_len += 5;
-
-            /* Resource info */
-            pack_from_u16(&nfcp->tx_buffer[resp_len + 0], rs->type);
-            pack_from_u16(&nfcp->tx_buffer[resp_len + 2], rs->count_avail);
-            resp_len += 4;
-
-            for (i = 0; rs->name[i] != '\0'; i++) {
-                nfcp->tx_buffer[resp_len++] = rs->name[i];
-            }
-
-            nfcp_tx_packet(nfcp, nfcp->tx_buffer, resp_len);
-            nfcp_tx_give(nfcp);
+        for (i = 0; rs->name[i] != '\0'; i++) {
+            *(ptr++) = rs->name[i];
         }
-    } else {
-        abort_call(nfcp, NFCP_CLS_CAP_GET_RS, seq_nr);
     }
+    send_response(nfcp, ptr);
     return NFCP_OP_STATUS_SUCCESS;
 }
 
@@ -216,83 +232,50 @@ static nfcp_op_status_t nfcp_cls_cap_op_get_peripheral(
     uint8_t *payload,
     int length)
 {
-    if (length != 5) {
-        abort_call(nfcp, NFCP_CLS_CAP_GET_PP, seq_nr);
+    uint16_t obj_id;
+    uint8_t field_type;
+    uint16_t field_idx;
+    int i;
+
+    uint8_t *ptr = prepare_response(
+        nfcp,
+        payload, length, NFCP_CLS_CAP_GET_PP, seq_nr, &obj_id, &field_type, &field_idx);
+    if (ptr == NULL) {
+        /* TODO: Better error handling */
         return NFCP_OP_STATUS_SUCCESS;
     }
 
-    uint16_t obj_id = pack_to_u16(payload + 0);
-    uint8_t field_type = payload[2];
-    uint16_t field_idx = pack_to_u16(payload + 3);
-
-    uint16_t num_arg_opts;
-    int i;
-
     const pp_inst_decl_t *pp = pp_get_by_index(obj_id);
     if (pp == NULL) {
-        abort_call(nfcp, NFCP_CLS_CAP_GET_PP, seq_nr);
+        send_response(nfcp, ptr);
         return NFCP_OP_STATUS_SUCCESS;
     }
 
     /* Count arg opts */
-    num_arg_opts = 0;
+    uint16_t num_arg_opts = 0;
     while (pp->rscs[num_arg_opts].tag != NULL) {
         num_arg_opts++;
     }
 
     if (field_type == 0 && field_idx == 0) {
-        /* Peripheral info */
-        if (0 == nfcp_tx_take(nfcp)) {
-            int resp_len = 0;
-            resp_len +=
-                nfcp_set_header(&nfcp->tx_buffer[resp_len], NFCP_CLS_CAP, NFCP_CLS_CAP_GET_PP, true, true, seq_nr);
+        *ptr = pp->decl->type;
+        pack_from_u16(ptr + 1, pp->decl->num_rscs);
+        pack_from_u16(ptr + 3, num_arg_opts);
+        ptr += 5;
 
-            /* Object header */
-            pack_from_u16(&nfcp->tx_buffer[resp_len + 0], obj_id);
-            nfcp->tx_buffer[resp_len + 2] = field_type;
-            pack_from_u16(&nfcp->tx_buffer[resp_len + 3], field_idx);
-            resp_len += 5;
-
-            /* Resource info */
-            nfcp->tx_buffer[resp_len + 0] = pp->decl->type;
-            pack_from_u16(&nfcp->tx_buffer[resp_len + 1], pp->decl->num_rscs);
-            pack_from_u16(&nfcp->tx_buffer[resp_len + 3], num_arg_opts);
-            resp_len += 5;
-
-            for (i = 0; pp->tag[i] != '\0'; i++) {
-                nfcp->tx_buffer[resp_len++] = pp->tag[i];
-            }
-
-            nfcp_tx_packet(nfcp, nfcp->tx_buffer, resp_len);
-            nfcp_tx_give(nfcp);
+        for (i = 0; pp->tag[i] != '\0'; i++) {
+            *(ptr++) = pp->tag[i];
         }
     } else if (field_type == 1 && field_idx < num_arg_opts) {
-        /* Argument info */
-        if (0 == nfcp_tx_take(nfcp)) {
-            int resp_len = 0;
-            resp_len +=
-                nfcp_set_header(&nfcp->tx_buffer[resp_len], NFCP_CLS_CAP, NFCP_CLS_CAP_GET_PP, true, true, seq_nr);
+        pack_from_u16(ptr + 0, pp->rscs[field_idx].arg_nr);
+        ptr += 2;
 
-            /* Object header */
-            pack_from_u16(&nfcp->tx_buffer[resp_len + 0], obj_id);
-            nfcp->tx_buffer[resp_len + 2] = field_type;
-            pack_from_u16(&nfcp->tx_buffer[resp_len + 3], field_idx);
-            resp_len += 5;
-
-            /* Resource info */
-            pack_from_u16(&nfcp->tx_buffer[resp_len + 0], pp->rscs[field_idx].arg_nr);
-            resp_len += 2;
-
-            for (i = 0; pp->rscs[field_idx].tag[i] != '\0'; i++) {
-                nfcp->tx_buffer[resp_len++] = pp->rscs[field_idx].tag[i];
-            }
-
-            nfcp_tx_packet(nfcp, nfcp->tx_buffer, resp_len);
-            nfcp_tx_give(nfcp);
+        for (i = 0; pp->rscs[field_idx].tag[i] != '\0'; i++) {
+            *(ptr++) = pp->rscs[field_idx].tag[i];
         }
-    } else {
-        abort_call(nfcp, NFCP_CLS_CAP_GET_RS, seq_nr);
     }
+
+    send_response(nfcp, ptr);
     return NFCP_OP_STATUS_SUCCESS;
 }
 
@@ -304,77 +287,43 @@ static nfcp_op_status_t nfcp_cls_cap_op_get_module(
     uint8_t *payload,
     int length)
 {
-    if (length != 5) {
-        abort_call(nfcp, NFCP_CLS_CAP_GET_PP, seq_nr);
+    uint16_t obj_id;
+    uint8_t field_type;
+    uint16_t field_idx;
+    int i;
+
+    uint8_t *ptr = prepare_response(
+        nfcp,
+        payload, length, NFCP_CLS_CAP_GET_MD, seq_nr, &obj_id, &field_type, &field_idx);
+    if (ptr == NULL) {
+        /* TODO: Better error handling */
         return NFCP_OP_STATUS_SUCCESS;
     }
 
-    uint16_t obj_id = pack_to_u16(payload + 0);
-    uint8_t field_type = payload[2];
-    uint16_t field_idx = pack_to_u16(payload + 3);
-
-    uint16_t num_args;
-    int i;
-
     const md_decl_t *md = md_get_decl_by_id(obj_id);
     if (md == NULL) {
-        abort_call(nfcp, NFCP_CLS_CAP_GET_PP, seq_nr);
+        send_response(nfcp, ptr);
         return NFCP_OP_STATUS_SUCCESS;
     }
 
     /* Count args. For now, it's a string, but should probably be an object array later, so don't use string functions
      * */
-    num_args = 0;
+    uint16_t num_args = 0;
     while (md->args[num_args] != '\0') {
         num_args++;
     }
 
     if (field_type == 0 && field_idx == 0) {
         /* Module info */
-        if (0 == nfcp_tx_take(nfcp)) {
-            int resp_len = 0;
-            resp_len +=
-                nfcp_set_header(&nfcp->tx_buffer[resp_len], NFCP_CLS_CAP, NFCP_CLS_CAP_GET_MD, true, true, seq_nr);
+        pack_from_u16(ptr + 0, num_args);
+        ptr += 2;
 
-            /* Object header */
-            pack_from_u16(&nfcp->tx_buffer[resp_len + 0], obj_id);
-            nfcp->tx_buffer[resp_len + 2] = field_type;
-            pack_from_u16(&nfcp->tx_buffer[resp_len + 3], field_idx);
-            resp_len += 5;
-
-            /* Module info */
-            pack_from_u16(&nfcp->tx_buffer[resp_len + 0], num_args);
-            resp_len += 2;
-
-            for (i = 0; md->name[i] != '\0'; i++) {
-                nfcp->tx_buffer[resp_len++] = md->name[i];
-            }
-
-            nfcp_tx_packet(nfcp, nfcp->tx_buffer, resp_len);
-            nfcp_tx_give(nfcp);
+        for (i = 0; md->name[i] != '\0'; i++) {
+            *(ptr++) = md->name[i];
         }
     } else if (field_type == 1 && field_idx < num_args) {
-        /* Argument info */
-        if (0 == nfcp_tx_take(nfcp)) {
-            int resp_len = 0;
-            resp_len +=
-                nfcp_set_header(&nfcp->tx_buffer[resp_len], NFCP_CLS_CAP, NFCP_CLS_CAP_GET_MD, true, true, seq_nr);
-
-            /* Object header */
-            pack_from_u16(&nfcp->tx_buffer[resp_len + 0], obj_id);
-            nfcp->tx_buffer[resp_len + 2] = field_type;
-            pack_from_u16(&nfcp->tx_buffer[resp_len + 3], field_idx);
-            resp_len += 5;
-
-            /* Argument */
-            nfcp->tx_buffer[resp_len + 0] = md->args[field_idx];
-            resp_len += 1;
-
-            nfcp_tx_packet(nfcp, nfcp->tx_buffer, resp_len);
-            nfcp_tx_give(nfcp);
-        }
-    } else {
-        abort_call(nfcp, NFCP_CLS_CAP_GET_RS, seq_nr);
+        *(ptr++) = md->args[field_idx];
     }
+    send_response(nfcp, ptr);
     return NFCP_OP_STATUS_SUCCESS;
 }
