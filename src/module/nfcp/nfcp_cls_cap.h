@@ -18,38 +18,13 @@
 
 #pragma once
 
-#include <stdint.h>
+#include "module/nfcp/nfcp.h"
 
-static inline uint32_t pack_to_u32(
-    const uint8_t *ptr)
-{
-    return (((uint32_t) ptr[3]) << 0)
-           | (((uint32_t) ptr[2]) << 8)
-           | (((uint32_t) ptr[1]) << 16)
-           | (((uint32_t) ptr[0]) << 24);
-}
+extern const nfcp_cls_t nfcp_cls_cap;
 
-static inline uint16_t pack_to_u16(
-    const uint8_t *ptr)
-{
-    return (((uint16_t) ptr[1]) << 0)
-           | (((uint16_t) ptr[0]) << 8);
-}
-
-static inline void pack_from_u32(
-    uint8_t *ptr,
-    uint32_t val)
-{
-    ptr[3] = (val >> 0) & 0xff;
-    ptr[2] = (val >> 8) & 0xff;
-    ptr[1] = (val >> 16) & 0xff;
-    ptr[0] = (val >> 24) & 0xff;
-}
-
-static inline void pack_from_u16(
-    uint8_t *ptr,
-    uint16_t val)
-{
-    ptr[1] = (val >> 0) & 0xff;
-    ptr[0] = (val >> 8) & 0xff;
-}
+#define NFCP_CLS_CAP                        1
+#define NFCP_CLS_CAP_GET_INFO               0
+#define NFCP_CLS_CAP_GET_RS                 1
+#define NFCP_CLS_CAP_GET_PP                 2
+#define NFCP_CLS_CAP_GET_MD                 3
+#define NFCP_CLS_CAP_NUM_OPS                4

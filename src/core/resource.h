@@ -55,7 +55,7 @@ rs_state_t *rs_get_state(
 const rs_decl_t *rs_get_by_id(
     int index);
 
-const int rs_get_count(
+int rs_get_count(
     void);
 
 const rs_decl_t *rs_get_by_tag(

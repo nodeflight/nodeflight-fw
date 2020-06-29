@@ -37,6 +37,7 @@
 #include "module/nfcp/nfcp.h"
 
 #include "module/nfcp/nfcp_cls_mgmt.h"
+#include "module/nfcp/nfcp_cls_cap.h"
 
 #include <stdint.h>
 #include <stddef.h>
@@ -86,7 +87,8 @@ static void nfcp_task(
 MD_DECL(nfcp, "p", nfcp_init);
 
 static const nfcp_cls_t *const nfcp_class[NFCP_MAX_CLASSES] = {
-    [NFCP_CLS_MGMT] = &nfcp_cls_mgmt
+    [NFCP_CLS_MGMT] = &nfcp_cls_mgmt,
+    [NFCP_CLS_CAP] = &nfcp_cls_cap
 };
 
 static const uint8_t nfcp_abort_sequence[2] = {

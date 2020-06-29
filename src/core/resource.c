@@ -57,10 +57,13 @@ rs_state_t *rs_get_state(
 const rs_decl_t *rs_get_by_id(
     int index)
 {
+    if (index < 0 || &__nf_resource_start[index] >= __nf_resource_end) {
+        return NULL;
+    }
     return &__nf_resource_start[index];
 }
 
-const int rs_get_count(
+int rs_get_count(
     void)
 {
     return __nf_resource_end - __nf_resource_start;

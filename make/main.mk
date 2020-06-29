@@ -18,6 +18,11 @@ OBJECTS = \
 	$(patsubst %.c,build/$(TARGET)/%.o,$(filter %.c,$(SOURCES))) \
 	$(patsubst %.s,build/$(TARGET)/%.o,$(filter %.s,$(SOURCES)))
 
+
+# Common flags regarding build
+
+CFLAGS += -DNF_TARGET=\"$(TARGET)\"
+
 all: build/$(APP)-$(TARGET).elf build/$(APP)-$(TARGET).hex
 
 build/$(APP)-$(TARGET).elf: $(OBJECTS)

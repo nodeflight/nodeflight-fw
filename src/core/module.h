@@ -71,3 +71,9 @@ int md_init(
     const char *name,
     int argc,
     char **argv);
+
+const md_decl_t *md_get_decl_by_id(
+    int index);
+
+int md_get_decl_count(
+    void);

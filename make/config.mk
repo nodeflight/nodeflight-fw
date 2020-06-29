@@ -96,6 +96,7 @@ TARGET_lib_SOURCES = \
 
 TARGET_nfcp_SOURCES = \
 	module/nfcp/nfcp.c \
+	module/nfcp/nfcp_cls_cap.c \
 	module/nfcp/nfcp_cls_mgmt.c
 
 #######################################################################

@@ -28,6 +28,9 @@ const extern pp_inst_decl_t __nf_peripheral_end[];
 const pp_inst_decl_t *pp_get_by_index(
     int index)
 {
+    if (index < 0 || &__nf_peripheral_start[index] >= __nf_peripheral_end) {
+        return NULL;
+    }
     return &__nf_peripheral_start[index];
 }
 

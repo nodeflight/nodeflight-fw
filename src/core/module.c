@@ -127,3 +127,18 @@ int md_init(
     }
     return -1;
 }
+
+const md_decl_t *md_get_decl_by_id(
+    int index)
+{
+    if (index < 0 || &__nf_module_start[index] >= __nf_module_end) {
+        return NULL;
+    }
+    return &__nf_module_start[index];
+}
+
+int md_get_decl_count(
+    void)
+{
+    return __nf_module_end - __nf_module_start;
+}

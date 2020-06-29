@@ -136,3 +136,28 @@ void nfcp_reset(
  */
 void nfcp_refresh_session(
     nfcp_t *nfcp);
+
+/**
+ * Update header in tx_buf
+ *
+ * Assumes rx_buf contains a valid call request
+ *
+ * @return length of header
+ */
+static inline int nfcp_set_header(
+    uint8_t *tx_buf,
+    uint8_t cls,
+    uint8_t op,
+    bool is_call,
+    bool is_resp,
+    uint8_t seq_nr)
+{
+    tx_buf[0] = (cls << 2) | (is_call ? NFCP_HDR_BIT_IS_CALL : 0) | (is_resp ? NFCP_HDR_BIT_IS_RESP : 0);
+    tx_buf[1] = op;
+    if (is_call) {
+        tx_buf[2] = seq_nr;
+        return 3;
+    } else {
+        return 2;
+    }
+}

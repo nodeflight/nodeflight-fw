@@ -26,6 +26,10 @@ NFCP can be described using a layered structure:
 | 2     | Framing     | Serializing packets to stream + checksum validation | HDLC-like asynchronous framing |
 | 1     | Physical    | Physical hardware, electrical characteristics...    | UART, USB VCP                  |
 
+### Byte order
+
+Unless otherwise specified, all fields are MSB first
+
 ## Terminology
 
 Generic terms used in the NFCP protocol:
