@@ -30,7 +30,7 @@ typedef struct vr_source_s vr_source_t;
 typedef struct vr_reloc_s vr_reloc_t;
 
 struct vr_source_s {
-    const vr_type_t *fmt; /**< Format string for the source, or NULL if not registered */
+    const vr_named_type_t *types; /**< Type list for the source. Names are just for convenience for the UI */
     void **vars; /**< Pointers to variables */
     vr_reloc_t *reloc; /**< Pending relocations, if not bound yet */
 };
@@ -91,7 +91,7 @@ static vr_source_t *vr_get_source(
         if (src == NULL) {
             return NULL;
         }
-        src->fmt = NULL;
+        src->types = NULL;
         src->vars = NULL;
         src->reloc = NULL;
         map_set(vr_sources, name, src);
@@ -111,12 +111,12 @@ static int vr_reloc_exec(
 
     /* Is type valid? */
     for (i = 0; i < index; i++) {
-        if (src->fmt[i] == VR_TYPE_NULL) {
+        if (src->types[i].type == VR_TYPE_NULL) {
             /* Index out of bounds */
             return -1;
         }
     }
-    if (src->fmt[index] != type) {
+    if (src->types[index].type != type) {
         /* Invalid type */
         return -1;
     }
@@ -142,40 +142,39 @@ int vr_connect(
 
     map_iter_start(&iter, vr_sources);
     while (map_iter_next(&iter, &name, (void **) &src)) {
-        if (src->fmt == NULL) {
+        if (src->types == NULL) {
             /* Unregistered variables */
             return -1;
         }
         if (src->reloc != NULL) {
-            /* Unresolved relocations, shouldn't happen if src->fmt is set */
+            /* Unresolved relocations, shouldn't happen if src->types is set */
             return -1;
         }
     }
-    (void) vr_reloc_free;
     return 0;
 }
 
 int vr_register(
     const char *name,
-    const vr_type_t *types,
+    const vr_named_type_t *types,
     ...)
 {
     vr_source_t *src = vr_get_source(name);
     int num_args;
     int i;
 
-    if (src->fmt != NULL) {
+    if (src->types != NULL) {
         /* Already registered */
         /* TODO: Error handling */
         return -1;
     }
 
     num_args = 0;
-    while (types[num_args] != VR_TYPE_NULL) {
+    while (types[num_args].type != VR_TYPE_NULL) {
         num_args++;
     }
 
-    src->fmt = types;
+    src->types = types;
     src->vars = pvPortMalloc(sizeof(void *) * num_args);
     if (src->vars == NULL) {
         return -1;
@@ -225,7 +224,7 @@ int vr_request(
     /* Fetch source */
     vr_source_t *src = vr_get_source(name);
 
-    if (src->fmt == NULL) {
+    if (src->types == NULL) {
         /* Source not yet registered, create relocation request */
         vr_reloc_t *rlc = vr_reloc_alloc();
         rlc->dst = target;

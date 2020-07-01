@@ -112,7 +112,7 @@ static int md_init_mod(
         return -1;
     }
 
-    return md->init(name, args);
+    return md->init(md, name, args);
 }
 
 int md_init(

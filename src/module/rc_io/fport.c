@@ -87,24 +87,8 @@ struct fport_s {
     bool signal_loss;
 };
 
-static const vr_type_t out_format[] = {
-    /* 16 normal channels */
-    VR_TYPE_FLOAT, VR_TYPE_FLOAT, VR_TYPE_FLOAT, VR_TYPE_FLOAT,
-    VR_TYPE_FLOAT, VR_TYPE_FLOAT, VR_TYPE_FLOAT, VR_TYPE_FLOAT,
-    VR_TYPE_FLOAT, VR_TYPE_FLOAT, VR_TYPE_FLOAT, VR_TYPE_FLOAT,
-    VR_TYPE_FLOAT, VR_TYPE_FLOAT, VR_TYPE_FLOAT, VR_TYPE_FLOAT,
-    /* 2 boolean channels, mapped to float */
-    VR_TYPE_FLOAT, VR_TYPE_FLOAT,
-    /* rssi */
-    VR_TYPE_FLOAT,
-    /* failsafe */
-    VR_TYPE_BOOL,
-    /* signal_loss */
-    VR_TYPE_BOOL,
-    VR_TYPE_NULL
-};
-
 static int fport_init(
+    const md_decl_t *md,
     const char *name,
     md_arg_t *args);
 
@@ -115,10 +99,34 @@ MD_DECL(fport, fport_init,
     MD_DECL_ARGS(
         MD_ARG_DECL("serial", MD_ARG_MODE_NORMAL, MD_ARG_TYPE_PERIPHERAL, PP_SERIAL),
         MD_ARG_DECL("schedule", MD_ARG_MODE_OPTIONAL, MD_ARG_TYPE_SCHEDULER, SC_DIR_OUT)
+    ),
+    MD_DECL_OUTPUTS(
+        MD_OUTPUT_DECL("ch1", VR_TYPE_FLOAT),
+        MD_OUTPUT_DECL("ch2", VR_TYPE_FLOAT),
+        MD_OUTPUT_DECL("ch3", VR_TYPE_FLOAT),
+        MD_OUTPUT_DECL("ch4", VR_TYPE_FLOAT),
+        MD_OUTPUT_DECL("ch5", VR_TYPE_FLOAT),
+        MD_OUTPUT_DECL("ch6", VR_TYPE_FLOAT),
+        MD_OUTPUT_DECL("ch7", VR_TYPE_FLOAT),
+        MD_OUTPUT_DECL("ch8", VR_TYPE_FLOAT),
+        MD_OUTPUT_DECL("ch9", VR_TYPE_FLOAT),
+        MD_OUTPUT_DECL("ch10", VR_TYPE_FLOAT),
+        MD_OUTPUT_DECL("ch11", VR_TYPE_FLOAT),
+        MD_OUTPUT_DECL("ch12", VR_TYPE_FLOAT),
+        MD_OUTPUT_DECL("ch13", VR_TYPE_FLOAT),
+        MD_OUTPUT_DECL("ch14", VR_TYPE_FLOAT),
+        MD_OUTPUT_DECL("ch15", VR_TYPE_FLOAT),
+        MD_OUTPUT_DECL("ch16", VR_TYPE_FLOAT),
+        MD_OUTPUT_DECL("ch17", VR_TYPE_FLOAT), /* bool mapped to float */
+        MD_OUTPUT_DECL("ch18", VR_TYPE_FLOAT), /* bool mapped to float */
+        MD_OUTPUT_DECL("rssi", VR_TYPE_FLOAT),
+        MD_OUTPUT_DECL("rssi", VR_TYPE_BOOL),
+        MD_OUTPUT_DECL("rssi", VR_TYPE_BOOL)
     )
 );
 
 int fport_init(
+    const md_decl_t *md,
     const char *name,
     md_arg_t *args)
 {
@@ -162,7 +170,7 @@ int fport_init(
         .storage = fport_if
     });
 
-    vr_register(name, out_format,
+    vr_register(name, md->outputs,
         &fport_if->f_chn[0], &fport_if->f_chn[1], &fport_if->f_chn[2], &fport_if->f_chn[3],
         &fport_if->f_chn[4], &fport_if->f_chn[5], &fport_if->f_chn[6], &fport_if->f_chn[7],
         &fport_if->f_chn[8], &fport_if->f_chn[9], &fport_if->f_chn[10], &fport_if->f_chn[11],

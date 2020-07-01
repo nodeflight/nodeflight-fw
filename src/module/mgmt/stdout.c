@@ -48,6 +48,7 @@ struct stdout_s {
 };
 
 static int stdout_init(
+    const md_decl_t *md,
     const char *name,
     md_arg_t *args);
 
@@ -63,6 +64,7 @@ MD_DECL(stdout, stdout_init,
 );
 
 int stdout_init(
+    const md_decl_t *md,
     const char *name,
     md_arg_t *args)
 {

@@ -30,11 +30,6 @@ struct arith_s {
     float out;
 };
 
-static const vr_type_t out_single_float[] = {
-    VR_TYPE_FLOAT,
-    VR_TYPE_NULL
-};
-
 /* Common for all binary operations */
 
 static void arith_sch_init(
@@ -44,6 +39,7 @@ static void arith_sch_init(
     /* Do nothing */
 }
 static int arith_init(
+    const md_decl_t *md,
     const char *name,
     md_arg_t *args,
     sc_clinet_run_t op,
@@ -59,7 +55,7 @@ static int arith_init(
 
     arith->out = 0.0f;
 
-    vr_register(name, out_single_float, &arith->out);
+    vr_register(name, md->outputs, &arith->out);
     for (i = 0; i < num_args; i++) {
         arith->in[i] = NULL;
         vr_request(args[1 + i].name, VR_TYPE_FLOAT, (void **) &arith->in[i]);
@@ -77,16 +73,20 @@ static void arith_sch_run_add(
     a->out = *a->in[0] + *a->in[1];
 }
 static int arith_init_add(
+    const md_decl_t *md,
     const char *name,
     md_arg_t *args)
 {
-    return arith_init(name, args, arith_sch_run_add, 2);
+    return arith_init(md, name, args, arith_sch_run_add, 2);
 }
 MD_DECL(add_f, arith_init_add,
     MD_DECL_ARGS(
         MD_ARG_DECL("schedule", MD_ARG_MODE_NORMAL, MD_ARG_TYPE_SCHEDULER, SC_DIR_IN),
         MD_ARG_DECL("in_1", MD_ARG_MODE_NORMAL, MD_ARG_TYPE_LINK, VR_TYPE_FLOAT),
         MD_ARG_DECL("in_2", MD_ARG_MODE_NORMAL, MD_ARG_TYPE_LINK, VR_TYPE_FLOAT)
+    ),
+    MD_DECL_OUTPUTS(
+        MD_OUTPUT_DECL("out", VR_TYPE_FLOAT)
     )
 );
 
@@ -98,16 +98,20 @@ static void arith_sch_run_sub(
     a->out = *a->in[0] - *a->in[1];
 }
 static int arith_init_sub(
+    const md_decl_t *md,
     const char *name,
     md_arg_t *args)
 {
-    return arith_init(name, args, arith_sch_run_sub, 2);
+    return arith_init(md, name, args, arith_sch_run_sub, 2);
 }
 MD_DECL(sub_f, arith_init_sub,
     MD_DECL_ARGS(
         MD_ARG_DECL("schedule", MD_ARG_MODE_NORMAL, MD_ARG_TYPE_SCHEDULER, SC_DIR_IN),
         MD_ARG_DECL("in_1", MD_ARG_MODE_NORMAL, MD_ARG_TYPE_LINK, VR_TYPE_FLOAT),
         MD_ARG_DECL("in_2", MD_ARG_MODE_NORMAL, MD_ARG_TYPE_LINK, VR_TYPE_FLOAT)
+    ),
+    MD_DECL_OUTPUTS(
+        MD_OUTPUT_DECL("out", VR_TYPE_FLOAT)
     )
 );
 
@@ -119,16 +123,20 @@ static void arith_sch_run_mul(
     a->out = *a->in[0] * *a->in[1];
 }
 static int arith_init_mul(
+    const md_decl_t *md,
     const char *name,
     md_arg_t *args)
 {
-    return arith_init(name, args, arith_sch_run_mul, 2);
+    return arith_init(md, name, args, arith_sch_run_mul, 2);
 }
 MD_DECL(mul_f, arith_init_mul,
     MD_DECL_ARGS(
         MD_ARG_DECL("schedule", MD_ARG_MODE_NORMAL, MD_ARG_TYPE_SCHEDULER, SC_DIR_IN),
         MD_ARG_DECL("in_1", MD_ARG_MODE_NORMAL, MD_ARG_TYPE_LINK, VR_TYPE_FLOAT),
         MD_ARG_DECL("in_2", MD_ARG_MODE_NORMAL, MD_ARG_TYPE_LINK, VR_TYPE_FLOAT)
+    ),
+    MD_DECL_OUTPUTS(
+        MD_OUTPUT_DECL("out", VR_TYPE_FLOAT)
     )
 );
 
@@ -140,16 +148,20 @@ static void arith_sch_run_div(
     a->out = *a->in[0] / *a->in[1];
 }
 static int arith_init_div(
+    const md_decl_t *md,
     const char *name,
     md_arg_t *args)
 {
-    return arith_init(name, args, arith_sch_run_div, 2);
+    return arith_init(md, name, args, arith_sch_run_div, 2);
 }
 MD_DECL(div_f, arith_init_div,
     MD_DECL_ARGS(
         MD_ARG_DECL("schedule", MD_ARG_MODE_NORMAL, MD_ARG_TYPE_SCHEDULER, SC_DIR_IN),
         MD_ARG_DECL("in_1", MD_ARG_MODE_NORMAL, MD_ARG_TYPE_LINK, VR_TYPE_FLOAT),
         MD_ARG_DECL("in_2", MD_ARG_MODE_NORMAL, MD_ARG_TYPE_LINK, VR_TYPE_FLOAT)
+    ),
+    MD_DECL_OUTPUTS(
+        MD_OUTPUT_DECL("out", VR_TYPE_FLOAT)
     )
 );
 
@@ -161,14 +173,18 @@ static void arith_sch_run_neg(
     a->out = -*a->in[0];
 }
 static int arith_init_neg(
+    const md_decl_t *md,
     const char *name,
     md_arg_t *args)
 {
-    return arith_init(name, args, arith_sch_run_neg, 1);
+    return arith_init(md, name, args, arith_sch_run_neg, 1);
 }
 MD_DECL(neg_f, arith_init_neg,
     MD_DECL_ARGS(
         MD_ARG_DECL("schedule", MD_ARG_MODE_NORMAL, MD_ARG_TYPE_SCHEDULER, SC_DIR_IN),
         MD_ARG_DECL("in_1", MD_ARG_MODE_NORMAL, MD_ARG_TYPE_LINK, VR_TYPE_FLOAT)
+    ),
+    MD_DECL_OUTPUTS(
+        MD_OUTPUT_DECL("out", VR_TYPE_FLOAT)
     )
 );

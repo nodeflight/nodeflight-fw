@@ -72,6 +72,7 @@
  */
 
 static int nfcp_init(
+    const md_decl_t *md,
     const char *name,
     md_arg_t *args);
 
@@ -100,6 +101,7 @@ static const uint8_t nfcp_abort_sequence[2] = {
 };
 
 int nfcp_init(
+    const md_decl_t *md,
     const char *name,
     md_arg_t *args)
 {

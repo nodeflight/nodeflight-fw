@@ -49,6 +49,7 @@ struct servo_s {
 };
 
 static int servo_init(
+    const md_decl_t *md,
     const char *name,
     md_arg_t *args);
 
@@ -72,6 +73,7 @@ MD_DECL(servo, servo_init,
 );
 
 int servo_init(
+    const md_decl_t *md,
     const char *name,
     md_arg_t *args)
 {

@@ -62,17 +62,8 @@ struct mpu6500_s {
     float out_temp;
 };
 
-static const vr_type_t out_format[] = {
-    /* gyro */
-    VR_TYPE_FLOAT, VR_TYPE_FLOAT, VR_TYPE_FLOAT,
-    /* accel */
-    VR_TYPE_FLOAT, VR_TYPE_FLOAT, VR_TYPE_FLOAT,
-    /* temperature */
-    VR_TYPE_FLOAT,
-    VR_TYPE_NULL
-};
-
 static int mpu6500_init(
+    const md_decl_t *md,
     const char *name,
     md_arg_t *args);
 
@@ -88,10 +79,20 @@ MD_DECL(motion_mpu6500, mpu6500_init,
         MD_ARG_DECL("cs", MD_ARG_MODE_NORMAL, MD_ARG_TYPE_PERIPHERAL, PP_GPIO),
         MD_ARG_DECL("int", MD_ARG_MODE_NORMAL, MD_ARG_TYPE_PERIPHERAL, PP_GPIO),
         MD_ARG_DECL("schedule", MD_ARG_MODE_NORMAL, MD_ARG_TYPE_SCHEDULER, SC_DIR_OUT)
+    ),
+    MD_DECL_OUTPUTS(
+        MD_OUTPUT_DECL("gyro_x", VR_TYPE_FLOAT),
+        MD_OUTPUT_DECL("gyro_y", VR_TYPE_FLOAT),
+        MD_OUTPUT_DECL("gyro_z", VR_TYPE_FLOAT),
+        MD_OUTPUT_DECL("accel_x", VR_TYPE_FLOAT),
+        MD_OUTPUT_DECL("accel_y", VR_TYPE_FLOAT),
+        MD_OUTPUT_DECL("accel_z", VR_TYPE_FLOAT),
+        MD_OUTPUT_DECL("temperature", VR_TYPE_FLOAT)
     )
 );
 
 int mpu6500_init(
+    const md_decl_t *md,
     const char *name,
     md_arg_t *args)
 {
@@ -129,7 +130,7 @@ int mpu6500_init(
         return -1;
     }
 
-    vr_register(name, out_format,
+    vr_register(name, md->outputs,
         &mpu->out_gyro[0], &mpu->out_gyro[1], &mpu->out_gyro[2],
         &mpu->out_acc[0], &mpu->out_acc[1], &mpu->out_acc[2],
         &mpu->out_temp

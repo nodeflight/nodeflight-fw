@@ -112,6 +112,7 @@ struct sdcard_job_s {
 };
 
 static int sdcard_init(
+    const md_decl_t *md,
     const char *name,
     md_arg_t *args);
 
@@ -188,6 +189,7 @@ MD_DECL(sdcard, sdcard_init,
 );
 
 int sdcard_init(
+    const md_decl_t *md,
     const char *name,
     md_arg_t *args)
 {

@@ -37,6 +37,7 @@ typedef enum md_arg_type_s {
 
 #include "core/interface.h"
 #include "core/scheduler.h"
+#include "core/variable.h"
 
 union md_arg_u {
     if_header_t *iface;
@@ -56,7 +57,9 @@ struct md_arg_decl_s {
 struct md_decl_s {
     const char *name;
     const md_arg_decl_t *args;
+    const vr_named_type_t *outputs;
     int (*init)(
+        const md_decl_t *md,
         const char *name,
         md_arg_t *args);
 };
@@ -87,6 +90,9 @@ struct md_decl_s {
         __VA_ARGS__ \
     }
 
+/**
+ * Declare a list of arguments
+ */
 #define MD_DECL_ARGS(...) \
     .args = (const md_arg_decl_t[]) { \
         __VA_ARGS__, \
@@ -101,6 +107,23 @@ struct md_decl_s {
         .mode = _mode, \
         .type = _type, \
         .subtype = _subtype \
+}
+
+/**
+ * Declare a list of outputs
+ */
+#define MD_DECL_OUTPUTS(...) \
+    .outputs = (const vr_named_type_t[]) { \
+        __VA_ARGS__, \
+        VR_NULL_TYPE \
+    }
+
+/**
+ * Declare a module argument, as part of MD_DECL
+ */
+#define MD_OUTPUT_DECL(_name, _type) { \
+        .name = _name, \
+        .type = _type, \
 }
 
 int md_init(

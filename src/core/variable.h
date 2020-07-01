@@ -18,12 +18,21 @@
 
 #pragma once
 
+typedef struct vr_named_type_s vr_named_type_t;
+
 typedef enum vr_type_s {
     VR_TYPE_NULL = 0,
     VR_TYPE_FLOAT,
     VR_TYPE_BOOL,
     VR_TYPE_INT
 } vr_type_t;
+
+struct vr_named_type_s {
+    const char *name;
+    vr_type_t type;
+};
+
+#define VR_NULL_TYPE {.name = NULL, .type = VR_TYPE_NULL}
 
 /**
  * Initialize the subsystem for variable handling
@@ -51,7 +60,7 @@ int vr_connect(
  */
 int vr_register(
     const char *name,
-    const vr_type_t *types,
+    const vr_named_type_t *types,
     ...);
 
 /**
