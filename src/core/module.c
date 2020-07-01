@@ -52,7 +52,7 @@ static int md_init_mod(
 
     int curarg = 0;
 
-    for (curarg = 0; md->args[curarg].name != NULL && curarg < argc; curarg++) {
+    for (curarg = 0; md->args != NULL && md->args[curarg].name != NULL && curarg < argc; curarg++) {
         const md_arg_decl_t *argdecl = &md->args[curarg];
         if (argdecl->mode == MD_ARG_MODE_OPTIONAL && strops_cmp("-", argv[curarg]) == 0) {
             args[curarg].iface = NULL; /* Union, all optionals are pointers, everything will be NULL */

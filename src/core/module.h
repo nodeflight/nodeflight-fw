@@ -80,17 +80,18 @@ struct md_decl_s {
  * @param _init init function for the module
  * @param ... list of arguments, as MD_ARG_DECL()
  */
-#define MD_DECL(_name, _init, _args) \
+#define MD_DECL(_name, _init, ...) \
     const md_decl_t md_ ## _name ## _decl _MD_SECTION(_name) = { \
         .name = #_name, \
         .init = _init, \
-        .args = _args, \
+        __VA_ARGS__ \
     }
 
-#define MD_DECL_ARGS(...) (const md_arg_decl_t[]) { \
+#define MD_DECL_ARGS(...) \
+    .args = (const md_arg_decl_t[]) { \
         __VA_ARGS__, \
         {0} \
-}
+    }
 
 /**
  * Declare a module argument, as part of MD_DECL
