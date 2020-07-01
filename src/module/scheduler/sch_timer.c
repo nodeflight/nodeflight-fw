@@ -19,6 +19,8 @@
 #include "core/scheduler.h"
 #include "core/module.h"
 #include "core/interface_types.h"
+#include "core/variable.h"
+
 
 #include "FreeRTOS.h"
 #include "task.h"
@@ -40,7 +42,11 @@ void sch_timer_trigger(
     uint32_t *values,
     void *storage);
 
-MD_DECL(sch_timer, "psci", sch_timer_init);
+MD_DECL(sch_timer, sch_timer_init,
+    MD_ARG_DECL("timer", MD_ARG_MODE_NORMAL, MD_ARG_TYPE_PERIPHERAL, PP_PWM),
+    MD_ARG_DECL("schedule", MD_ARG_MODE_NORMAL, MD_ARG_TYPE_SCHEDULER, SC_DIR_OUT),
+    MD_ARG_DECL("frequency", MD_ARG_MODE_NORMAL, MD_ARG_TYPE_CONST, VR_TYPE_INT)
+);
 
 int sch_timer_init(
     const char *name,
@@ -48,10 +54,6 @@ int sch_timer_init(
 {
     sch_timer_t *schtm;
     int status;
-
-    if (args[0].iface->peripheral->decl->type != PP_PWM) {
-        return -1;
-    }
 
     schtm = pvPortMalloc(sizeof(sch_timer_t));
     if (schtm == NULL) {

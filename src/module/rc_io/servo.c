@@ -63,19 +63,16 @@ static void servo_sched_init(
 static void servo_sched_run(
     void *storage);
 
-MD_DECL(
-    servo,
-    "psn",
-    servo_init);
+MD_DECL(servo, servo_init,
+    MD_ARG_DECL("pwm_out", MD_ARG_MODE_NORMAL, MD_ARG_TYPE_PERIPHERAL, PP_PWM),
+    MD_ARG_DECL("schedule", MD_ARG_MODE_NORMAL, MD_ARG_TYPE_SCHEDULER, SC_DIR_IN),
+    MD_ARG_DECL("value", MD_ARG_MODE_NORMAL, MD_ARG_TYPE_LINK, VR_TYPE_FLOAT)
+);
 
 int servo_init(
     const char *name,
     md_arg_t *args)
 {
-    if (args[0].iface->peripheral->decl->type != PP_PWM) {
-        return -1;
-    }
-
     servo_t *servo;
     int status;
 
@@ -104,7 +101,7 @@ int servo_init(
     servo->raw_value = (3 * PWM_MS) / 2;
     servo->f_value = NULL;
 
-    vr_request(args[2].name, 'f', (void **) &servo->f_value);
+    vr_request(args[2].name, VR_TYPE_FLOAT, (void **) &servo->f_value);
 
     sc_register_client(
         args[1].sched,

@@ -62,6 +62,16 @@ struct mpu6500_s {
     float out_temp;
 };
 
+static const vr_type_t out_format[] = {
+    /* gyro */
+    VR_TYPE_FLOAT, VR_TYPE_FLOAT, VR_TYPE_FLOAT,
+    /* accel */
+    VR_TYPE_FLOAT, VR_TYPE_FLOAT, VR_TYPE_FLOAT,
+    /* temperature */
+    VR_TYPE_FLOAT,
+    VR_TYPE_NULL
+};
+
 static int mpu6500_init(
     const char *name,
     md_arg_t *args);
@@ -72,7 +82,12 @@ static void mpu6500_task(
 static void mpu6500_wakeup(
     void *storage);
 
-MD_DECL(motion_mpu6500, "ppps", mpu6500_init);
+MD_DECL(motion_mpu6500, mpu6500_init,
+    MD_ARG_DECL("spi", MD_ARG_MODE_NORMAL, MD_ARG_TYPE_PERIPHERAL, PP_SPI),
+    MD_ARG_DECL("cs", MD_ARG_MODE_NORMAL, MD_ARG_TYPE_PERIPHERAL, PP_GPIO),
+    MD_ARG_DECL("int", MD_ARG_MODE_NORMAL, MD_ARG_TYPE_PERIPHERAL, PP_GPIO),
+    MD_ARG_DECL("schedule", MD_ARG_MODE_NORMAL, MD_ARG_TYPE_SCHEDULER, SC_DIR_OUT)
+);
 
 int mpu6500_init(
     const char *name,
@@ -80,16 +95,6 @@ int mpu6500_init(
 {
     mpu6500_t *mpu;
     int status;
-
-    if (args[0].iface->peripheral->decl->type != PP_SPI) {
-        return -1;
-    }
-    if (args[1].iface->peripheral->decl->type != PP_GPIO) {
-        return -1;
-    }
-    if (args[2].iface->peripheral->decl->type != PP_GPIO) {
-        return -1;
-    }
 
     mpu = pvPortMalloc(sizeof(mpu6500_t));
     if (mpu == NULL) {
@@ -122,7 +127,7 @@ int mpu6500_init(
         return -1;
     }
 
-    vr_register(name, "fffffff",
+    vr_register(name, out_format,
         &mpu->out_gyro[0], &mpu->out_gyro[1], &mpu->out_gyro[2],
         &mpu->out_acc[0], &mpu->out_acc[1], &mpu->out_acc[2],
         &mpu->out_temp

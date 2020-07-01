@@ -84,7 +84,9 @@ static int nfcp_rx_packet(
 static void nfcp_task(
     void *storage);
 
-MD_DECL(nfcp, "p", nfcp_init);
+MD_DECL(nfcp, nfcp_init,
+    MD_ARG_DECL("serial", MD_ARG_MODE_NORMAL, MD_ARG_TYPE_PERIPHERAL, PP_SERIAL)
+);
 
 static const nfcp_cls_t *const nfcp_class[NFCP_MAX_CLASSES] = {
     [NFCP_CLS_MGMT] = &nfcp_cls_mgmt,
@@ -99,10 +101,6 @@ int nfcp_init(
     const char *name,
     md_arg_t *args)
 {
-    if (args[0].iface->peripheral->decl->type != PP_SERIAL) {
-        return -1;
-    }
-
     nfcp_t *nfcp;
 
     nfcp = pvPortMalloc(sizeof(nfcp_t));

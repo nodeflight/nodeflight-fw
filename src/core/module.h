@@ -19,7 +19,21 @@
 #pragma once
 
 typedef union md_arg_u md_arg_t;
+typedef struct md_arg_decl_s md_arg_decl_t;
 typedef struct md_decl_s md_decl_t;
+
+typedef enum md_arg_mode_s {
+    MD_ARG_MODE_NORMAL,
+    MD_ARG_MODE_OPTIONAL
+} md_arg_mode_t;
+
+typedef enum md_arg_type_s {
+    MD_ARG_TYPE_PERIPHERAL,
+    MD_ARG_TYPE_SCHEDULER,
+    MD_ARG_TYPE_LINK,
+    MD_ARG_TYPE_STRING,
+    MD_ARG_TYPE_CONST
+} md_arg_type_t;
 
 #include "core/interface.h"
 #include "core/scheduler.h"
@@ -32,9 +46,16 @@ union md_arg_u {
     float const_float;
 };
 
+struct md_arg_decl_s {
+    const char *name;
+    md_arg_mode_t mode;
+    md_arg_type_t type;
+    uint8_t subtype; /** Depends on type */
+};
+
 struct md_decl_s {
     const char *name;
-    const char *args;
+    const md_arg_decl_t *args;
     int (*init)(
         const char *name,
         md_arg_t *args);
@@ -56,15 +77,28 @@ struct md_decl_s {
  * - 'cf' = const float
  *
  * @param _name name of the module, and section name. Unique, without quotes
- * @param _args string of argument types, one char per type
  * @param _init init function for the module
+ * @param ... list of arguments, as MD_ARG_DECL()
  */
-#define MD_DECL(_name, _args, _init) \
+#define MD_DECL(_name, _init, ...) \
     const md_decl_t md_ ## _name ## _decl _MD_SECTION(_name) = { \
         .name = #_name, \
-        .args = _args, \
-        .init = _init \
+        .init = _init, \
+        .args = (const md_arg_decl_t[]) { \
+            __VA_ARGS__, \
+            {0} \
+        }, \
     }
+
+/**
+ * Declare a module argument, as part of MD_DECL
+ */
+#define MD_ARG_DECL(_name, _mode, _type, _subtype) { \
+        .name = _name, \
+        .mode = _mode, \
+        .type = _type, \
+        .subtype = _subtype \
+}
 
 int md_init(
     const char *mdname,

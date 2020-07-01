@@ -30,7 +30,7 @@ typedef struct vr_source_s vr_source_t;
 typedef struct vr_reloc_s vr_reloc_t;
 
 struct vr_source_s {
-    const char *fmt; /**< Format string for the source, or NULL if not registered */
+    const vr_type_t *fmt; /**< Format string for the source, or NULL if not registered */
     void **vars; /**< Pointers to variables */
     vr_reloc_t *reloc; /**< Pending relocations, if not bound yet */
 };
@@ -103,7 +103,7 @@ static vr_source_t *vr_get_source(
 static int vr_reloc_exec(
     vr_source_t *src,
     int index,
-    char type,
+    vr_type_t type,
     void **dst)
 {
     /* Source is defined, perform relocation */
@@ -111,7 +111,7 @@ static int vr_reloc_exec(
 
     /* Is type valid? */
     for (i = 0; i < index; i++) {
-        if (src->fmt[i] == '\0') {
+        if (src->fmt[i] == VR_TYPE_NULL) {
             /* Index out of bounds */
             return -1;
         }
@@ -157,7 +157,7 @@ int vr_connect(
 
 int vr_register(
     const char *name,
-    const char *types,
+    const vr_type_t *types,
     ...)
 {
     vr_source_t *src = vr_get_source(name);
@@ -171,7 +171,7 @@ int vr_register(
     }
 
     num_args = 0;
-    while (types[num_args] != '\0') {
+    while (types[num_args] != VR_TYPE_NULL) {
         num_args++;
     }
 
@@ -204,7 +204,7 @@ int vr_register(
 
 int vr_request(
     char *name,
-    char type,
+    vr_type_t type,
     void **target)
 {
     /* Split name and index */

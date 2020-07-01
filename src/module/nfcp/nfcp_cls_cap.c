@@ -309,7 +309,7 @@ static nfcp_op_status_t nfcp_cls_cap_op_get_module(
     /* Count args. For now, it's a string, but should probably be an object array later, so don't use string functions
      * */
     uint16_t num_args = 0;
-    while (md->args[num_args] != '\0') {
+    while (md->args[num_args].name != NULL) {
         num_args++;
     }
 
@@ -322,7 +322,8 @@ static nfcp_op_status_t nfcp_cls_cap_op_get_module(
             *(ptr++) = md->name[i];
         }
     } else if (field_type == 1 && field_idx < num_args) {
-        *(ptr++) = md->args[field_idx];
+        const char *types = "pslnc";
+        *(ptr++) = types[md->args[field_idx].type];
     }
     send_response(nfcp, ptr);
     return NFCP_OP_STATUS_SUCCESS;

@@ -18,6 +18,13 @@
 
 #pragma once
 
+typedef enum vr_type_s {
+    VR_TYPE_NULL = 0,
+    VR_TYPE_FLOAT,
+    VR_TYPE_BOOL,
+    VR_TYPE_INT
+} vr_type_t;
+
 /**
  * Initialize the subsystem for variable handling
  */
@@ -40,22 +47,22 @@ int vr_connect(
  * Each letter in the type string refers to a pointer afterwards
  *
  * @param name Name of the variable. First word used, data copied to the module
- * @param types Type string. Pointer will be stored, make sure not to use a temporary variable.
+ * @param types array of types, terminated by VR_TYPE_NULL
  */
 int vr_register(
     const char *name,
-    const char *types,
+    const vr_type_t *types,
     ...);
 
 /**
  * Request a variable
  *
  * @param name name of the variable, in the format module.N. Note: will be overwritten
- * @param type variable type, as character same as vr_register
+ * @param type variable type
  * @param target where to store the pointer to the variable
  * @return zero on success, negative or error
  */
 int vr_request(
     char *name,
-    char type,
+    vr_type_t type,
     void **target);

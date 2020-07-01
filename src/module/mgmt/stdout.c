@@ -56,16 +56,14 @@ static void stdout_log_handler(
     const char *message,
     void *storage);
 
-MD_DECL(stdout, "p", stdout_init);
+MD_DECL(stdout, stdout_init,
+    MD_ARG_DECL("serial", MD_ARG_MODE_NORMAL, MD_ARG_TYPE_PERIPHERAL, PP_SERIAL)
+);
 
 int stdout_init(
     const char *name,
     md_arg_t *args)
 {
-    if (args[0].iface->peripheral->decl->type != PP_SERIAL) {
-        return -1;
-    }
-
     stdout_t *out_if;
 
     out_if = pvPortMalloc(sizeof(stdout_t));

@@ -21,6 +21,11 @@
 typedef struct sc_s sc_t;
 typedef struct sc_client_s sc_client_t;
 
+typedef enum sc_dir_s {
+    SC_DIR_IN,
+    SC_DIR_OUT
+} sc_dir_t;
+
 typedef void (*sc_clinet_init_t)(
     float period_sec,
     void *storage);

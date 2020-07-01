@@ -180,18 +180,15 @@ static DRESULT sdcard_dacc_ioctl (
     BYTE cmd,
     void *buff);
 
-MD_DECL(sdcard, "pp", sdcard_init);
+MD_DECL(sdcard, sdcard_init,
+    MD_ARG_DECL("spi", MD_ARG_MODE_NORMAL, MD_ARG_TYPE_PERIPHERAL, PP_SPI),
+    MD_ARG_DECL("cs", MD_ARG_MODE_NORMAL, MD_ARG_TYPE_PERIPHERAL, PP_GPIO)
+);
 
 int sdcard_init(
     const char *name,
     md_arg_t *args)
 {
-    if (args[0].iface->peripheral->decl->type != PP_SPI) {
-        return -1;
-    }
-    if (args[1].iface->peripheral->decl->type != PP_GPIO) {
-        return -1;
-    }
     if (name == NULL) {
         /* SD card needs a name/mount point */
         return -1;

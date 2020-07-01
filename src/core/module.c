@@ -20,6 +20,7 @@
 #include "core/config.h"
 #include "core/interface.h"
 #include "core/scheduler.h"
+#include "core/variable.h"
 #include "lib/strops.h"
 
 #include <stddef.h>
@@ -48,65 +49,66 @@ static int md_init_mod(
     char **argv)
 {
     md_arg_t args[MD_MAX_ARGS];
-    const char *argstrptr = &md->args[0];
 
     int curarg = 0;
 
-    while (*argstrptr != '\0' && curarg < argc) {
-        bool optional = (*argstrptr == '?');
-        if (optional) {
-            argstrptr++;
-        }
-
-        if (optional && 0 == strops_cmp("-", argv[curarg])) {
+    for (curarg = 0; md->args[curarg].name != NULL && curarg < argc; curarg++) {
+        const md_arg_decl_t *argdecl = &md->args[curarg];
+        if (argdecl->mode == MD_ARG_MODE_OPTIONAL && strops_cmp("-", argv[curarg]) == 0) {
             args[curarg].iface = NULL; /* Union, all optionals are pointers, everything will be NULL */
         } else {
-            switch (*argstrptr) {
-            case 'p':
+            switch (argdecl->type) {
+            case MD_ARG_TYPE_PERIPHERAL:
                 args[curarg].iface = md_load_interface(argv[curarg]);
                 if (args[curarg].iface == NULL) {
                     return -1;
                 }
+                if (args[curarg].iface->peripheral->decl->type != argdecl->subtype) {
+                    return -1;
+                }
                 break;
 
-            case 's':
+            case MD_ARG_TYPE_SCHEDULER:
                 args[curarg].sched = sc_get(argv[curarg]);
                 if (args[curarg].sched == NULL) {
                     return -1;
                 }
                 break;
 
-            case 'n':
+            case MD_ARG_TYPE_LINK:
                 args[curarg].name = argv[curarg];
                 break;
 
-            case 'c':
-                argstrptr++;
-                /* Constant, always followed by type char */
-                switch (*argstrptr) {
-                case 'i':     /* int32_t */
+            case MD_ARG_TYPE_STRING:
+                args[curarg].name = argv[curarg];
+                break;
+
+            case MD_ARG_TYPE_CONST:
+                switch (argdecl->subtype) {
+                case VR_TYPE_INT:
                     args[curarg].const_int = strops_word_to_int(argv[curarg]);
                     break;
 
-                case 'f':     /* float */
+                case VR_TYPE_FLOAT:
                     args[curarg].const_float = strops_word_to_float(argv[curarg]);
                     break;
 
-                default:
-                    return -1;
+                case VR_TYPE_BOOL:
+                    if (strops_cmp(argv[curarg], "true") == 0) {
+                        args[curarg].const_int = 1;
+                    } else if (strops_cmp(argv[curarg], "false") == 0) {
+                        args[curarg].const_int = 0;
+                    } else {
+                        return -1;
+                    }
+                    break;
                 }
                 break;
-
-            default:
-                return -1;
             }
         }
-
-        argstrptr++;
-        curarg++;
     }
 
-    if (curarg != argc) {
+    if (curarg != argc || md->args[curarg].name != NULL) {
         return -1;
     }
 

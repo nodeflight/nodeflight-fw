@@ -87,6 +87,23 @@ struct fport_s {
     bool signal_loss;
 };
 
+static const vr_type_t out_format[] = {
+    /* 16 normal channels */
+    VR_TYPE_FLOAT, VR_TYPE_FLOAT, VR_TYPE_FLOAT, VR_TYPE_FLOAT,
+    VR_TYPE_FLOAT, VR_TYPE_FLOAT, VR_TYPE_FLOAT, VR_TYPE_FLOAT,
+    VR_TYPE_FLOAT, VR_TYPE_FLOAT, VR_TYPE_FLOAT, VR_TYPE_FLOAT,
+    VR_TYPE_FLOAT, VR_TYPE_FLOAT, VR_TYPE_FLOAT, VR_TYPE_FLOAT,
+    /* 2 boolean channels, mapped to float */
+    VR_TYPE_FLOAT, VR_TYPE_FLOAT,
+    /* rssi */
+    VR_TYPE_FLOAT,
+    /* failsafe */
+    VR_TYPE_BOOL,
+    /* signal_loss */
+    VR_TYPE_BOOL,
+    VR_TYPE_NULL
+};
+
 static int fport_init(
     const char *name,
     md_arg_t *args);
@@ -94,7 +111,10 @@ static int fport_init(
 static void fport_task(
     void *storage);
 
-MD_DECL(fport, "p?s", fport_init);
+MD_DECL(fport, fport_init,
+    MD_ARG_DECL("serial", MD_ARG_MODE_NORMAL, MD_ARG_TYPE_PERIPHERAL, PP_SERIAL),
+    MD_ARG_DECL("schedule", MD_ARG_MODE_OPTIONAL, MD_ARG_TYPE_SCHEDULER, SC_DIR_OUT)
+);
 
 int fport_init(
     const char *name,
@@ -102,10 +122,6 @@ int fport_init(
 {
     fport_t *fport_if;
     int i;
-
-    if (args[0].iface->peripheral->decl->type != PP_SERIAL) {
-        return -1;
-    }
 
     fport_if = pvPortMalloc(sizeof(fport_t));
     if (fport_if == NULL) {
@@ -144,7 +160,7 @@ int fport_init(
         .storage = fport_if
     });
 
-    vr_register(name, "ffffffffffffffffffffbb",
+    vr_register(name, out_format,
         &fport_if->f_chn[0], &fport_if->f_chn[1], &fport_if->f_chn[2], &fport_if->f_chn[3],
         &fport_if->f_chn[4], &fport_if->f_chn[5], &fport_if->f_chn[6], &fport_if->f_chn[7],
         &fport_if->f_chn[8], &fport_if->f_chn[9], &fport_if->f_chn[10], &fport_if->f_chn[11],

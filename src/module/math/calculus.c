@@ -31,6 +31,11 @@ struct integrate_s {
     float period_sec;
 };
 
+static const vr_type_t out_single_float[] = {
+    VR_TYPE_FLOAT,
+    VR_TYPE_NULL
+};
+
 /* Common for all binary operations */
 
 static void integrate_sch_init(
@@ -57,12 +62,15 @@ static int integrate_init(
 
     integrate->out = 0.0f;
     integrate->period_sec = 0.0f;
-    vr_register(name, "f", &integrate->out);
+    vr_register(name, out_single_float, &integrate->out);
 
     integrate->in = NULL;
-    vr_request(args[1].name, 'f', (void **) &integrate->in);
+    vr_request(args[1].name, VR_TYPE_FLOAT, (void **) &integrate->in);
 
     sc_register_client(args[0].sched, integrate_sch_init, integrate_sch_run, integrate);
     return 0;
 }
-MD_DECL(int_f, "sn", integrate_init);
+MD_DECL(int_f, integrate_init,
+    MD_ARG_DECL("schedule", MD_ARG_MODE_NORMAL, MD_ARG_TYPE_SCHEDULER, SC_DIR_IN),
+    MD_ARG_DECL("in", MD_ARG_MODE_NORMAL, MD_ARG_TYPE_LINK, VR_TYPE_FLOAT)
+);
