@@ -57,7 +57,9 @@ static void stdout_log_handler(
     void *storage);
 
 MD_DECL(stdout, stdout_init,
-    MD_ARG_DECL("serial", MD_ARG_MODE_NORMAL, MD_ARG_TYPE_PERIPHERAL, PP_SERIAL)
+    MD_DECL_ARGS(
+        MD_ARG_DECL("serial", MD_ARG_MODE_NORMAL, MD_ARG_TYPE_PERIPHERAL, PP_SERIAL)
+    )
 );
 
 int stdout_init(

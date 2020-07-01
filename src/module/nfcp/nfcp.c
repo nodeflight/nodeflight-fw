@@ -85,7 +85,9 @@ static void nfcp_task(
     void *storage);
 
 MD_DECL(nfcp, nfcp_init,
-    MD_ARG_DECL("serial", MD_ARG_MODE_NORMAL, MD_ARG_TYPE_PERIPHERAL, PP_SERIAL)
+    MD_DECL_ARGS(
+        MD_ARG_DECL("serial", MD_ARG_MODE_NORMAL, MD_ARG_TYPE_PERIPHERAL, PP_SERIAL)
+    )
 );
 
 static const nfcp_cls_t *const nfcp_class[NFCP_MAX_CLASSES] = {

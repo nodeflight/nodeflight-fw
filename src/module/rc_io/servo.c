@@ -64,9 +64,11 @@ static void servo_sched_run(
     void *storage);
 
 MD_DECL(servo, servo_init,
-    MD_ARG_DECL("pwm_out", MD_ARG_MODE_NORMAL, MD_ARG_TYPE_PERIPHERAL, PP_PWM),
-    MD_ARG_DECL("schedule", MD_ARG_MODE_NORMAL, MD_ARG_TYPE_SCHEDULER, SC_DIR_IN),
-    MD_ARG_DECL("value", MD_ARG_MODE_NORMAL, MD_ARG_TYPE_LINK, VR_TYPE_FLOAT)
+    MD_DECL_ARGS(
+        MD_ARG_DECL("pwm_out", MD_ARG_MODE_NORMAL, MD_ARG_TYPE_PERIPHERAL, PP_PWM),
+        MD_ARG_DECL("schedule", MD_ARG_MODE_NORMAL, MD_ARG_TYPE_SCHEDULER, SC_DIR_IN),
+        MD_ARG_DECL("value", MD_ARG_MODE_NORMAL, MD_ARG_TYPE_LINK, VR_TYPE_FLOAT)
+    )
 );
 
 int servo_init(

@@ -44,10 +44,12 @@ static void sch_decim_src_run(
     void *storage);
 
 MD_DECL(sch_decim, sch_decim_init,
-    MD_ARG_DECL("schedule_in", MD_ARG_MODE_NORMAL, MD_ARG_TYPE_SCHEDULER, SC_DIR_IN),
-    MD_ARG_DECL("schedule_out", MD_ARG_MODE_NORMAL, MD_ARG_TYPE_SCHEDULER, SC_DIR_OUT),
-    MD_ARG_DECL("decimation_factor", MD_ARG_MODE_NORMAL, MD_ARG_TYPE_CONST, VR_TYPE_INT),
-    MD_ARG_DECL("out_frequency", MD_ARG_MODE_NORMAL, MD_ARG_TYPE_CONST, VR_TYPE_INT)
+    MD_DECL_ARGS(
+        MD_ARG_DECL("schedule_in", MD_ARG_MODE_NORMAL, MD_ARG_TYPE_SCHEDULER, SC_DIR_IN),
+        MD_ARG_DECL("schedule_out", MD_ARG_MODE_NORMAL, MD_ARG_TYPE_SCHEDULER, SC_DIR_OUT),
+        MD_ARG_DECL("decimation_factor", MD_ARG_MODE_NORMAL, MD_ARG_TYPE_CONST, VR_TYPE_INT),
+        MD_ARG_DECL("out_frequency", MD_ARG_MODE_NORMAL, MD_ARG_TYPE_CONST, VR_TYPE_INT)
+    )
 );
 
 int sch_decim_init(

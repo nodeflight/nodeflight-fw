@@ -71,6 +71,8 @@ static int integrate_init(
     return 0;
 }
 MD_DECL(int_f, integrate_init,
-    MD_ARG_DECL("schedule", MD_ARG_MODE_NORMAL, MD_ARG_TYPE_SCHEDULER, SC_DIR_IN),
-    MD_ARG_DECL("in", MD_ARG_MODE_NORMAL, MD_ARG_TYPE_LINK, VR_TYPE_FLOAT)
+    MD_DECL_ARGS(
+        MD_ARG_DECL("schedule", MD_ARG_MODE_NORMAL, MD_ARG_TYPE_SCHEDULER, SC_DIR_IN),
+        MD_ARG_DECL("in", MD_ARG_MODE_NORMAL, MD_ARG_TYPE_LINK, VR_TYPE_FLOAT)
+    )
 );

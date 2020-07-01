@@ -83,9 +83,11 @@ static int arith_init_add(
     return arith_init(name, args, arith_sch_run_add, 2);
 }
 MD_DECL(add_f, arith_init_add,
-    MD_ARG_DECL("schedule", MD_ARG_MODE_NORMAL, MD_ARG_TYPE_SCHEDULER, SC_DIR_IN),
-    MD_ARG_DECL("in_1", MD_ARG_MODE_NORMAL, MD_ARG_TYPE_LINK, VR_TYPE_FLOAT),
-    MD_ARG_DECL("in_2", MD_ARG_MODE_NORMAL, MD_ARG_TYPE_LINK, VR_TYPE_FLOAT)
+    MD_DECL_ARGS(
+        MD_ARG_DECL("schedule", MD_ARG_MODE_NORMAL, MD_ARG_TYPE_SCHEDULER, SC_DIR_IN),
+        MD_ARG_DECL("in_1", MD_ARG_MODE_NORMAL, MD_ARG_TYPE_LINK, VR_TYPE_FLOAT),
+        MD_ARG_DECL("in_2", MD_ARG_MODE_NORMAL, MD_ARG_TYPE_LINK, VR_TYPE_FLOAT)
+    )
 );
 
 /* Op: sub */
@@ -102,9 +104,11 @@ static int arith_init_sub(
     return arith_init(name, args, arith_sch_run_sub, 2);
 }
 MD_DECL(sub_f, arith_init_sub,
-    MD_ARG_DECL("schedule", MD_ARG_MODE_NORMAL, MD_ARG_TYPE_SCHEDULER, SC_DIR_IN),
-    MD_ARG_DECL("in_1", MD_ARG_MODE_NORMAL, MD_ARG_TYPE_LINK, VR_TYPE_FLOAT),
-    MD_ARG_DECL("in_2", MD_ARG_MODE_NORMAL, MD_ARG_TYPE_LINK, VR_TYPE_FLOAT)
+    MD_DECL_ARGS(
+        MD_ARG_DECL("schedule", MD_ARG_MODE_NORMAL, MD_ARG_TYPE_SCHEDULER, SC_DIR_IN),
+        MD_ARG_DECL("in_1", MD_ARG_MODE_NORMAL, MD_ARG_TYPE_LINK, VR_TYPE_FLOAT),
+        MD_ARG_DECL("in_2", MD_ARG_MODE_NORMAL, MD_ARG_TYPE_LINK, VR_TYPE_FLOAT)
+    )
 );
 
 /* Op: mul */
@@ -121,9 +125,11 @@ static int arith_init_mul(
     return arith_init(name, args, arith_sch_run_mul, 2);
 }
 MD_DECL(mul_f, arith_init_mul,
-    MD_ARG_DECL("schedule", MD_ARG_MODE_NORMAL, MD_ARG_TYPE_SCHEDULER, SC_DIR_IN),
-    MD_ARG_DECL("in_1", MD_ARG_MODE_NORMAL, MD_ARG_TYPE_LINK, VR_TYPE_FLOAT),
-    MD_ARG_DECL("in_2", MD_ARG_MODE_NORMAL, MD_ARG_TYPE_LINK, VR_TYPE_FLOAT)
+    MD_DECL_ARGS(
+        MD_ARG_DECL("schedule", MD_ARG_MODE_NORMAL, MD_ARG_TYPE_SCHEDULER, SC_DIR_IN),
+        MD_ARG_DECL("in_1", MD_ARG_MODE_NORMAL, MD_ARG_TYPE_LINK, VR_TYPE_FLOAT),
+        MD_ARG_DECL("in_2", MD_ARG_MODE_NORMAL, MD_ARG_TYPE_LINK, VR_TYPE_FLOAT)
+    )
 );
 
 /* Op: div */
@@ -140,9 +146,11 @@ static int arith_init_div(
     return arith_init(name, args, arith_sch_run_div, 2);
 }
 MD_DECL(div_f, arith_init_div,
-    MD_ARG_DECL("schedule", MD_ARG_MODE_NORMAL, MD_ARG_TYPE_SCHEDULER, SC_DIR_IN),
-    MD_ARG_DECL("in_1", MD_ARG_MODE_NORMAL, MD_ARG_TYPE_LINK, VR_TYPE_FLOAT),
-    MD_ARG_DECL("in_2", MD_ARG_MODE_NORMAL, MD_ARG_TYPE_LINK, VR_TYPE_FLOAT)
+    MD_DECL_ARGS(
+        MD_ARG_DECL("schedule", MD_ARG_MODE_NORMAL, MD_ARG_TYPE_SCHEDULER, SC_DIR_IN),
+        MD_ARG_DECL("in_1", MD_ARG_MODE_NORMAL, MD_ARG_TYPE_LINK, VR_TYPE_FLOAT),
+        MD_ARG_DECL("in_2", MD_ARG_MODE_NORMAL, MD_ARG_TYPE_LINK, VR_TYPE_FLOAT)
+    )
 );
 
 /* Op negate */
@@ -159,6 +167,8 @@ static int arith_init_neg(
     return arith_init(name, args, arith_sch_run_neg, 1);
 }
 MD_DECL(neg_f, arith_init_neg,
-    MD_ARG_DECL("schedule", MD_ARG_MODE_NORMAL, MD_ARG_TYPE_SCHEDULER, SC_DIR_IN),
-    MD_ARG_DECL("in_1", MD_ARG_MODE_NORMAL, MD_ARG_TYPE_LINK, VR_TYPE_FLOAT)
+    MD_DECL_ARGS(
+        MD_ARG_DECL("schedule", MD_ARG_MODE_NORMAL, MD_ARG_TYPE_SCHEDULER, SC_DIR_IN),
+        MD_ARG_DECL("in_1", MD_ARG_MODE_NORMAL, MD_ARG_TYPE_LINK, VR_TYPE_FLOAT)
+    )
 );

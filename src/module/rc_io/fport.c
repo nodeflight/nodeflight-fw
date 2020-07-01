@@ -112,8 +112,10 @@ static void fport_task(
     void *storage);
 
 MD_DECL(fport, fport_init,
-    MD_ARG_DECL("serial", MD_ARG_MODE_NORMAL, MD_ARG_TYPE_PERIPHERAL, PP_SERIAL),
-    MD_ARG_DECL("schedule", MD_ARG_MODE_OPTIONAL, MD_ARG_TYPE_SCHEDULER, SC_DIR_OUT)
+    MD_DECL_ARGS(
+        MD_ARG_DECL("serial", MD_ARG_MODE_NORMAL, MD_ARG_TYPE_PERIPHERAL, PP_SERIAL),
+        MD_ARG_DECL("schedule", MD_ARG_MODE_OPTIONAL, MD_ARG_TYPE_SCHEDULER, SC_DIR_OUT)
+    )
 );
 
 int fport_init(

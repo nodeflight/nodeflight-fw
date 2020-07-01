@@ -21,7 +21,6 @@
 #include "core/interface_types.h"
 #include "core/variable.h"
 
-
 #include "FreeRTOS.h"
 #include "task.h"
 
@@ -43,9 +42,11 @@ void sch_timer_trigger(
     void *storage);
 
 MD_DECL(sch_timer, sch_timer_init,
-    MD_ARG_DECL("timer", MD_ARG_MODE_NORMAL, MD_ARG_TYPE_PERIPHERAL, PP_PWM),
-    MD_ARG_DECL("schedule", MD_ARG_MODE_NORMAL, MD_ARG_TYPE_SCHEDULER, SC_DIR_OUT),
-    MD_ARG_DECL("frequency", MD_ARG_MODE_NORMAL, MD_ARG_TYPE_CONST, VR_TYPE_INT)
+    MD_DECL_ARGS(
+        MD_ARG_DECL("timer", MD_ARG_MODE_NORMAL, MD_ARG_TYPE_PERIPHERAL, PP_PWM),
+        MD_ARG_DECL("schedule", MD_ARG_MODE_NORMAL, MD_ARG_TYPE_SCHEDULER, SC_DIR_OUT),
+        MD_ARG_DECL("frequency", MD_ARG_MODE_NORMAL, MD_ARG_TYPE_CONST, VR_TYPE_INT)
+    )
 );
 
 int sch_timer_init(

@@ -181,8 +181,10 @@ static DRESULT sdcard_dacc_ioctl (
     void *buff);
 
 MD_DECL(sdcard, sdcard_init,
-    MD_ARG_DECL("spi", MD_ARG_MODE_NORMAL, MD_ARG_TYPE_PERIPHERAL, PP_SPI),
-    MD_ARG_DECL("cs", MD_ARG_MODE_NORMAL, MD_ARG_TYPE_PERIPHERAL, PP_GPIO)
+    MD_DECL_ARGS(
+        MD_ARG_DECL("spi", MD_ARG_MODE_NORMAL, MD_ARG_TYPE_PERIPHERAL, PP_SPI),
+        MD_ARG_DECL("cs", MD_ARG_MODE_NORMAL, MD_ARG_TYPE_PERIPHERAL, PP_GPIO)
+    )
 );
 
 int sdcard_init(
