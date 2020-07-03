@@ -306,24 +306,43 @@ static nfcp_op_status_t nfcp_cls_cap_op_get_module(
         return NFCP_OP_STATUS_SUCCESS;
     }
 
-    /* Count args. For now, it's a string, but should probably be an object array later, so don't use string functions
-     * */
+    /* Count args */
     uint16_t num_args = 0;
     while (md->args[num_args].name != NULL) {
         num_args++;
     }
 
+    /* Count outputs */
+    uint16_t num_outputs = 0;
+    while (md->outputs && md->outputs[num_outputs].type != VR_TYPE_NULL) {
+        num_outputs++;
+    }
+
     if (field_type == 0 && field_idx == 0) {
         /* Module info */
         pack_from_u16(ptr + 0, num_args);
-        ptr += 2;
+        pack_from_u16(ptr + 2, num_outputs);
+        ptr += 4;
 
         for (i = 0; md->name[i] != '\0'; i++) {
             *(ptr++) = md->name[i];
         }
     } else if (field_type == 1 && field_idx < num_args) {
-        const char *types = "pslnc";
-        *(ptr++) = types[md->args[field_idx].type];
+        const md_arg_decl_t *arg = &md->args[field_idx];
+        *(ptr++) = arg->mode;
+        *(ptr++) = arg->type;
+        *(ptr++) = arg->subtype;
+
+        for (i = 0; arg->name[i] != '\0'; i++) {
+            *(ptr++) = arg->name[i];
+        }
+    } else if (field_type == 2 && field_idx < num_outputs) {
+        const vr_named_type_t *output = &md->outputs[field_idx];
+        *(ptr++) = output->type;
+
+        for (i = 0; output->name[i] != '\0'; i++) {
+            *(ptr++) = output->name[i];
+        }
     }
     send_response(nfcp, ptr);
     return NFCP_OP_STATUS_SUCCESS;

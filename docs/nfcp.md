@@ -401,8 +401,6 @@ Request information about a given module
 
 Depends on field type in request
 
-TODO: Arguments needs to be updated to be more descriptive/strict
-
 Field 0 - module info
 
 | Bytes | Type   | Content                      |
@@ -411,13 +409,71 @@ Field 0 - module info
 | 2     | uint8  | Field type (0 = module info) |
 | 3-4   | uint16 | Field id (0 = not indexable) |
 | 5-6   | uint16 | num_arguments                |
-| 7-... | string | name                         |
+| 7-8   | uint16 | num_outputs                  |
+| 9-... | string | name                         |
 
 Field 1 - argument info
 
-| Bytes | Type   | Content                        |
-| ----- | ------ | ------------------------------ |
-| 0-1   | uint16 | Object id (Module id)          |
-| 2     | uint8  | Field type (1 = argument info) |
-| 3-4   | uint16 | Field id (n = argument id)     |
-| 5     | uint8  | argument type                  |
+| Bytes | Type   | Content                                                      |
+| ----- | ------ | ------------------------------------------------------------ |
+| 0-1   | uint16 | Object id (Module id)                                        |
+| 2     | uint8  | Field type (1 = argument info)                               |
+| 3-4   | uint16 | Field id (n = argument id)                                   |
+| 5     | uint8  | Mode (see below)                                             |
+| 6     | uint8  | Argument type (see below)                                    |
+| 7     | uint8  | Subtype, dependent on argumnet type, see argument type table |
+| 8-... | string | name                                                         |
+
+Mode:
+
+| Mode | Description                                     |
+| ---- | ----------------------------------------------- |
+| 0    | Normal / required                               |
+| 1    | Optional (may be substituted with a single "-") |
+
+Argument type:
+
+| Type | Description           | Subtype                                                          |
+| ---- | --------------------- | ---------------------------------------------------------------- |
+| 0    | Peripheral            | Peripheral type, see peripheral type table                       |
+| 1    | Scheduler             | 0 = Input (driven by scheduler), 1 = Output (triggers scheduler) |
+| 2    | Link / Variable input | Variable type, see variable type table                           |
+| 3    | String                | 0, not used                                                      |
+| 4    | Constant              | Variable type, see variable type table                           |
+
+Field 2 - output info
+
+| Bytes | Type   | Content                                                      |
+| ----- | ------ | ------------------------------------------------------------ |
+| 0-1   | uint16 | Object id (Module id)                                        |
+| 2     | uint8  | Field type (1 = argument info)                               |
+| 3-4   | uint16 | Field id (n = argument id)                                   |
+| 5     | uint8  | Variable type (see below)                                    |
+| 6-... | string | name                                                         |
+
+## Tables
+
+Common types are enumerated, and used in multiple parts
+
+### Variable types
+
+When refering to variable types, the following values are used:
+
+| Type | Description                            |
+| ---- | -------------------------------------- |
+| 0    | null - used as termination/no variable |
+| 1    | float, 32 bit                          |
+| 2    | bool, true/false                       |
+| 3    | int, 32 bit signed                     |
+
+### Peripheral types
+
+When refering to peripheral types, the following values are used:
+
+| Type | Description                            |
+| ---- | -------------------------------------- |
+| 0    | none - used as termination/no variable |
+| 1    | gpio                                   |
+| 2    | serial                                 |
+| 3    | pwm                                    |
+| 4    | spi                                    |
