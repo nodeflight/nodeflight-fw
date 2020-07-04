@@ -120,8 +120,8 @@ MD_DECL(fport, fport_init,
         MD_OUTPUT_DECL("ch17", VR_TYPE_FLOAT), /* bool mapped to float */
         MD_OUTPUT_DECL("ch18", VR_TYPE_FLOAT), /* bool mapped to float */
         MD_OUTPUT_DECL("rssi", VR_TYPE_FLOAT),
-        MD_OUTPUT_DECL("rssi", VR_TYPE_BOOL),
-        MD_OUTPUT_DECL("rssi", VR_TYPE_BOOL)
+        MD_OUTPUT_DECL("failsafe", VR_TYPE_BOOL),
+        MD_OUTPUT_DECL("signal_loss", VR_TYPE_BOOL)
     )
 );
 
