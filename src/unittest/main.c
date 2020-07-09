@@ -17,10 +17,18 @@
  */
 
 #include <stdio.h>
+#include "lib/varsection.h"
+#include "unittest/testcase.h"
+
+VARSECTION_ACCESS(testcase_t, nf_testcase)
 
 int main(
     void)
 {
-    printf("TODO: integrate test cases here...\n");
+    int i;
+
+    for (i = 0; &__nf_testcase_start[i] < __nf_testcase_end; i++) {
+        __nf_testcase_start[i]();
+    }
     return 0;
 }

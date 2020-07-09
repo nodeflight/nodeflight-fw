@@ -107,7 +107,8 @@ TARGET_unittest_INCLUDES = \
 	. \
 	unittest
 TARGET_unittest_SOURCES = \
-	unittest/main.c
+	unittest/main.c \
+	lib/test/crc.test.c
 
 
 #######################################################################

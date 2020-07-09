@@ -22,8 +22,12 @@
 
 /* macos */
 
-#define VARSECTION_ATTR(_SECTION)
-#define VARSECTION_ACCESS(_VARTYPE, _SECTION)
+#define VARSECTION_ATTR(_SECTION) \
+    __attribute__((used, section("__DATA,__" #_SECTION)))
+
+#define VARSECTION_ACCESS(_VARTYPE, _SECTION) \
+    extern _VARTYPE __ ## _SECTION ## _start[] __asm("section$start$__DATA$__" #_SECTION); \
+    extern _VARTYPE __ ## _SECTION ## _end[]  __asm("section$end$__DATA$__" #_SECTION);
 
 #else
 
@@ -38,7 +42,8 @@
  */
 
 #define VARSECTION_ATTR(_SECTION, _SYMNAME) \
-    __attribute__ ((section("." #_SECTION "." #_SYMNAME), used))
+    __attribute__ ((section("." #_SECTION ". \
+                                                     " #_SYMNAME), used))
 
 #define VARSECTION_ACCESS(_VARTYPE, _SECTION) \
     extern const _VARTYPE __ ## _SECTION ## _start[]; \
