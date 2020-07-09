@@ -19,13 +19,13 @@
 #include "core/resource.h"
 #include "lib/strops.h"
 #include "FreeRTOS.h"
+#include "lib/varsection.h"
 
 #include <stdbool.h>
 #include <stddef.h>
 #include <string.h>
 
-const extern rs_decl_t __nf_resource_start[];
-const extern rs_decl_t __nf_resource_end[];
+VARSECTION_ACCESS(rs_decl_t, nf_resource)
 
 /* Array, indexed according to position in __nf_resource_* */
 static int rs_count;

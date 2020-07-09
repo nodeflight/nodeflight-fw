@@ -45,6 +45,8 @@ typedef enum pp_type_s {
 
 #include "core/interface.h"
 
+#include "lib/varsection.h"
+
 struct pp_decl_s {
     const char *name;
     pp_type_t type;
@@ -80,7 +82,7 @@ struct pp_inst_rs_s {
     }
 
 /* Add name to section so they can be sorted during linking */
-#define _PP_SECTION(_name, _tag) __attribute__ ((section(".nf_peripheral." #_name "_" #_tag), used))
+#define _PP_SECTION(_name) VARSECTION_ATTR(nf_peripheral, _name)
 
 #define PP_INST_RS(_arg_nr, _tag, _attr) \
     { \
@@ -97,7 +99,7 @@ struct pp_inst_rs_s {
     }
 
 #define PP_INST_DECL(_name, _tag, _storage, ...) \
-    const static pp_inst_decl_t pp_inst_ ##  _tag ## _decl _PP_SECTION(_name, _tag) = { \
+    const static pp_inst_decl_t pp_inst_ ##  _tag ## _decl _PP_SECTION(_name) = { \
         .decl = (const pp_decl_t *) &pp_ ## _name ## _decl, \
         .tag = #_tag, \
         .rscs = (const pp_inst_rs_t[]) { \

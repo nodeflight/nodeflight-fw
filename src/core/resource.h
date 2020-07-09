@@ -39,7 +39,7 @@ struct rs_state_s {
 };
 
 /* Add name to section so they can be sorted during linking */
-#define _RS_SECTION(_name) __attribute__ ((section(".nf_resource." #_name), used))
+#define _RS_SECTION(_name) VARSECTION_ATTR(nf_resource, _name)
 
 #define RS_DECL(_name, _type, _count, _ref) \
     const rs_decl_t rs_ ## _name ## _decl _RS_SECTION(_name) = { \

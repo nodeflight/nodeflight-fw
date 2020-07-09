@@ -39,6 +39,8 @@ typedef enum md_arg_type_s {
 #include "core/scheduler.h"
 #include "core/variable.h"
 
+#include "lib/varsection.h"
+
 union md_arg_u {
     if_header_t *iface;
     sc_t *sched;
@@ -64,7 +66,7 @@ struct md_decl_s {
         md_arg_t *args);
 };
 
-#define _MD_SECTION(_name) __attribute__ ((section(".nf_module." #_name), used))
+#define _MD_SECTION(_name) VARSECTION_ATTR(nf_module, _name)
 
 /**
  * Declare a module

@@ -22,13 +22,13 @@
 #include "core/scheduler.h"
 #include "core/variable.h"
 #include "lib/strops.h"
+#include "lib/varsection.h"
 
 #include <stddef.h>
 
 #define MD_MAX_ARGS 16
 
-const extern md_decl_t __nf_module_start[];
-const extern md_decl_t __nf_module_end[];
+VARSECTION_ACCESS(md_decl_t, nf_module)
 
 static if_header_t *md_load_interface(
     const char *tag)

@@ -19,11 +19,11 @@
 #include "core/peripheral.h"
 #include "core/resource.h"
 #include "lib/strops.h"
+#include "lib/varsection.h"
 
 #include <stddef.h>
 
-const extern pp_inst_decl_t __nf_peripheral_start[];
-const extern pp_inst_decl_t __nf_peripheral_end[];
+VARSECTION_ACCESS(pp_inst_decl_t, nf_peripheral)
 
 const pp_inst_decl_t *pp_get_by_index(
     int index)
