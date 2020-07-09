@@ -110,14 +110,16 @@ TARGET_unittest_SOURCES = \
 	unittest/main.c \
 	lib/test/crc.test.c
 
+TARGET_unittest_LDFLAGS = \
+	-lcheck
 
 #######################################################################
 # Platform configuration
 
-TARGET_native_CC      = gcc
-TARGET_native_ASM     = gcc
-TARGET_native_LD      = gcc
-TARGET_native_OBJCOPY = objcopy
+TARGET_native_CC      = $(CC)
+TARGET_native_ASM     = $(CC)
+TARGET_native_LD      = $(CC)
+TARGET_native_OBJCOPY = $(OBJCOPY)
 
 TARGET_native_CFLAGS = \
 	-g \
@@ -126,7 +128,8 @@ TARGET_native_CFLAGS = \
 	-Wall \
 	-Werror \
 	-Wpedantic \
-	-MMD
+	-MMD \
+	-Wno-gnu-zero-variadic-macro-arguments
 
 # Generic Cortex-M
 

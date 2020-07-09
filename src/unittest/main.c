@@ -20,15 +20,29 @@
 #include "lib/varsection.h"
 #include "unittest/testcase.h"
 
-VARSECTION_ACCESS(testcase_t, nf_testcase)
+VARSECTION_ACCESS(TTest *, nf_testcase)
 
 int main(
     void)
 {
+    Suite *s;
+    TCase *tc;
     int i;
+    int number_failed;
+    SRunner *sr;
 
+    /* Create suite */
+    s = suite_create("NodeFlight");
+    tc = tcase_create("unit tests");
+    suite_add_tcase(s, tc);
     for (i = 0; &__nf_testcase_start[i] < __nf_testcase_end; i++) {
-        __nf_testcase_start[i]();
+        tcase_add_test(tc, __nf_testcase_start[i]);
     }
-    return 0;
+
+    /* Execute tests */
+    sr = srunner_create(s);
+    srunner_run_all(sr, CK_ENV);
+    number_failed = srunner_ntests_failed(sr);
+    srunner_free(sr);
+    return (number_failed == 0) ? 0 : 1;
 }
