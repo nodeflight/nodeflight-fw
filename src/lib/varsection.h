@@ -42,8 +42,7 @@
  */
 
 #define VARSECTION_ATTR(_SECTION, _SYMNAME) \
-    __attribute__ ((section("." #_SECTION ". \
-                                                     " #_SYMNAME), used))
+    __attribute__ ((section("." #_SECTION "." #_SYMNAME), used))
 
 #define VARSECTION_ACCESS(_VARTYPE, _SECTION) \
     extern const _VARTYPE __ ## _SECTION ## _start[]; \
