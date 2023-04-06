@@ -9,8 +9,10 @@ INCLUDES += \
 	platform/stm32f4xx \
 	vendor/rtos/FreeRTOS-kernel/portable/GCC/ARM_CM4F
 
+SOURCEDIRS += \
+	platform/stm32f4xx
+
 SOURCES += \
-	platform/stm32f4xx/platform.c \
 	vendor/rtos/FreeRTOS-kernel/portable/GCC/ARM_CM4F/port.c \
 	vendor/stm32/cmsis_device_f4/Source/Templates/system_stm32f4xx.c \
 	vendor/stm32/stm32f4xx_hal_driver/Src/stm32f4xx_ll_dma.c \

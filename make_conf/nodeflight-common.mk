@@ -4,23 +4,10 @@ ifeq (1,$(includecount))
 
 DEPENDS += nfcp
 
-SOURCES += \
-	core/config.c \
-	core/disk_access.c \
-	core/disk_int.c \
-	core/module.c \
-	core/interface.c \
-	core/log.c \
-	core/peripheral.c \
-	core/resource.c \
-	core/scheduler.c \
-	core/variable.c \
-	core/random.c \
-	core/main.c \
-	lib/crc.c \
-	lib/hdlc.c \
-	lib/strops.c \
-	lib/map.c \
+SOURCEDIRS += \
+	core \
+	lib \
+	integration
 
 INCLUDES += .
 
@@ -33,9 +20,7 @@ SOURCES += \
 	vendor/rtos/FreeRTOS-kernel/list.c \
 	vendor/rtos/FreeRTOS-kernel/queue.c \
 	vendor/rtos/FreeRTOS-kernel/tasks.c \
-	vendor/rtos/FreeRTOS-kernel/timers.c \
-	integration/freertos_hooks.c \
-	integration/heap.c 
+	vendor/rtos/FreeRTOS-kernel/timers.c
 
 # tinyprintf
 
@@ -53,8 +38,10 @@ INCLUDES += \
 	integration/fatfs \
 	vendor/fatfs
 
+SOURCEDIRS += \
+	integration/fatfs
+
 SOURCES += \
-	integration/fatfs/ffsystem.c \
 	vendor/fatfs/ff.c \
 	vendor/fatfs/ffunicode.c
 
