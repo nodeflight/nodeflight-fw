@@ -22,3 +22,6 @@
 *.elf
 *.hex
 build/
+
+# Common IDE files
+.vscode
