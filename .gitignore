@@ -18,4 +18,7 @@
 *.la
 *.lo
 
+# Targets
+*.elf
+*.hex
 build/

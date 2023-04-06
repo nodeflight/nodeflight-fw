@@ -1,30 +1,34 @@
-include make/verbosity.mk
+include make/tools.mk
 
 TARGETS=\
-	stm32f722 \
-	stm32f745
+	nodeflight-stm32f722 \
+	nodeflight-stm32f745
+
+# Disabled: nodeflight-stm32f405
 
 # For verbosity
 TARGET=""
 
-all: $(addprefix build.,$(TARGETS))
+all: $(addsuffix .elf,$(TARGETS))
 
 check: unittest
 
-build.%: FORCE
+%.elf %.hex: FORCE
 	$(TRACE) MAKE $@
-	$(Q)$(MAKE) -f make/main.mk TARGET=$*
+	$(Q)$(MAKE) --silent -f make/target.mk TARGET=$*
 
 unittest: build/nodeflight-unittest.elf
 	$(TRACE) UNITTEST
 	$(Q)$<
 
-build/nodeflight-%.elf: FORCE
+build/%.elf: FORCE
 	$(TRACE) MAKE $@
-	$(Q)$(MAKE) -f make/main.mk TARGET=$* build/nodeflight-$*.elf
+	$(Q)$(MAKE) --silent -q -f make/target.mk TARGET=$* build/nodeflight-$*.elf
 
 clean: FORCE
 	rm -rf build
+	rm -f $(addsuffix .elf,$(TARGETS))
+	rm -f $(addsuffix .hex,$(TARGETS))
 
 FORCE:
 
