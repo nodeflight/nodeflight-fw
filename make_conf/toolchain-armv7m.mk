@@ -14,7 +14,7 @@ CFLAGS += \
 	-Wpedantic \
 	-MMD
 
-armv7_CFLAGS = \
+armv7m_CFLAGS = \
 	-Wl,--gc-sections,--sort-section=alignment \
 	--specs=nosys.specs \
 	--specs=nano.specs \
@@ -26,7 +26,7 @@ armv7_CFLAGS = \
 	-fno-strict-aliasing \
 	-mthumb
 
-CFLAGS += $(armv7_CFLAGS)
-LDFLAGS += $(armv7_CFLAGS)
+CFLAGS += $(armv7m_CFLAGS)
+LDFLAGS += $(armv7m_CFLAGS)
 
 endif

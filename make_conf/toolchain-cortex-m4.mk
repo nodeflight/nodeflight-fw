@@ -1,6 +1,6 @@
 ifeq (1,$(includecount))
 
-include make_conf/toolchain-armv7.mk
+include make_conf/toolchain-armv7m.mk
 
 cortex_m4_FLAGS = \
 	-mcpu=cortex-m4 \
