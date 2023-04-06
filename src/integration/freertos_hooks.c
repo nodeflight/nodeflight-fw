@@ -20,8 +20,8 @@
 #include "task.h"
 
 void vApplicationStackOverflowHook(
-    TaskHandle_t *pxTask,
-    signed portCHAR *pcTaskName)
+    TaskHandle_t pxTask,
+    char *pcTaskName)
 {
     asm ("bkpt 255");
     for (;;);
