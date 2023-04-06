@@ -16,7 +16,11 @@ For a more generic programmer, [Segger J-Link](https://www.segger.com/jlink/) is
 
 To compile for a given platform:
 ```
-make build.stm32f722
+make nodeflight-stm32f722.elf
+```
+or
+```
+make nodeflight-stm32f722.hex
 ```
 
 To flash, using st-link:
