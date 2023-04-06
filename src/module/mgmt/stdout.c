@@ -54,6 +54,7 @@ static int stdout_init(
 
 static void stdout_log_handler(
     TaskHandle_t task,
+    TickType_t tick,
     const char *message,
     void *storage);
 
@@ -92,6 +93,7 @@ int stdout_init(
 
 static void stdout_log_handler(
     TaskHandle_t task,
+    TickType_t tick,
     const char *message,
     void *storage)
 {
@@ -100,7 +102,17 @@ static void stdout_log_handler(
 
     /* Make sure the output is ready... */
 
-    len = tfp_snprintf(out_if->buffer, STDOUT_LINE_LENGTH, "%-16s: %s\n", pcTaskGetName(task), message);
+    len = tfp_snprintf(
+        out_if->buffer,
+        STDOUT_LINE_LENGTH,
+        "%3lu:%02lu:%02lu.%03lu  %-16s: %s\n",
+        tick / 360000,
+        (tick / 60000) % 60,
+        (tick / 1000) % 60,
+        tick % 1000,
+        pcTaskGetName(task),
+        message
+    );
     if (len >= STDOUT_LINE_LENGTH - 1) {
         len = STDOUT_LINE_LENGTH - 1;
     }

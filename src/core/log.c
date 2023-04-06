@@ -85,7 +85,7 @@ void log_println(
 {
     log_line_t log_line;
     va_list ap;
-    log_line.task = xTaskGetCurrentTaskHandle();
+    log_begin_line(&log_line);
 
     va_start(ap, fmt);
     tfp_vsnprintf(log_line.buffer, LOG_MAX_LEN, fmt, ap);
@@ -99,6 +99,7 @@ void log_begin_line(
 {
     log_line->task = xTaskGetCurrentTaskHandle();
     log_line->len = 0;
+    log_line->tick = xTaskGetTickCount();
 }
 
 void log_printf(
@@ -137,7 +138,7 @@ static void log_task(
     for (;;) {
         if (pdTRUE == xQueueReceive(log_queue, &log_line, portMAX_DELAY)) {
             for (handler = log_handlers; handler != NULL; handler = handler->next) {
-                handler->handler(log_line.task, log_line.buffer, handler->storage);
+                handler->handler(log_line.task, log_line.tick, log_line.buffer, handler->storage);
             }
         }
     }

@@ -27,11 +27,13 @@ typedef struct log_line_s log_line_t;
 
 typedef void (*log_handler_t)(
     TaskHandle_t task,
+    TickType_t tick,
     const char *message,
     void *storage);
 
 struct log_line_s {
     TaskHandle_t task;
+    TickType_t tick;
     int len;
     char buffer[LOG_MAX_LEN + 1];
 };

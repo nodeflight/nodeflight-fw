@@ -82,6 +82,7 @@ static nfcp_op_status_t nfcp_cls_op_invalid_operation(
 
 static void nfcp_cls_mgmt_log_handler(
     TaskHandle_t task,
+    TickType_t tick,
     const char *message,
     void *storage);
 
@@ -231,6 +232,7 @@ nfcp_op_status_t nfcp_cls_op_invalid_operation(
 
 void nfcp_cls_mgmt_log_handler(
     TaskHandle_t task,
+    TickType_t tick,
     const char *message,
     void *storage)
 {
@@ -247,6 +249,9 @@ void nfcp_cls_mgmt_log_handler(
 
             /* log context */
             nfcp->tx_buffer[len++] = 0;
+
+            /* TODO: Better packing */
+            /* TODO: Include Tick */
 
             /* message - task name */
             task_name = pcTaskGetName(task);
