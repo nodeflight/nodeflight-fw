@@ -1,8 +1,8 @@
 include make/tools.mk
 
 TARGETS=\
-	nodeflight-stm32f722 \
-	nodeflight-stm32f745
+	nodeflight-stm32f722xe \
+	nodeflight-stm32f745xg
 
 # Disabled: nodeflight-stm32f405
 

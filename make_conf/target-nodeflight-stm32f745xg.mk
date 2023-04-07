@@ -13,8 +13,7 @@ SOURCES += \
 	vendor/stm32/cmsis_device_f7/Source/Templates/gcc/startup_stm32f745xx.s
 
 LDFLAGS += \
-	-Tstm32f745.ld \
-	-Wl,-Lsrc/platform/stm32 \
-	-Wl,-Lsrc/platform/stm32f7xx
+	-Wl,-Llinker \
+	-TSTM32F745xG.ld
 
 endif

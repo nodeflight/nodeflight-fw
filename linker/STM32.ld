@@ -3,6 +3,13 @@ ENTRY(Reset_Handler)
 /* End of stack */
 _estack = ORIGIN(RAM) + LENGTH(RAM);
 
+/* Generate a link error if heap and stack don't fit into RAM */
+_Min_Heap_Size = 8K;     /* required amount of heap  */
+_Main_Stack_Size = 1K;    /* required amount of stack */
+
+PROVIDE_HIDDEN(__l1conf_start = ORIGIN(FLASH_L1CONF));
+PROVIDE_HIDDEN(__l1conf_end = ORIGIN(FLASH_L1CONF) + LENGTH(FLASH_L1CONF));
+
 SECTIONS
 {
   .isr_vector :
