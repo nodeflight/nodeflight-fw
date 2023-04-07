@@ -503,6 +503,7 @@ PP_INST_DECL(timer, tim6_ch1, TIMER_DEF(6, 1, TIM6_DAC_IRQn),
 // PP_INST_DECL(timer, tim6_ch4, TIMER_DEF(6, 4, TIM6_DAC_IRQn),
 // );
 
+#if 0 /* Reserved for systime */
 PP_INST_DECL(timer, tim7_ch1, TIMER_DEF(7, 1, TIM7_IRQn),
     PP_INST_RS(TIMER_ARG_PIN, pin_none, 0),
     PP_INST_RS(TIMER_ARG_PIN, pin_none, 0),
@@ -514,6 +515,7 @@ PP_INST_DECL(timer, tim7_ch1, TIMER_DEF(7, 1, TIM7_IRQn),
 // );
 // PP_INST_DECL(timer, tim7_ch4, TIMER_DEF(7, 4, TIM7_IRQn),
 // );
+#endif
 
 PP_INST_DECL(timer, tim8_ch1, TIMER_DEF(8, 1, TIM8_UP_TIM13_IRQn),
     PP_INST_RS(TIMER_ARG_PIN, pin_none, 0),

@@ -37,6 +37,8 @@
 
 #include "ff.h"
 
+#include "systime.h"
+
 #include <string.h>
 
 FATFS fs_ext;
@@ -76,6 +78,7 @@ int main(
 {
     vPortInitialiseBlocks();
     platform_init();
+    systime_init();
 
     xTaskCreate(main_task, "main", 1024, NULL, 1, NULL);
 
@@ -124,7 +127,7 @@ static void main_task(
     {
         TaskStatus_t tasks[32];
         UBaseType_t num_tasks;
-        uint32_t runtime;
+        configRUN_TIME_COUNTER_TYPE runtime;
         UBaseType_t i;
 
         vTaskDelay(pdMS_TO_TICKS(1000));
@@ -132,13 +135,14 @@ static void main_task(
             num_tasks = uxTaskGetSystemState(tasks, 32, &runtime);
             log_println("");
             log_println("num_tasks = %lu", num_tasks);
-            log_println("ID ................name ....state ...prio free");
+            log_println("ID ................name ....state time ...prio free");
             for (i = 0; i < num_tasks; i++) {
                 TaskStatus_t *t = &tasks[i];
-                log_println("%2lu %-20s %9s %2lu (%2lu) %4u",
+                log_println("%2lu %-20s %9s %3d%% %2lu (%2lu) %4u",
                     t->xTaskNumber,
                     t->pcTaskName,
                     task_state_name[t->eCurrentState],
+                    (int)(100.0 * (float)t->ulRunTimeCounter/(float)runtime),
                     t->uxCurrentPriority,
                     t->uxBasePriority,
                     t->usStackHighWaterMark

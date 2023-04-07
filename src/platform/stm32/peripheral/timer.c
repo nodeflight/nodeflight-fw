@@ -296,11 +296,13 @@ void TIM6_DAC_IRQHandler(
 {
     timer_irqhandler(&timers[5]);
 }
+#if 0 /* Reserved for systime */
 void TIM7_IRQHandler(
     void)
 {
     timer_irqhandler(&timers[6]);
 }
+#endif
 void TIM8_UP_TIM13_IRQHandler(
     void)
 {
