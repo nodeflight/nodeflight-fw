@@ -14,13 +14,13 @@ INCLUDES += .
 # freertos
 
 INCLUDES += \
-	vendor/rtos/FreeRTOS-kernel/include
+	vendor/FreeRTOS-kernel/include
 
 SOURCES += \
-	vendor/rtos/FreeRTOS-kernel/list.c \
-	vendor/rtos/FreeRTOS-kernel/queue.c \
-	vendor/rtos/FreeRTOS-kernel/tasks.c \
-	vendor/rtos/FreeRTOS-kernel/timers.c
+	vendor/FreeRTOS-kernel/list.c \
+	vendor/FreeRTOS-kernel/queue.c \
+	vendor/FreeRTOS-kernel/tasks.c \
+	vendor/FreeRTOS-kernel/timers.c
 
 # tinyprintf
 

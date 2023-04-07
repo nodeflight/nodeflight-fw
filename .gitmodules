@@ -19,8 +19,8 @@
 [submodule "src/vendor/stm32/stm32f4xx_hal_driver"]
 	path = src/vendor/stm32/stm32f4xx_hal_driver
 	url = https://github.com/STMicroelectronics/stm32f4xx_hal_driver.git
-[submodule "src/vendor/rtos/FreeRTOS-kernel"]
-	path = src/vendor/rtos/FreeRTOS-kernel
+[submodule "src/vendor/FreeRTOS-kernel"]
+	path = src/vendor/FreeRTOS-kernel
 	url = https://github.com/freertos/FreeRTOS-kernel.git
 [submodule "src/vendor/tinyprintf"]
 	path = src/vendor/tinyprintf
