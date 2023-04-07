@@ -2,7 +2,7 @@ include make/tools.mk
 include make_conf/target-$(TARGET).mk
 
 CFLAGS+=$(addprefix -Isrc/,$(INCLUDES))
-SOURCES += $(patsubst src/%,%,$(foreach dir,$(SOURCEDIRS),$(wildcard src/$(dir)/*.c src/(dir)/*.s)))
+SOURCES += $(call srcwc,$(foreach dir,$(SOURCEDIRS),$(dir)/*.c $(dir)/*.s))
 
 OBJECTS = \
 	$(patsubst %.c,build/$(TARGET)/%.o,$(filter %.c,$(SOURCES))) \
