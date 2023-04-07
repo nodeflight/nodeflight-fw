@@ -38,21 +38,11 @@
 #include "ff.h"
 
 #include "systime.h"
+#include "core/task_trace.h"
 
 #include <string.h>
 
 FATFS fs_ext;
-
-#if configUSE_TRACE_FACILITY
-static const char *task_state_name[] = {
-    [eRunning] = "running",
-    [eReady] = "ready",
-    [eBlocked] = "blocked",
-    [eSuspended] = "suspended",
-    [eDeleted] = "deleted",
-    [eInvalid] = "invalid"
-};
-#endif
 
 static void print_boot_message(
     void)
@@ -98,6 +88,10 @@ static void main_task(
 
     disk_int_init();
 
+#if configUSE_TRACE_FACILITY
+    task_trace_init();
+#endif
+
     if (0 != cf_init("/int/boot.cfg")) {
         log_println("Error: processing config");
         vTaskSuspend(NULL);
@@ -125,30 +119,9 @@ static void main_task(
 
 #if configUSE_TRACE_FACILITY
     {
-        TaskStatus_t tasks[32];
-        UBaseType_t num_tasks;
-        configRUN_TIME_COUNTER_TYPE runtime;
-        UBaseType_t i;
-
         vTaskDelay(pdMS_TO_TICKS(1000));
         for (;;) {
-            num_tasks = uxTaskGetSystemState(tasks, 32, &runtime);
-            log_println("");
-            log_println("num_tasks = %lu", num_tasks);
-            log_println("ID ................name ....state time ...prio free");
-            for (i = 0; i < num_tasks; i++) {
-                TaskStatus_t *t = &tasks[i];
-                log_println("%2lu %-20s %9s %3d%% %2lu (%2lu) %4u",
-                    t->xTaskNumber,
-                    t->pcTaskName,
-                    task_state_name[t->eCurrentState],
-                    (int)(100.0 * (float)t->ulRunTimeCounter/(float)runtime),
-                    t->uxCurrentPriority,
-                    t->uxBasePriority,
-                    t->usStackHighWaterMark
-                );
-            }
-
+            task_trace_print();
             vTaskDelay(pdMS_TO_TICKS(10000));
         }
     }
