@@ -25,7 +25,7 @@
 #include "semphr.h"
 
 #include "core/log.h"
-#include "vendor/tinyprintf/tinyprintf.h"
+#include "tinyprintf.h"
 
 #define SCHEDULER_CLIENTS_PER_POOL    32
 #define SCHEDULER_TASK_BASE_PRIORITY  8

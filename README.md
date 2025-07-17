@@ -20,7 +20,7 @@ Performance may vary between microcontrollers, which may limit number of nodes, 
 | Plaform     | Status                                   |
 | ----------- | ---------------------------------------- |
 | STM32F722xE | supported (primary development platform) |
-| STM32F745xG | partial support                          |
+| STM32F746xG | partial support                          |
 | STM32F405xG | soon                                     |
 
 # Documentation

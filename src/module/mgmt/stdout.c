@@ -36,7 +36,7 @@
 #include <stddef.h>
 #include <stdbool.h>
 
-#include "vendor/tinyprintf/tinyprintf.h"
+#include "tinyprintf.h"
 
 #define STDOUT_LINE_LENGTH 128
 

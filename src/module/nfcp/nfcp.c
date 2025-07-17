@@ -32,7 +32,7 @@
 #include "task.h"
 
 #include "core/log.h"
-#include "vendor/tinyprintf/tinyprintf.h"
+#include "tinyprintf.h"
 
 #include "module/nfcp/nfcp.h"
 

@@ -24,7 +24,7 @@
 #include "task.h"
 #include "queue.h"
 
-#include "vendor/tinyprintf/tinyprintf.h"
+#include "tinyprintf.h"
 
 #define LOG_QUEUE_LEN          8
 

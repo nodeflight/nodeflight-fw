@@ -29,7 +29,7 @@
 #include <math.h>
 
 #include "core/log.h"
-#include "vendor/tinyprintf/tinyprintf.h"
+#include "tinyprintf.h"
 
 /* Specificataions from datasheet */
 #define MPU6500_SPI_FREQ_STARTUP_HZ  1000000UL
