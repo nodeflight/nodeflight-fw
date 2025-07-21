@@ -19,7 +19,7 @@ Performance may vary between microcontrollers, which may limit number of nodes, 
 | Plaform   | Status                                   |
 | --------- | ---------------------------------------- |
 | stm32f722 | supported (primary development platform) |
-| stm32f745 | partial support                          |
+| stm32f746 | partial support                          |
 | stm32f405 | soon                                     |
 
 ## Building blocks
@@ -34,7 +34,7 @@ NodeFlight is built up of a set of main compoonents:
 | Resource   | rs    | A resource shared between peripherals. For example PINs, DMA          | Implementation specific to platform |
 | Interface  | if    | An instance of a peripheral, for example UART3 with given pins        | Created by configuration            |
 | Module     | md    | A type of node, which adds functionality to an instance               |                                     |
-| Schedule   | sc    | A set of operations, added by modules, to be executed a ga given rate |                                     |
+| Schedule   | sc    | A set of operations, added by modules, to be executed at a given rate |                                     |
 | Variables  | vr    | Shared variables/links between modules                                |                                     |
 | Config     | cf    | Manages the overall configuration                                     |                                     |
 

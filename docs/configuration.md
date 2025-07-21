@@ -33,7 +33,7 @@ Example:
 
 ```
 per uart_st uart3 pin_d08 pin_d09 dma_1_3 dma_1_1
-mod stdout uart_st
+mod - stdout uart_st
 ```
 
 The example registers a configuration for an _interface_ in the first line, and creates an stdout _module_ using the an _interface_ defined in the previous line, connecting stdout to uart3. (adding debug output functionality)
