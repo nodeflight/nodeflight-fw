@@ -19,6 +19,9 @@
 #include "disk_access.h"
 
 #include "ff.h"
+#include "FreeRTOS.h"
+
+#include <stddef.h>
 
 #define DEBUG 0
 

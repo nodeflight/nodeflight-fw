@@ -3,6 +3,10 @@ Note about integration:
 Necessary files from FatFs from ChaN for integration in nodeflight.
 Since some files needs to be modified for integration, the library is not included in its entirety.
 
+Version: R0.16 with patch 2 (ff16p1.diff and ff16p2.diff applied to ff.c,
+from http://elm-chan.org/fsw/ff/patches.html). The configuration, ffconf.h,
+and the system functions, ffsystem.c, are in src/integration/fatfs.
+
 Note: Files are converted to match unix line breaks from the repo.
 
 More information about original library:

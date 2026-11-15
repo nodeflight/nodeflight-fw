@@ -43,8 +43,8 @@
 #include <stddef.h>
 #include <stdbool.h>
 
-#if !defined(configUSE_16_BIT_TICKS) || configUSE_16_BIT_TICKS
-#error nfcp.c expect 32 bit timers
+#if configTICK_TYPE_WIDTH_IN_BITS != TICK_TYPE_WIDTH_32_BITS
+#error [config error]: Expected 32-bit FreeRTOS tick type in nfcp.c
 #endif
 
 #define NFCP_IF_BUFFER_SIZE           128

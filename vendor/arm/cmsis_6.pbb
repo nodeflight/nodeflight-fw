@@ -1,0 +1,5 @@
+|{ cwd, include, ... } { lib, ... }|
+# The headers of the Arm core from CMSIS 6, for the STM32 chips only
+lib.gate (|self| self.config.arch == "stm32") (lib.lang.c.mod {
+    inc = ["${cwd}/CMSIS_6/CMSIS/Core/Include",];
+})

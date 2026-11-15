@@ -64,7 +64,7 @@ void *pvPortMalloc(
         block = cur_alloc;
         cur_alloc = next_block;
 
-        traceMALLOC(pvReturn, xWantedSize);
+        traceMALLOC(block, xWantedSize);
     }
 
     xTaskResumeAll();

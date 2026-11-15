@@ -21,8 +21,6 @@
 #include "task.h"
 #include "semphr.h"
 
-#include <stdbool.h>
-
 #define DEBUG 0
 
 #if DEBUG
@@ -32,66 +30,42 @@
 #define PRINTLN(...) do {} while(0)
 #endif
 
-static SemaphoreHandle_t fs_mutexes[FF_VOLUMES];
-static bool fs_mutex_used[FF_VOLUMES];
-static int fs_mutexes_allocated = 0;
+/*
+ * One mutex per volume, and the system mutex at index FF_VOLUMES, which FatFs
+ * only uses with FF_FS_LOCK. The heap can not free, so a mutex is created the
+ * first time its volume is mounted and kept for the next mount.
+ */
+static SemaphoreHandle_t fs_mutexes[FF_VOLUMES + 1];
 
-int ff_cre_syncobj (
-    BYTE vol,
-    FF_SYNC_t *sobj)
+int ff_mutex_create (
+    int vol)
 {
-    /* Reuse perviously allocated sempahore if possible */
-    int i;
-    SemaphoreHandle_t selected = NULL;
-
-    for (i = 0; i < fs_mutexes_allocated && selected == NULL; i++) {
-        if (!fs_mutex_used[i]) {
-            fs_mutex_used[i] = true;
-            selected = fs_mutexes[i];
-        }
+    if (fs_mutexes[vol] == NULL) {
+        fs_mutexes[vol] = xSemaphoreCreateMutex();
     }
 
-    if (selected == NULL && fs_mutexes_allocated < FF_VOLUMES) {
-        fs_mutexes[fs_mutexes_allocated] = xSemaphoreCreateMutex();
-        if (fs_mutexes[fs_mutexes_allocated] != NULL) {
-            fs_mutex_used[fs_mutexes_allocated] = true;
-            selected = fs_mutexes[fs_mutexes_allocated];
-            fs_mutexes_allocated++;
-        }
-    }
-
-    *sobj = selected;
-
-    PRINTLN("ff_cre_syncobj() = %p", (void *) selected);
-    return (int) (selected != NULL);
+    PRINTLN("ff_mutex_create(%d) = %p", vol, (void *) fs_mutexes[vol]);
+    return (int) (fs_mutexes[vol] != NULL);
 }
 
-int ff_del_syncobj (
-    FF_SYNC_t sobj)
+void ff_mutex_delete (
+    int vol)
 {
-    int i;
-    PRINTLN("ff_del_syncobj(%p)", (void *) sobj);
-
-    /* Can't free, mark as unused and available for reuse */
-    for (i = 0; i < fs_mutexes_allocated; i++) {
-        if (fs_mutexes[i] == sobj) {
-            fs_mutex_used[i] = false;
-            return 1;
-        }
-    }
-    return 0;
+    /* Can't free, kept for the next mount of the volume */
+    (void) vol;
+    PRINTLN("ff_mutex_delete(%d)", vol);
 }
 
-int ff_req_grant (
-    FF_SYNC_t sobj)
+int ff_mutex_take (
+    int vol)
 {
-    PRINTLN("ff_req_grant(%p)", (void *) sobj);
-    return (int) (xSemaphoreTake(sobj, FF_FS_TIMEOUT) == pdTRUE);
+    PRINTLN("ff_mutex_take(%d)", vol);
+    return (int) (xSemaphoreTake(fs_mutexes[vol], FF_FS_TIMEOUT) == pdTRUE);
 }
 
-void ff_rel_grant (
-    FF_SYNC_t sobj)
+void ff_mutex_give (
+    int vol)
 {
-    PRINTLN("ff_rel_grant(%p)", (void *) sobj);
-    xSemaphoreGive(sobj);
+    PRINTLN("ff_mutex_give(%d)", vol);
+    xSemaphoreGive(fs_mutexes[vol]);
 }

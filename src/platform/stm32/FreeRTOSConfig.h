@@ -33,13 +33,12 @@
 #define configMAX_PRIORITIES                    16
 #define configMINIMAL_STACK_SIZE                128
 #define configMAX_TASK_NAME_LEN                 32
-#define configUSE_16_BIT_TICKS                  0
+#define configTICK_TYPE_WIDTH_IN_BITS           TICK_TYPE_WIDTH_32_BITS
 #define configIDLE_SHOULD_YIELD                 1
 #define configUSE_TASK_NOTIFICATIONS            1
 #define configUSE_MUTEXES                       1
 #define configUSE_RECURSIVE_MUTEXES             1
 #define configUSE_COUNTING_SEMAPHORES           0
-#define configUSE_ALTERNATIVE_API               0 /* Deprecated! */
 #define configQUEUE_REGISTRY_SIZE               10
 #define configUSE_QUEUE_SETS                    0
 #define configUSE_TIME_SLICING                  0
@@ -69,6 +68,8 @@
 #define configGENERATE_RUN_TIME_STATS           1
 #define configUSE_TRACE_FACILITY                1
 #define configUSE_STATS_FORMATTING_FUNCTIONS    0
+/* The type of systime_get_runtime() */
+#define configRUN_TIME_COUNTER_TYPE             uint32_t
 
 #define portCONFIGURE_TIMER_FOR_RUN_TIME_STATS() do {} while(0)
 #define portGET_RUN_TIME_COUNTER_VALUE()         systime_get_runtime()
@@ -91,6 +92,12 @@
 #define configMAX_SYSCALL_INTERRUPT_PRIORITY    ((0x01UL) << (8 - __NVIC_PRIO_BITS))
 #define configMAX_API_CALL_INTERRUPT_PRIORITY   ((0x01UL) << (8 - __NVIC_PRIO_BITS))
 
+/*
+ * The handlers of SVCall and PendSV are in the vector table directly, by the
+ * defines at the top, which the port checks when the scheduler starts.
+ */
+#define configCHECK_HANDLER_INSTALLATION        1
+
 /* Define to trap errors during development. */
 #define configASSERT(x)                         if ( (x) == 0) asm ("bkpt 255")
 
@@ -98,5 +105,5 @@
 #define configINCLUDE_APPLICATION_DEFINED_PRIVILEGED_FUNCTIONS 0
 
 #define INCLUDE_vTaskDelay                      1
-#define INCLUDE_vTaskDelayUntil                 1
+#define INCLUDE_xTaskDelayUntil                 1
 #define INCLUDE_vTaskSuspend                    1
