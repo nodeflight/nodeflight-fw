@@ -1,7 +1,8 @@
 |_ { paths }|
 # The targets, by name: the chip, its toolchain and its flags. The toolchain
-# is arm-none-eabi-gcc from PATH. Which sources a chip builds is not decided
-# here: the modules select them by config.arch and config.variant.
+# is arm-none-eabi-gcc from PATH, and gcc from PATH for the native target.
+# Which sources a chip builds is not decided here: the modules select them by
+# config.arch and config.variant.
 let
     # The cores, by the family of the chip
     cortex_m4 = ["-mcpu=cortex-m4", "-mfloat-abi=hard", "-mfpu=fpv4-sp-d16",];
@@ -47,8 +48,57 @@ let
 
         outfmt = { cmd_objcopy = "arm-none-eabi-objcopy"; };
     };
+
+    # The target of the build machine, x86_64 Linux: nodeflight as a
+    # process on the POSIX port of FreeRTOS, built by the host's gcc from
+    # PATH. The same warnings as the STM32 chips; its C library is the
+    # host's, so no --specs, and no --short-enums, which the C library of the
+    # host is not built with.
+    native_target = |_|
+    let
+        common_flags = ["-g", "-O2",];
+    in
+    {
+        config = {
+            arch = "native";
+            variant = "native";
+        } // paths "native";
+
+        c = {
+            cmd_cc = "gcc";
+            cmd_ld = "gcc";
+            # A program is linked again when its linker script changes
+            link_depfile = true;
+            cflags = common_flags ++ [
+                "-Wdouble-promotion",
+                "-Wall",
+                "-Werror",
+                "-Wpedantic",
+                "-fdata-sections",
+                "-ffunction-sections",
+                "-fsingle-precision-constant",
+                "-fno-strict-aliasing",
+                # char is unsigned, as on the Arm cores: the code is written
+                # for them (tinyprintf stores 1 in char bit-fields of one
+                # bit)
+                "-funsigned-char",
+                # Data aligned as the ABI says, not to 32 bytes when large:
+                # the entries of the tables of modules, peripherals and
+                # resources (lib/varsection.h) must follow each other with
+                # no gaps
+                "-malign-data=abi",
+            ];
+            # What a program does not use is left out
+            ldflags = common_flags ++ ["-Wl,--gc-sections",];
+            defines = {
+                # The name of the target, as a C string
+                NF_TARGET = "\\\"nodeflight-native\\\"";
+            };
+        };
+    };
 in
 {
+    native = native_target;
     stm32f405xg = stm32_target "stm32f405xg" cortex_m4;
     stm32f722xe = stm32_target "stm32f722xe" cortex_m7;
     stm32f746xg = stm32_target "stm32f746xg" cortex_m7;

@@ -1,6 +1,7 @@
 |{ cwd, include, pb, ... } { lib, ... }|
-# The FreeRTOS kernel, with the port of the core of the target. Its
-# configuration, FreeRTOSConfig.h, is the platform's.
+# The FreeRTOS kernel, with the port of the core of the target, or the POSIX
+# port for the native target. Its configuration, FreeRTOSConfig.h, is the
+# platform's.
 let
     port = |dir| lib.lang.c.mod {
         src = ["${cwd}/freertos/portable/${dir}/port.c",];
@@ -24,4 +25,11 @@ lib.merge [
     (lib.gate (|self| pb.matches "stm32f4*" self.config.variant) (port "GCC/ARM_CM4F")),
     # Cortex-M7 revision r0p1, which also suits later revisions
     (lib.gate (|self| pb.matches "stm32f7*" self.config.variant) (port "GCC/ARM_CM7/r0p1")),
+    # The build machine: tasks as threads of the process
+    (lib.gate (|self| self.config.arch == "native") (lib.merge [
+        (port "ThirdParty/GCC/Posix"),
+        (lib.lang.c.mod {
+            src = ["${cwd}/freertos/portable/ThirdParty/GCC/Posix/utils/wait_for_event.c",];
+        }),
+    ])),
 ]

@@ -70,32 +70,32 @@ if_header_t *if_create(
     const pp_inst_decl_t *decl = pp_get_by_tag(argv[0]);
     if (decl == NULL) {
         /* TODO: error handling */
-        asm ("bkpt 255");
+        configASSERT(0);
         return NULL;
     }
     if (type != PP_NONE && type != decl->decl->type) {
         /* Not the correct type, error */
         /* TODO: error handling */
-        asm ("bkpt 255");
+        configASSERT(0);
         return NULL;
     }
 
     if_header_t *iface = pvPortMalloc(decl->decl->storage_size);
     if (iface == NULL) {
         /* TODO: error handling */
-        asm ("bkpt 255");
+        configASSERT(0);
         return NULL;
     }
     iface->peripheral = decl;
     iface->rscs = if_rs_allocate(decl, argc - 1, &argv[1]);
     if (iface->rscs == NULL) {
         /* TODO: error handling */
-        asm ("bkpt 255");
+        configASSERT(0);
         return NULL;
     }
     if (decl->decl->init(iface) < 0) {
         /* TODO: error handling */
-        asm ("bkpt 255");
+        configASSERT(0);
         return NULL;
     }
 

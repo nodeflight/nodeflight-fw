@@ -27,24 +27,34 @@ let
     src = include "${repo}/src/src.pbb" { lib; };
 
     # The firmware of a target: the ELF file `nodeflight.elf` and its images
-    # `nodeflight.bin` and `nodeflight.hex` beside it
+    # `nodeflight.bin` and `nodeflight.hex` beside it. For the native target,
+    # the program `nodeflight` only: it runs on the build machine.
     firmware = |target|
     let
+        native = target == "native";
         app = lib.combine [
             lib.lang.c.app_build "nodeflight",
             # The ELF file is named with its extension, the objects stay in
             # nodeflight/
-            lib.lang.config.mod { target_name = "nodeflight.elf"; },
+            lib.lang.config.mod {
+                target_name = switch native {
+                    true => "nodeflight";
+                    false => "nodeflight.elf";
+                };
+            },
             targets.{target},
             vendor,
             src,
         ];
     in
-    app.common.out ++ app.outfmt.bin ++ app.outfmt.hex;
+    switch native {
+        true => app.common.out;
+        false => app.common.out ++ app.outfmt.bin ++ app.outfmt.hex;
+    };
 
     # The targets that are built. stm32f405xg is defined in targets.pbb but
     # left out: its sources do not build, see plan_bugs.md.
-    built = ["stm32f722xe", "stm32f746xg",];
+    built = ["native", "stm32f722xe", "stm32f746xg",];
 
     outputs = { all = lib.tk.flatten [ |t| firmware t for built ]; } // {
         |t| (t, firmware t)

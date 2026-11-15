@@ -1,0 +1,16 @@
+|{ cwd, include, ... } { lib, ... }|
+# The native target: nodeflight as a process on the build machine, on the
+# POSIX port of FreeRTOS. The platform (the internal disk from an image file,
+# random numbers and time of the host), the configuration of FreeRTOS, the
+# serial port host_stdio on the standard output, and native.ld, an addition
+# to the default linker script of the host.
+lib.merge [
+    (lib.lang.c.mod {
+        src = ["${cwd}/host_stdio.c", "${cwd}/platform.c", "${cwd}/systime.c",];
+        inc = ["${cwd}",];
+    }),
+    (lib.lang.c.config {
+        cflags = ["-pthread",];
+        ldflags = ["-Wl,-T,${cwd}/native.ld", "-pthread", "-lm",];
+    }),
+]

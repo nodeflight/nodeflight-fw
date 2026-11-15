@@ -55,7 +55,8 @@ static void print_boot_message(
 
     mem_size = heap_get_size();
     mem_used = heap_get_usage();
-    log_println("memory usage: %lu / %lu (%lu%%)", mem_used, mem_size, (100UL * mem_used) / mem_size);
+    log_println("memory usage: %lu / %lu (%lu%%)", (unsigned long) mem_used, (unsigned long) mem_size,
+        (100UL * mem_used) / mem_size);
 
     log_println("");
 }

@@ -23,6 +23,6 @@ void vApplicationStackOverflowHook(
     TaskHandle_t pxTask,
     char *pcTaskName)
 {
-    asm ("bkpt 255");
+    configASSERT(0);
     for (;;);
 }

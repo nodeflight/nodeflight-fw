@@ -173,7 +173,7 @@ static nfcp_op_status_t nfcp_cls_cap_op_get_info(
         pack_from_u16(&nfcp->tx_buffer[resp_len], md_get_decl_count());
         resp_len += 2;
 
-        pack_from_u16(&nfcp->tx_buffer[resp_len], SystemCoreClock / 1000000ul);
+        pack_from_u16(&nfcp->tx_buffer[resp_len], configCPU_CLOCK_HZ / 1000000ul);
         resp_len += 2;
 
         for (i = 0; nf_target[i] != '\0'; i++) {
