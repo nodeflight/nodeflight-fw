@@ -1,0 +1,15 @@
+|{ cwd, include, ... } { lib, ... }|
+# The STM32F7 family: the clocks and the system time, and the map of the
+# hardware of each chip.
+lib.merge [
+    (lib.lang.c.mod {
+        src = ["${cwd}/platform.c", "${cwd}/systime.c",];
+        inc = ["${cwd}",];
+    }),
+    (lib.gate (|self| self.config.variant == "stm32f722xe") (lib.lang.c.mod {
+        src = ["${cwd}/stm32f722/hwmap_stm32f722.c",];
+    })),
+    (lib.gate (|self| self.config.variant == "stm32f746xg") (lib.lang.c.mod {
+        src = ["${cwd}/stm32f746/hwmap_stm32f746.c",];
+    })),
+]

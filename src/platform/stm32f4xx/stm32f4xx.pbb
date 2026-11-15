@@ -1,0 +1,12 @@
+|{ cwd, include, ... } { lib, ... }|
+# The STM32F4 family: the clocks and the system time, and the map of the
+# hardware of each chip.
+lib.merge [
+    (lib.lang.c.mod {
+        src = ["${cwd}/platform.c", "${cwd}/systime.c",];
+        inc = ["${cwd}",];
+    }),
+    (lib.gate (|self| self.config.variant == "stm32f405xg") (lib.lang.c.mod {
+        src = ["${cwd}/stm32f405/hwmap_stm32f405.c",];
+    })),
+]

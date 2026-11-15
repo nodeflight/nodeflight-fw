@@ -25,6 +25,7 @@
 [submodule "vendor/tinyprintf"]
 	path = vendor/tinyprintf
 	url = https://github.com/cjlano/tinyprintf.git
-[submodule "vendor/cbe"]
-	path = vendor/cbe
-	url = https://github.com/pengi/cbe.git
+[submodule "vendor/lead-lib"]
+	path = vendor/lead-lib
+	url = https://github.com/lead-build/lead-lib.git
+	branch = main

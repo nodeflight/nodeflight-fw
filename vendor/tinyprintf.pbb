@@ -1,0 +1,12 @@
+|{ cwd, include, ... } { lib, ... }|
+# tinyprintf, a small printf: tfp_sprintf and its variants only, beside the
+# printf of the C library.
+lib.lang.c.mod {
+    src = ["${cwd}/tinyprintf/tinyprintf.c",];
+    inc = ["${cwd}/tinyprintf",];
+    defines = {
+        TINYPRINTF_DEFINE_TFP_PRINTF = 0;
+        TINYPRINTF_DEFINE_TFP_SPRINTF = 1;
+        TINYPRINTF_OVERRIDE_LIBC = 0;
+    };
+}

@@ -1,0 +1,8 @@
+|{ cwd, include, args, ... }|
+# The build of nodeflight: the firmware for each target, to out/<target>/.
+# `all`, the default, builds the targets stm32f722xe and stm32f746xg; each
+# target is also a target of ninja of its own name. No arguments: the
+# toolchain is arm-none-eabi-gcc from PATH.
+#
+# See builddef/ for how it is put together.
+(include "${cwd}/builddef/build.pbb" { repo = cwd; }).main args

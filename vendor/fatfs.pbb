@@ -1,0 +1,7 @@
+|{ cwd, include, ... } { lib, ... }|
+# FatFs, the FAT and exFAT file system. Its configuration, ffconf.h, and
+# system functions are in src/integration/fatfs.
+lib.lang.c.mod {
+    src = ["${cwd}/fatfs/ff.c", "${cwd}/fatfs/ffunicode.c",];
+    inc = ["${cwd}/fatfs",];
+}

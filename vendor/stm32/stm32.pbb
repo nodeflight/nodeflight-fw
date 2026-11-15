@@ -1,0 +1,47 @@
+|{ cwd, include, pb, ... } { lib, ... }|
+# CMSIS and the LL drivers of ST for the STM32 family of the target, and
+# the startup code and the device define of each chip. Only the LL drivers
+# that the platform uses are built.
+let
+    # The device headers, system_<family>.c and the LL drivers of a family
+    family = |device fam ll| lib.lang.c.mod {
+        src = ["${cwd}/cmsis_device_${device}/Source/Templates/system_${fam}.c",] ++ [
+            |name| "${cwd}/${fam}_hal_driver/Src/${fam}_ll_${name}.c"
+            for ll
+        ];
+        inc = ["${cwd}/cmsis_device_${device}/Include", "${cwd}/${fam}_hal_driver/Inc",];
+    };
+
+    # The vector table and reset handler of a chip, and the define that
+    # selects it in the device headers
+    chip = |device model define| lib.lang.c.mod {
+        src = ["${cwd}/cmsis_device_${device}/Source/Templates/gcc/startup_${model}xx.s",];
+        defines = { |d| (d, 1) for [define] };
+    };
+in
+lib.merge [
+    # The headers of the Arm core, for the STM32 chips only
+    (lib.gate (|self| self.config.arch == "stm32") (lib.lang.c.mod {
+        inc = ["${cwd}/cmsis_core/Include",];
+    })),
+    (lib.gate (|self| self.config.variant == "stm32f405xg") (chip "f4" "stm32f405" "STM32F405xx")),
+    (lib.gate (|self| self.config.variant == "stm32f722xe") (chip "f7" "stm32f722" "STM32F722xx")),
+    (lib.gate (|self| self.config.variant == "stm32f746xg") (chip "f7" "stm32f746" "STM32F746xx")),
+    (lib.gate (|self| pb.matches "stm32f4*" self.config.variant) (family "f4" "stm32f4xx" [
+        "dma",
+        "gpio",
+        "rcc",
+        "usart",
+        "utils",
+    ])),
+    (lib.gate (|self| pb.matches "stm32f7*" self.config.variant) (family "f7" "stm32f7xx" [
+        "dma",
+        "exti",
+        "gpio",
+        "rcc",
+        "spi",
+        "tim",
+        "usart",
+        "utils",
+    ])),
+]

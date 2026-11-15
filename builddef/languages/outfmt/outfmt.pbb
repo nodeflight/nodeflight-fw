@@ -1,0 +1,60 @@
+|{ pb, ... }|
+# The language `outfmt`: the output of a build in other formats.
+#
+#   outfmt.bin          The image of each file of `common.out` as the bytes of
+#                       flash, as the file `<file>.bin` beside it (`.elf` of the
+#                       name replaced). The first
+#                       byte is the first byte that the file is linked to. It
+#                       goes on to the end of what is linked, with what is
+#                       initialised in RAM at its end.
+#   outfmt.hex          The same in Intel HEX, with the addresses, as the file
+#                       `<file>.hex` beside it.
+#   outfmt.cmd_objcopy  The objcopy that makes them, set by the target.
+#
+# Nothing is built unless it is asked for: it is read from the combined
+# modules, `(lib.combine mods).outfmt.bin`, and it only makes sense for a
+# `common.out` that is ELF files.
+let
+    # A conversion of an ELF file by objcopy to the format `fmt`, as the
+    # file of the extension `ext` beside it
+    tmpl_objcopy = |fmt ext desc self|
+    let
+        { cmd_objcopy, ... } = self.outfmt;
+        rule = pb.rule (|{ input, output, ... }| {
+            command = [cmd_objcopy, "-O", fmt, input, output];
+            description = "${desc} ${output}";
+        });
+    in
+    |elf| rule {
+        input = elf;
+        # nodeflight.elf gives nodeflight.bin, a name without .elf gets ext
+        # added
+        output = switch (pb.matches "*.elf" elf) {
+            true => elf - ".elf" + ext;
+            false => elf + ext;
+        };
+    };
+in
+{
+    merge = {
+        cmd_objcopy = |a b| b;
+        bin = |a b| a ++ b;
+        hex = |a b| a ++ b;
+    };
+
+    base = |self| {
+        outfmt = {
+            cmd_objcopy = "objcopy";
+            bin =
+            let
+                to_bin = tmpl_objcopy "binary" ".bin" "BIN" self;
+            in
+            [ |elf| to_bin elf for (self.common.out) ];
+            hex =
+            let
+                to_hex = tmpl_objcopy "ihex" ".hex" "HEX" self;
+            in
+            [ |elf| to_hex elf for (self.common.out) ];
+        };
+    };
+}

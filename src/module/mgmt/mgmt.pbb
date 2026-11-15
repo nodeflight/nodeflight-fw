@@ -1,0 +1,3 @@
+|{ cwd, include, ... } { lib, ... }|
+# Management: the SD card and the log on a serial interface.
+lib.lang.c.mod { src = ["${cwd}/sdcard.c", "${cwd}/stdout.c",]; }

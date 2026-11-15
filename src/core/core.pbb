@@ -1,0 +1,21 @@
+|{ cwd, include, ... } { lib, ... }|
+# The core: startup, configuration, the registries of interfaces, modules,
+# peripherals, resources and variables, the scheduler, logging and the
+# internal disk.
+lib.lang.c.mod {
+    src = [
+        "${cwd}/config.c",
+        "${cwd}/disk_access.c",
+        "${cwd}/disk_int.c",
+        "${cwd}/interface.c",
+        "${cwd}/log.c",
+        "${cwd}/main.c",
+        "${cwd}/module.c",
+        "${cwd}/peripheral.c",
+        "${cwd}/random.c",
+        "${cwd}/resource.c",
+        "${cwd}/scheduler.c",
+        "${cwd}/task_trace.c",
+        "${cwd}/variable.c",
+    ];
+}

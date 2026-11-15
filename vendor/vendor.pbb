@@ -1,0 +1,10 @@
+|{ cwd, include, ... } { lib, ... }|
+# The third-party code, as one module: CMSIS and the LL drivers of ST,
+# FreeRTOS, FatFs and tinyprintf. Each part selects what it builds for the
+# target.
+lib.merge [
+    (include "${cwd}/stm32/stm32.pbb" { lib; }),
+    (include "${cwd}/freertos.pbb" { lib; }),
+    (include "${cwd}/fatfs.pbb" { lib; }),
+    (include "${cwd}/tinyprintf.pbb" { lib; }),
+]

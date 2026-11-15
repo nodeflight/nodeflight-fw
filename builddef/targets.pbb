@@ -1,0 +1,55 @@
+|_ { paths }|
+# The targets, by name: the chip, its toolchain and its flags. The toolchain
+# is arm-none-eabi-gcc from PATH. Which sources a chip builds is not decided
+# here: the modules select them by config.arch and config.variant.
+let
+    # The cores, by the family of the chip
+    cortex_m4 = ["-mcpu=cortex-m4", "-mfloat-abi=hard", "-mfpu=fpv4-sp-d16",];
+    cortex_m7 = ["-mcpu=cortex-m7", "-mfloat-abi=hard", "-mfpu=fpv5-sp-d16",];
+
+    # A target of an STM32 chip: `chip` is the name of the target and the
+    # variant, `core` the flags of its core
+    stm32_target = |chip core|
+    let
+        # For the compiler and the link: the core and the C library
+        common_flags = core ++ ["-mthumb", "--specs=nano.specs", "-g", "-O3",];
+    in
+    |_| {
+        config = {
+            arch = "stm32";
+            variant = chip;
+        } // paths chip;
+
+        c = {
+            cmd_cc = "arm-none-eabi-gcc";
+            cmd_ld = "arm-none-eabi-gcc";
+            # A program is linked again when its linker script changes
+            link_depfile = true;
+            cflags = common_flags ++ [
+                "-Wdouble-promotion",
+                "-Wall",
+                "-Werror",
+                "-Wpedantic",
+                "--short-enums",
+                "-fno-builtin",
+                "-fdata-sections",
+                "-ffunction-sections",
+                "-fsingle-precision-constant",
+                "-fno-strict-aliasing",
+            ];
+            # What a program does not use is left out
+            ldflags = common_flags ++ ["-Wl,--gc-sections,--sort-section=alignment",];
+            defines = {
+                # The name of the target, as a C string
+                NF_TARGET = "\\\"nodeflight-${chip}\\\"";
+            };
+        };
+
+        outfmt = { cmd_objcopy = "arm-none-eabi-objcopy"; };
+    };
+in
+{
+    stm32f405xg = stm32_target "stm32f405xg" cortex_m4;
+    stm32f722xe = stm32_target "stm32f722xe" cortex_m7;
+    stm32f746xg = stm32_target "stm32f746xg" cortex_m7;
+}

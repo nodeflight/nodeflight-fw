@@ -1,0 +1,10 @@
+|{ cwd, include, ... } { lib, ... }|
+# The modules that a configuration instantiates, by kind.
+lib.merge [
+    (include "${cwd}/math/math.pbb" { lib; }),
+    (include "${cwd}/mgmt/mgmt.pbb" { lib; }),
+    (include "${cwd}/nfcp/nfcp.pbb" { lib; }),
+    (include "${cwd}/rc_io/rc_io.pbb" { lib; }),
+    (include "${cwd}/scheduler/scheduler.pbb" { lib; }),
+    (include "${cwd}/sensor/sensor.pbb" { lib; }),
+]

@@ -1,0 +1,54 @@
+|{ cwd, include, pb, ... } { repo }|
+# The build of the repository `repo`, see main.pbb: the firmware of each
+# target in `built`, from the vendor code and src/ (one module each, the
+# same for every target) and the target of targets.pbb.
+#
+# Returns `main args`, a function giving `all`, the firmware of every built
+# target, and the same by the name of each target, as a target of ninja of
+# its own.
+let
+    # lead-lib, with the language outfmt for the images of a program (.bin
+    # and .hex)
+    lib = include "${repo}/vendor/lead-lib/lead-lib.pbb" {
+        languages = { outfmt = include "${cwd}/languages/outfmt/outfmt.pbb"; };
+    };
+
+    # Where the build of a target goes, as the config of the target: objects
+    # to build/<target>/, programs to out/<target>/
+    paths = |target| {
+        srcdirs = [repo];
+        objbasedir = pb.lock (repo / "build" / target);
+        outdir = pb.lock (repo / "out" / target);
+    };
+
+    targets = include "${cwd}/targets.pbb" { paths; };
+
+    vendor = include "${repo}/vendor/vendor.pbb" { lib; };
+    src = include "${repo}/src/src.pbb" { lib; };
+
+    # The firmware of a target: the ELF file `nodeflight.elf` and its images
+    # `nodeflight.bin` and `nodeflight.hex` beside it
+    firmware = |target|
+    let
+        app = lib.combine [
+            lib.lang.c.app_build "nodeflight",
+            # The ELF file is named with its extension, the objects stay in
+            # nodeflight/
+            lib.lang.config.mod { target_name = "nodeflight.elf"; },
+            targets.{target},
+            vendor,
+            src,
+        ];
+    in
+    app.common.out ++ app.outfmt.bin ++ app.outfmt.hex;
+
+    # The targets that are built. stm32f405xg is defined in targets.pbb but
+    # left out: its sources do not build, see plan_bugs.md.
+    built = ["stm32f722xe", "stm32f746xg",];
+
+    outputs = { all = lib.tk.flatten [ |t| firmware t for built ]; } // {
+        |t| (t, firmware t)
+        for built
+    };
+in
+{ main = |_| outputs; }

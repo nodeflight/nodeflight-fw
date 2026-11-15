@@ -1,0 +1,13 @@
+|{ cwd, include, ... } { lib, ... }|
+# The firmware of nodeflight, all of src/ as one module. Each part selects
+# what it builds for the target from self.config.arch and
+# self.config.variant, so this module is the same for every target.
+# Headers are included relative to src/.
+lib.merge [
+    (include "${cwd}/core/core.pbb" { lib; }),
+    (include "${cwd}/integration/integration.pbb" { lib; }),
+    (include "${cwd}/lib/lib.pbb" { lib; }),
+    (include "${cwd}/module/module.pbb" { lib; }),
+    (include "${cwd}/platform/platform.pbb" { lib; }),
+    (lib.lang.c.mod { inc = ["${cwd}",]; }),
+]

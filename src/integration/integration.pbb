@@ -1,0 +1,7 @@
+|{ cwd, include, ... } { lib, ... }|
+# The glue to the vendor libraries: the heap and the hooks of FreeRTOS, and
+# the system functions and configuration (ffconf.h) of FatFs.
+lib.lang.c.mod {
+    src = ["${cwd}/fatfs/ffsystem.c", "${cwd}/freertos_hooks.c", "${cwd}/heap.c",];
+    inc = ["${cwd}/fatfs",];
+}

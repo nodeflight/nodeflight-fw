@@ -21,7 +21,13 @@
 # Targets
 *.elf
 *.hex
-build/
+
+# Build output
+/build
+/out
+/build.ninja
+/.ninja_log
+/compile_commands.json
 
 # Common IDE files
 .vscode

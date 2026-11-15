@@ -1,0 +1,16 @@
+|{ cwd, include, pb, ... } { lib, ... }|
+# The platform: what the core needs of the hardware (platform.h). The part
+# common to all STM32 chips, and the part of each family, selected by the
+# target.
+let
+    is_family = |pattern self| pb.matches pattern self.config.variant;
+
+    stm32 = include "${cwd}/stm32/stm32.pbb" { lib; };
+    stm32f4xx = include "${cwd}/stm32f4xx/stm32f4xx.pbb" { lib; };
+    stm32f7xx = include "${cwd}/stm32f7xx/stm32f7xx.pbb" { lib; };
+in
+lib.merge [
+    (lib.gate (|self| self.config.arch == "stm32") stm32),
+    (lib.gate (is_family "stm32f4*") stm32f4xx),
+    (lib.gate (is_family "stm32f7*") stm32f7xx),
+]

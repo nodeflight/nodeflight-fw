@@ -1,0 +1,4 @@
+|{ cwd, include, ... } { lib, ... }|
+# Helpers without dependencies on the platform: CRC, HDLC framing, maps and
+# string operations.
+lib.lang.c.mod { src = ["${cwd}/crc.c", "${cwd}/hdlc.c", "${cwd}/map.c", "${cwd}/strops.c",]; }

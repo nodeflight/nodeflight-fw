@@ -1,0 +1,4 @@
+|{ cwd, include, ... } { lib, ... }|
+# NFCP, the protocol to a host: the transport and its classes for
+# capabilities and management.
+lib.lang.c.mod { src = ["${cwd}/nfcp.c", "${cwd}/nfcp_cls_cap.c", "${cwd}/nfcp_cls_mgmt.c",]; }

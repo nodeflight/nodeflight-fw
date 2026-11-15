@@ -4,7 +4,8 @@ Recommened using a GNU/linux based system or MacOS. No support given for install
 
 Following programs are required:
 - `arm-none-eabi-gcc` - gcc for embedded arm - up to date
-- `make`
+- `pb` - [Lead Build System](https://github.com/lead-build/lead-build), generates `build.ninja`
+- `ninja`
 
 Following programs are recommedned:
 - `arm-none-eabi-gdb` - debugger
@@ -14,18 +15,26 @@ For loading to a devboard, use an ARM programmer of choice. For ST-link, install
 
 For a more generic programmer, [Segger J-Link](https://www.segger.com/jlink/) is recommended, with options for non-profit use.
 
-To compile for a given platform:
+The build uses lead-lib as a git submodule. Check out the submodules first:
 ```
-make nodeflight-stm32f722.elf
+git submodule update --init
 ```
-or
+
+To configure and compile all targets (generates `build.ninja` and `compile_commands.json`, then runs ninja):
 ```
-make nodeflight-stm32f722.hex
+./build.sh
 ```
+
+After configuring once with `./configure.sh`, compile with `ninja`. To compile a given target only:
+```
+ninja stm32f722xe
+```
+
+The firmware of each target is written to `out/<target>/`: `nodeflight.elf`, and its images `nodeflight.elf.bin` and `nodeflight.elf.hex`. Objects are in `build/<target>/`.
 
 To flash, using st-link:
 ```
-st-flash --reset --format ihex write build/nodeflight-stm32f722.hex
+st-flash --reset --format ihex write out/stm32f722xe/nodeflight.elf.hex
 ```
 
 Loading a layer1 config: (currently hardcoded for stm32f722ze memory map, for layer1 config, see below)

@@ -1,0 +1,3 @@
+|{ cwd, include, ... } { lib, ... }|
+# Sensors: the MPU-6500 motion sensor.
+lib.lang.c.mod { src = ["${cwd}/motion_mpu6500.c",]; }

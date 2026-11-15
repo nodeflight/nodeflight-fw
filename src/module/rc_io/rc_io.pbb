@@ -1,0 +1,3 @@
+|{ cwd, include, ... } { lib, ... }|
+# Radio control input and output: the FPort receiver, and servos.
+lib.lang.c.mod { src = ["${cwd}/fport.c", "${cwd}/servo.c",]; }

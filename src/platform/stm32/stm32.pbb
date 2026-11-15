@@ -1,0 +1,35 @@
+|{ cwd, include, ... } { lib, ... }|
+# What all STM32 chips share: the peripherals and resources on the LL
+# drivers, the fault handlers, the configuration of FreeRTOS, and the linker
+# scripts, one for each chip in linker/.
+lib.merge [
+    (lib.lang.c.mod {
+        src = [
+            "${cwd}/hwmap/resource_stm32.c",
+            "${cwd}/peripheral/gpio.c",
+            "${cwd}/peripheral/spi.c",
+            "${cwd}/peripheral/timer.c",
+            "${cwd}/peripheral/uart.c",
+            "${cwd}/peripheral/usb_vcp.c",
+            "${cwd}/resource/dma.c",
+            "${cwd}/resource/gpio.c",
+            "${cwd}/fault_irq.c",
+        ];
+        inc = ["${cwd}",];
+        defines = {
+            USE_FULL_LL_DRIVER = 1;
+            # The crystal of the boards
+            HSE_VALUE = 8000000;
+        };
+    }),
+    (lib.lang.c.config { ldflags = ["-Wl,-L${cwd}/linker",]; }),
+    (lib.gate (|self| self.config.variant == "stm32f405xg") (lib.lang.c.config {
+        ldflags = ["-TSTM32F405xG.ld",];
+    })),
+    (lib.gate (|self| self.config.variant == "stm32f722xe") (lib.lang.c.config {
+        ldflags = ["-TSTM32F722xE.ld",];
+    })),
+    (lib.gate (|self| self.config.variant == "stm32f746xg") (lib.lang.c.config {
+        ldflags = ["-TSTM32F746xG.ld",];
+    })),
+]

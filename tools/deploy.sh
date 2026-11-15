@@ -7,9 +7,10 @@ mkdir -p $DEPLOYMENT_BUILD
 
 source $DEPLOYMENT/hwinfo.cfg
 
-ELF_FILE=build/nodeflight-$TARGET.elf
+ELF_FILE=out/$TARGET/nodeflight.elf
 
-make $ELF_FILE
+./configure.sh
+ninja $ELF_FILE
 
 L1CONF_ADDR_START=$( \
     arm-none-eabi-readelf -s $ELF_FILE | \

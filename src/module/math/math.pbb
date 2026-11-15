@@ -1,0 +1,3 @@
+|{ cwd, include, ... } { lib, ... }|
+# Arithmetic and calculus on variables.
+lib.lang.c.mod { src = ["${cwd}/arithmetic.c", "${cwd}/calculus.c",]; }

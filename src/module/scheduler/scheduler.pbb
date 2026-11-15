@@ -1,0 +1,3 @@
+|{ cwd, include, ... } { lib, ... }|
+# Sources of scheduling: decimation and timers.
+lib.lang.c.mod { src = ["${cwd}/sch_decim.c", "${cwd}/sch_timer.c",]; }
